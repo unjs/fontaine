@@ -58,6 +58,22 @@ describe('getMetricsForFamily', () => {
     `)
     // Test cache
     expect(await getMetricsForFamily('Merriweather Sans')).toEqual(metrics)
+
+    expect(
+      generateFontFace(metrics!, {
+        name: 'Merriweather Sans override',
+        fallbacks: ['Arial'],
+      })
+    ).toMatchInlineSnapshot(`
+      "@font-face {
+        font-family: \\"Merriweather Sans override\\";
+        src: local(\\"Arial\\");
+        ascent-override: 98.4%;
+        descent-override: 27.3%;
+        line-gap-override: 0%;
+      }
+      "
+    `)
   })
 
   it('handles non-existent metrics', async () => {
