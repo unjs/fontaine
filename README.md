@@ -86,9 +86,9 @@ export default {
       format('woff');
   font-weight: 700;
 }
-/* This will be generated. */
+/* This additional font-face declaration will be added to your CSS. */
 @font-face {
-  font-family: 'Roboto', 'Roboto override';
+  font-family: 'Roboto override';
   src: local('BlinkMacSystemFont'), local('Segoe UI'), local('Roboto'), local(
       'Helvetica Neue'
     ), local('Arial'), local('Noto Sans');
