@@ -71,6 +71,9 @@ export default {
 }
 ```
 
+> **Note**
+> If you are using Nuxt, check out [nuxt-font-metrics](https://github.com/danielroe/nuxt-font-metrics) which uses `fontaine` under the hood.
+
 ## How it works
 
 `fontaine` will scan your `@font-face` rules and generate fallback rules with the correct metrics. For example:
