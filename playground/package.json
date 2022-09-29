@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "dev": "node index.mjs"
+    "dev": "vite"
   },
   "dependencies": {
     "fontaine": "latest",
