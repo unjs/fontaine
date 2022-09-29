@@ -22,8 +22,8 @@ On the playground project, enabling/disabling `fontaine` makes the following dif
 
 |             | Before | After   |
 | ----------- | ------ | ------- |
-| CLS         | `0.34` | `0.013` |
-| Performance | `88`   | `98`    |
+| CLS         | `0.24` | `0.054` |
+| Performance | `92`   | `100`   |
 
 ## Installation
 

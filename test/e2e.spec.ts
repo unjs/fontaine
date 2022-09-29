@@ -16,7 +16,7 @@ describe('fontaine', () => {
     // @ts-expect-error there must be a file or we _want_ a test failure
     const css = await readFile(join(assetsDir, cssFile), 'utf-8')
     expect(css.replace(/\.[\w]+\.woff2/g, '.woff2')).toMatchInlineSnapshot(`
-      "@font-face{font-family:Poppins variant override;src:local(\\"Arial\\");ascent-override:92.7734375%;descent-override:24.4140625%;line-gap-override:0%}@font-face{font-family:Poppins variant;font-display:swap;src:url(/assets/font.woff2)}@font-face{font-family:Roboto override;src:local(\\"Arial\\");ascent-override:92.7734375%;descent-override:24.4140625%;line-gap-override:0%}@font-face{font-family:Roboto;font-display:swap;src:url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu72xKKTU1Kvnz.woff2) format(\\"woff2\\")}h1{font-family:Poppins variant,Poppins variant override,sans-serif}h2{font-family:Roboto,Roboto override,Arial,Helvetica,sans-serif}p{font-family:Poppins variant,Poppins variant override}
+      "@font-face{font-family:Poppins variant override;src:local(\\"Arial\\");ascent-override:105%;descent-override:35%;line-gap-override:10%}@font-face{font-family:Poppins variant;font-display:swap;src:url(/assets/font.707fdc5c.ttf) format(\\"truetype\\")}@font-face{font-family:Roboto override;src:local(\\"Arial\\");ascent-override:92.7734375%;descent-override:24.4140625%;line-gap-override:0%}@font-face{font-family:Roboto;font-display:swap;src:url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu72xKKTU1Kvnz.woff2) format(\\"woff2\\")}h1{font-family:Poppins variant,Poppins variant override,sans-serif}h2{font-family:Roboto,Roboto override,Arial,Helvetica,sans-serif}p{font-family:Poppins variant,Poppins variant override}
       "
     `)
   })

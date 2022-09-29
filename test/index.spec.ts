@@ -11,7 +11,7 @@ import {
 } from '../src/css'
 import { getMetricsForFamily, readMetrics } from '../src/metrics'
 
-const fixtureURL = new URL('../playground/fonts/font.woff2', import.meta.url)
+const fixtureURL = new URL('../playground/fonts/font.ttf', import.meta.url)
 
 describe('generateFontFace', () => {
   it('generates CSS font face override ', async () => {
@@ -26,9 +26,9 @@ describe('generateFontFace', () => {
       "@font-face {
         font-family: \\"example override\\";
         src: local(\\"fallback\\");
-        ascent-override: 92.7734375%;
-        descent-override: 24.4140625%;
-        line-gap-override: 0%;
+        ascent-override: 105%;
+        descent-override: 35%;
+        line-gap-override: 10%;
         font-weight: bold;
       }
       "
@@ -74,20 +74,20 @@ describe('getMetricsForFamily', () => {
 describe('readMetrics', () => {
   it('reads font metrics from a file', async () => {
     const metrics = await readMetrics(
-      new URL('../playground/fonts/font.woff2', import.meta.url)
+      new URL('../playground/fonts/font.ttf', import.meta.url)
     )
     expect(metrics).toMatchInlineSnapshot(`
       {
-        "ascent": 1900,
-        "capHeight": 1456,
-        "descent": -500,
-        "familyName": "Roboto",
-        "fullName": "Roboto",
-        "lineGap": 0,
-        "postscriptName": "Roboto-Regular",
+        "ascent": 1050,
+        "capHeight": 698,
+        "descent": -350,
+        "familyName": "Poppins",
+        "fullName": "Poppins Regular",
+        "lineGap": 100,
+        "postscriptName": "Poppins-Regular",
         "subfamilyName": "Regular",
-        "unitsPerEm": 2048,
-        "xHeight": 1082,
+        "unitsPerEm": 1000,
+        "xHeight": 548,
       }
     `)
   })
@@ -99,25 +99,25 @@ describe('readMetrics', () => {
     )
     const port = await getRandomPort()
     server.listen(port)
-    const metrics = await readMetrics(`http://localhost:${port}/font.woff2`)
+    const metrics = await readMetrics(`http://localhost:${port}/font.ttf`)
     expect(metrics).toMatchInlineSnapshot(`
       {
-        "ascent": 1900,
-        "capHeight": 1456,
-        "descent": -500,
-        "familyName": "Roboto",
-        "fullName": "Roboto",
-        "lineGap": 0,
-        "postscriptName": "Roboto-Regular",
+        "ascent": 1050,
+        "capHeight": 698,
+        "descent": -350,
+        "familyName": "Poppins",
+        "fullName": "Poppins Regular",
+        "lineGap": 100,
+        "postscriptName": "Poppins-Regular",
         "subfamilyName": "Regular",
-        "unitsPerEm": 2048,
-        "xHeight": 1082,
+        "unitsPerEm": 1000,
+        "xHeight": 548,
       }
     `)
     server.close()
   })
   it('ignores non-URL paths', async () => {
-    const metrics = await readMetrics(`/font.woff2`)
+    const metrics = await readMetrics(`/font.ttf`)
     expect(metrics).toBeNull()
   })
 })
