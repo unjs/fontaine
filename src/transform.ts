@@ -27,7 +27,7 @@ export const FontaineTransform = createUnplugin(
       enforce: 'pre',
       transformInclude(id) {
         const { pathname } = parseURL(id)
-        return pathname.endsWith('.css')
+        return pathname.endsWith('.css') || id.endsWith('.css')
       },
       async transform(code, id) {
         const s = new MagicString(code)
