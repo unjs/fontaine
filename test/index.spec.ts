@@ -60,6 +60,7 @@ describe('getMetricsForFamily', () => {
     expect(await getMetricsForFamily('Merriweather Sans')).toEqual(metrics)
 
     expect(
+      // eslint-disable-next-line
       generateFontFace(metrics!, {
         name: 'Merriweather Sans override',
         fallbacks: ['Arial'],
