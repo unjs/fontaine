@@ -23,7 +23,7 @@ export const FontaineTransform = createUnplugin(
     const cssContext = (options.css = options.css || {})
     cssContext.value = ''
     return {
-      name: 'nuxt-font-metrics-transform',
+      name: 'fontaine-transform',
       enforce: 'pre',
       transformInclude(id) {
         const { pathname } = parseURL(id)

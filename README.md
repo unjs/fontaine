@@ -7,8 +7,8 @@
 
 > Automatic font fallback based on font metrics
 
-- [✨ &nbsp;Changelog](https://github.com/danielroe/nuxt-font-metrics/blob/main/CHANGELOG.md)
-- [▶️ &nbsp;Online playground](https://stackblitz.com/github/danielroe/nuxt-font-metrics/tree/main/playground)
+- [✨ &nbsp;Changelog](https://github.com/danielroe/fontaine/blob/main/CHANGELOG.md)
+- [▶️ &nbsp;Online playground](https://stackblitz.com/github/danielroe/fontaine/tree/main/playground)
 
 ## Features
 
