@@ -1,0 +1,24 @@
+@font-face {
+  font-family: 'Poppins variant';
+  font-display: swap;
+  src: url('/fonts/font.woff2');
+}
+
+@font-face {
+  font-family: 'Roboto';
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu72xKKTU1Kvnz.woff2)
+    format('woff2');
+}
+
+h1 {
+  font-family: 'Poppins variant', sans-serif;
+}
+
+h2 {
+  font-family: 'Roboto', Arial, Helvetica, sans-serif;
+}
+
+p {
+  font-family: 'Poppins variant';
+}

@@ -1,0 +1,86 @@
+{
+  "name": "fontaine",
+  "version": "0.0.1",
+  "description": "Automatic font fallback based on font metrics",
+  "repository": "danielroe/fontaine",
+  "keywords": [
+    "fonts",
+    "cls",
+    "web-vitals",
+    "performance"
+  ],
+  "author": {
+    "name": "Daniel Roe <daniel@roe.dev>",
+    "url": "https://github.com/danielroe"
+  },
+  "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "vitest",
+    "demo": "vite dev playground",
+    "demo:dev": "pnpm demo --config test/vite.config.mjs",
+    "lint": "pnpm lint:all:eslint && pnpm lint:all:prettier",
+    "lint:all:eslint": "pnpm lint:eslint --ext .ts,.js,.mjs,.cjs .",
+    "lint:all:prettier": "pnpm lint:prettier \"{src,test}/**/*.{js,json,ts}\"",
+    "lint:eslint": "eslint --fix",
+    "lint:prettier": "prettier --write --loglevel warn",
+    "prepare": "husky install && pnpm build",
+    "prepublishOnly": "pnpm lint && pnpm test && pinst --disable",
+    "release": "release-it",
+    "test": "vitest run",
+    "postinstall": "husky install",
+    "postpublish": "pinst --enable"
+  },
+  "dependencies": {
+    "@capsizecss/metrics": "^0.3.0",
+    "@capsizecss/unpack": "^0.1.0",
+    "magic-regexp": "^0.5.0",
+    "magic-string": "^0.26.4",
+    "pathe": "^0.3.8",
+    "scule": "^0.3.2",
+    "ufo": "^0.8.5",
+    "unplugin": "^0.9.6"
+  },
+  "devDependencies": {
+    "@nuxtjs/eslint-config-typescript": "latest",
+    "@release-it/conventional-changelog": "latest",
+    "@types/node": "latest",
+    "@types/serve-handler": "^6.1.1",
+    "c8": "latest",
+    "conventional-changelog-conventionalcommits": "latest",
+    "eslint": "latest",
+    "eslint-config-prettier": "latest",
+    "eslint-plugin-prettier": "latest",
+    "execa": "^6.1.0",
+    "expect-type": "latest",
+    "get-port-please": "^2.6.1",
+    "husky": "latest",
+    "lint-staged": "latest",
+    "pinst": "latest",
+    "prettier": "latest",
+    "release-it": "latest",
+    "serve-handler": "^6.1.3",
+    "typescript": "latest",
+    "unbuild": "latest",
+    "vite": "latest",
+    "vitest": "latest"
+  },
+  "resolutions": {
+    "fontaine": "link:."
+  },
+  "packageManager": "pnpm@7.5.1"
+}

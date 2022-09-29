@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "node index.mjs"
+  },
+  "dependencies": {
+    "fontaine": "latest",
+    "vite": "latest"
+  }
+}
