@@ -88,7 +88,7 @@ export default {
 }
 /* This will be generated. */
 @font-face {
-  font-family: 'Roboto override';
+  font-family: 'Roboto', 'Roboto override';
   src: local('BlinkMacSystemFont'), local('Segoe UI'), local('Roboto'), local(
       'Helvetica Neue'
     ), local('Arial'), local('Noto Sans');
