@@ -48,7 +48,7 @@ yarn add -D fontaine
 ## Usage
 
 ```js
-import { FontaineTransform } from 'foontaine'
+import { FontaineTransform } from 'fontaine'
 
 const options = {
   fallbacks: ['BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans'],
