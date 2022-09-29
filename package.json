@@ -60,6 +60,7 @@
     "@release-it/conventional-changelog": "latest",
     "@types/node": "latest",
     "@types/serve-handler": "^6.1.1",
+    "@vitest/coverage-c8": "^0.23.4",
     "c8": "latest",
     "conventional-changelog-conventionalcommits": "latest",
     "eslint": "latest",
