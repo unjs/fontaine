@@ -10,31 +10,35 @@ import {
 export const parseFontFace = (
   css: string
 ): { family?: string; source?: string } => {
-  const { fontFamily } = css.match(FAMILY_RE)?.groups ?? {}
-  const { src } = css.match(SOURCE_RE)?.groups ?? {}
+  const fontFamily = css.match(FAMILY_RE)?.groups.fontFamily
+  const src = css.match(SOURCE_RE)?.groups.src
 
-  const family = withoutQuotes(fontFamily?.split(',')?.[0] || '')
+  const family = withoutQuotes(fontFamily?.split(',')[0] || '')
   const source = withoutQuotes(
     src
       ?.split(',')
       .map(source => source.match(URL_RE)?.groups.url)
-      .filter(Boolean)?.[0] || ''
+      .filter(Boolean)[0] || ''
   )
 
   return { family, source }
 }
 
 export const generateOverrideName = (name: string) => {
-  const firstFamily = withoutQuotes(name.split(',').shift() || '')
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const firstFamily = withoutQuotes(name.split(',').shift()!)
   return `${firstFamily} override`
 }
 
 export const withoutQuotes = (str: string) => str.trim().replace(QUOTES_RE, '')
 
-export const generateFontFace = (
-  metrics: Font,
-  options: { name: string; fallbacks: string[]; [key: string]: any }
-) => {
+interface GenerateOptions {
+  name: string
+  fallbacks: string[]
+  [key: string]: any
+}
+
+export const generateFontFace = (metrics: Font, options: GenerateOptions) => {
   const { name, fallbacks, ...properties } = options
 
   // TODO: implement size-adjust: 'width' of web font / 'width' of fallback font

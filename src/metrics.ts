@@ -1,13 +1,12 @@
 import { fileURLToPath } from 'node:url'
-import { fromBlob, fromFile, fromUrl, Font } from '@capsizecss/unpack'
+import { fromFile, fromUrl, Font } from '@capsizecss/unpack'
 import { parseURL } from 'ufo'
 import { camelCase } from 'scule'
 import { withoutQuotes } from './css'
 
 const metricCache: Record<string, Font | null> = {}
 
-export async function getMetricsForFamily(family?: string) {
-  if (!family) return null
+export async function getMetricsForFamily(family: string) {
   family = withoutQuotes(family)
 
   if (family in metricCache) return metricCache[family]
@@ -15,7 +14,7 @@ export async function getMetricsForFamily(family?: string) {
   try {
     const name = camelCase(family).replace(/ /, '')
     const metrics: Font = await import(`@capsizecss/metrics/${name}.js`).then(
-      r => r.default || r
+      r => r.default /* c8 ignore next */ || r
     )
     metricCache[family] = metrics
     return metrics
@@ -25,13 +24,9 @@ export async function getMetricsForFamily(family?: string) {
   }
 }
 
-export async function readMetrics(_source: URL | string | Blob) {
+export async function readMetrics(_source: URL | string) {
   const source =
     typeof _source !== 'string' && 'href' in _source ? _source.href : _source
-
-  if (typeof source !== 'string') {
-    return fromBlob(source)
-  }
 
   if (source in metricCache) {
     return Promise.resolve(metricCache[source])

@@ -4,7 +4,11 @@ import { dirname } from 'pathe'
 import handler from 'serve-handler'
 import { describe, it, expect } from 'vitest'
 import { getRandomPort } from 'get-port-please'
-import { generateFontFace, parseFontFace } from '../src/css'
+import {
+  generateFontFace,
+  parseFontFace,
+  generateOverrideName,
+} from '../src/css'
 import { getMetricsForFamily, readMetrics } from '../src/metrics'
 
 const fixtureURL = new URL('../playground/fonts/font.woff2', import.meta.url)
@@ -32,6 +36,12 @@ describe('generateFontFace', () => {
   })
 })
 
+describe('generateOverrideName', () => {
+  it('works', () => {
+    expect(generateOverrideName('some thing')).toBe('some thing override')
+  })
+})
+
 describe('getMetricsForFamily', () => {
   it('reads font metrics based on font family', async () => {
     const metrics = await getMetricsForFamily('Merriweather Sans')
@@ -46,6 +56,18 @@ describe('getMetricsForFamily', () => {
         "xHeight": 1114,
       }
     `)
+    // Test cache
+    expect(await getMetricsForFamily('Merriweather Sans')).toEqual(metrics)
+  })
+
+  it('handles non-existent metrics', async () => {
+    const metrics = await getMetricsForFamily('Bingo Bob the Font')
+    expect(metrics).toBeNull()
+  })
+
+  it('handles empty input', async () => {
+    const metrics = await getMetricsForFamily('Bingo Bob the Font')
+    expect(metrics).toBeNull()
   })
 })
 
@@ -94,6 +116,10 @@ describe('readMetrics', () => {
     `)
     server.close()
   })
+  it('ignores non-URL paths', async () => {
+    const metrics = await readMetrics(`/font.woff2`)
+    expect(metrics).toBeNull()
+  })
 })
 
 describe('parseFontFace', () => {
@@ -110,6 +136,31 @@ describe('parseFontFace', () => {
       {
         "family": "Roboto",
         "source": "/fonts/OpenSans-Regular-webfont.woff2",
+      }
+    `)
+  })
+  it('should handle incomplete font-faces', () => {
+    const result = parseFontFace(
+      `@font-face {
+      }`
+    )
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "family": "",
+        "source": "",
+      }
+    `)
+  })
+  it('should handle sources without urls', () => {
+    const result = parseFontFace(
+      `@font-face {
+        src: local("Arial") url();
+      }`
+    )
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "family": "",
+        "source": "",
       }
     `)
   })
