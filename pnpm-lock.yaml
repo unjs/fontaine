@@ -25,7 +25,7 @@ importers:
       husky: latest
       lint-staged: latest
       magic-regexp: ^0.5.0
-      magic-string: ^0.26.4
+      magic-string: ^0.26.5
       pathe: ^0.3.8
       pinst: latest
       prettier: latest
@@ -42,7 +42,7 @@ importers:
       '@capsizecss/metrics': 0.3.0
       '@capsizecss/unpack': 0.1.0
       magic-regexp: 0.5.0
-      magic-string: 0.26.4
+      magic-string: 0.26.5
       pathe: 0.3.8
       scule: 0.3.2
       ufo: 0.8.5
@@ -4212,7 +4212,7 @@ packages:
     resolution: {integrity: sha512-zP6wG5tnDX2FYgnFco4KEG+Qg2ujBIgO1VP+d6ScabRndZAyvR34PdwmRPnDqXiXLCReNXH406NyKyXgrWqTqQ==}
     dependencies:
       estree-walker: 3.0.1
-      magic-string: 0.26.4
+      magic-string: 0.26.5
       mlly: 0.5.16
       ufo: 0.8.5
       unplugin: 0.9.6
@@ -4224,8 +4224,8 @@ packages:
       sourcemap-codec: 1.4.8
     dev: true
 
-  /magic-string/0.26.4:
-    resolution: {integrity: sha512-e5uXtVJ22aEpK9u1+eQf0fSxHeqwyV19K+uGnlROCxUhzwRip9tBsaMViK/0vC3viyPd5Gtucp3UmEp/Q2cPTQ==}
+  /magic-string/0.26.5:
+    resolution: {integrity: sha512-yXUIYOOQnEHKHOftp5shMWpB9ImfgfDJpapa38j/qMtTj5QHWucvxP4lUtuRmHT9vAzvtpHkWKXW9xBwimXeNg==}
     engines: {node: '>=12'}
     dependencies:
       sourcemap-codec: 1.4.8
@@ -5266,7 +5266,7 @@ packages:
       rollup: ^2.55
       typescript: ^4.1
     dependencies:
-      magic-string: 0.26.4
+      magic-string: 0.26.5
       rollup: 2.79.1
       typescript: 4.8.4
     optionalDependencies:
@@ -5889,7 +5889,7 @@ packages:
       globby: 13.1.2
       hookable: 5.3.0
       jiti: 1.16.0
-      magic-string: 0.26.4
+      magic-string: 0.26.5
       mkdirp: 1.0.4
       mkdist: 0.3.13_typescript@4.8.4
       mlly: 0.5.16
@@ -6269,7 +6269,7 @@ packages:
     dev: true
 
   /xregexp/2.0.0:
-    resolution: {integrity: sha1-UqY+VsoLhKfzpfPWGHLxJq16WUM=}
+    resolution: {integrity: sha512-xl/50/Cf32VsGq/1R8jJE5ajH1yMCQkpmoS10QbFZWl2Oor4H0Me64Pu2yxvsRWK3m6soJbmGfzSR7BYmDcWAA==}
     dev: true
 
   /xtend/4.0.2:
