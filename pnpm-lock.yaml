@@ -13,14 +13,14 @@ importers:
       '@release-it/conventional-changelog': latest
       '@types/node': latest
       '@types/serve-handler': ^6.1.1
+      '@typescript-eslint/eslint-plugin': ^5.38.1
+      '@typescript-eslint/parser': ^5.38.1
       '@vitest/coverage-c8': ^0.23.4
-      c8: latest
       conventional-changelog-conventionalcommits: latest
       eslint: latest
       eslint-config-prettier: latest
       eslint-plugin-prettier: latest
       execa: ^6.1.0
-      expect-type: latest
       get-port-please: ^2.6.1
       husky: latest
       lint-staged: latest
@@ -52,14 +52,14 @@ importers:
       '@release-it/conventional-changelog': 5.1.0_release-it@15.4.2
       '@types/node': 18.7.23
       '@types/serve-handler': 6.1.1
+      '@typescript-eslint/eslint-plugin': 5.38.1_c7qepppml3d4ahu5cnfwqe6ltq
+      '@typescript-eslint/parser': 5.38.1_ypn2ylkkyfa5i233caldtndbqa
       '@vitest/coverage-c8': 0.23.4
-      c8: 7.12.0
       conventional-changelog-conventionalcommits: 5.0.0
       eslint: 8.24.0
       eslint-config-prettier: 8.5.0_eslint@8.24.0
       eslint-plugin-prettier: 4.2.1_cfn5x6ujhhgzv3423d6k7r2zzm
       execa: 6.1.0
-      expect-type: 0.14.2
       get-port-please: 2.6.1
       husky: 8.0.1
       lint-staged: 13.0.3
@@ -2955,10 +2955,6 @@ packages:
       onetime: 6.0.0
       signal-exit: 3.0.7
       strip-final-newline: 3.0.0
-    dev: true
-
-  /expect-type/0.14.2:
-    resolution: {integrity: sha512-ed3+tr5ujbIYXZ8Pl/VgIphwJQ0q5tBLGGdn7Zvwt1WyPBRX83xjT5pT77P/GkuQbctx0K2ZNSSan7eruJqTCQ==}
     dev: true
 
   /external-editor/3.1.0:
