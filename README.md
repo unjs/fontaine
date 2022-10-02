@@ -12,8 +12,6 @@
 
 ## Features
 
-**⚠️ `fontaine` is under active development. ⚠️**
-
 - 💪 Reduces CLS by using local font fallbacks with crafted font metrics.
 - ✨ Generates font metrics and overrides automatically.
 - ⚡️ Pure CSS, zero runtime overhead.
