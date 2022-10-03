@@ -60,8 +60,8 @@
     "@release-it/conventional-changelog": "latest",
     "@types/node": "latest",
     "@types/serve-handler": "^6.1.1",
-    "@typescript-eslint/eslint-plugin": "^5.38.1",
-    "@typescript-eslint/parser": "^5.38.1",
+    "@typescript-eslint/eslint-plugin": "^5.39.0",
+    "@typescript-eslint/parser": "^5.39.0",
     "@vitest/coverage-c8": "^0.23.4",
     "conventional-changelog-conventionalcommits": "latest",
     "eslint": "latest",
@@ -83,5 +83,5 @@
   "resolutions": {
     "fontaine": "link:."
   },
-  "packageManager": "pnpm@7.12.2"
+  "packageManager": "pnpm@7.13.0"
 }
