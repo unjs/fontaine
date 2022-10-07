@@ -50,7 +50,7 @@
     "@capsizecss/unpack": "^0.1.0",
     "magic-regexp": "^0.5.0",
     "magic-string": "^0.26.6",
-    "pathe": "^0.3.8",
+    "pathe": "^0.3.9",
     "scule": "^0.3.2",
     "ufo": "^0.8.5",
     "unplugin": "^0.9.6"
@@ -62,7 +62,7 @@
     "@types/serve-handler": "^6.1.1",
     "@typescript-eslint/eslint-plugin": "^5.39.0",
     "@typescript-eslint/parser": "^5.39.0",
-    "@vitest/coverage-c8": "^0.23.4",
+    "@vitest/coverage-c8": "^0.24.0",
     "conventional-changelog-conventionalcommits": "latest",
     "eslint": "latest",
     "eslint-config-prettier": "latest",
