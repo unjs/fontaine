@@ -15,7 +15,7 @@ importers:
       '@types/serve-handler': ^6.1.1
       '@typescript-eslint/eslint-plugin': ^5.39.0
       '@typescript-eslint/parser': ^5.39.0
-      '@vitest/coverage-c8': ^0.23.4
+      '@vitest/coverage-c8': ^0.24.0
       conventional-changelog-conventionalcommits: latest
       eslint: latest
       eslint-config-prettier: latest
@@ -26,7 +26,7 @@ importers:
       lint-staged: latest
       magic-regexp: ^0.5.0
       magic-string: ^0.26.6
-      pathe: ^0.3.8
+      pathe: ^0.3.9
       pinst: latest
       prettier: latest
       release-it: latest
@@ -43,18 +43,18 @@ importers:
       '@capsizecss/unpack': 0.1.0
       magic-regexp: 0.5.0
       magic-string: 0.26.6
-      pathe: 0.3.8
+      pathe: 0.3.9
       scule: 0.3.2
       ufo: 0.8.5
       unplugin: 0.9.6
     devDependencies:
       '@nuxtjs/eslint-config-typescript': 11.0.0_ypn2ylkkyfa5i233caldtndbqa
       '@release-it/conventional-changelog': 5.1.0_release-it@15.5.0
-      '@types/node': 18.8.2
+      '@types/node': 18.8.3
       '@types/serve-handler': 6.1.1
       '@typescript-eslint/eslint-plugin': 5.39.0_xyciw6oqjoiiono4dhv3uhn5my
       '@typescript-eslint/parser': 5.39.0_ypn2ylkkyfa5i233caldtndbqa
-      '@vitest/coverage-c8': 0.23.4
+      '@vitest/coverage-c8': 0.24.0
       conventional-changelog-conventionalcommits: 5.0.0
       eslint: 8.24.0
       eslint-config-prettier: 8.5.0_eslint@8.24.0
@@ -69,8 +69,8 @@ importers:
       serve-handler: 6.1.3
       typescript: 4.8.4
       unbuild: 0.8.11
-      vite: 3.1.4
-      vitest: 0.23.4
+      vite: 3.1.6
+      vitest: 0.24.0
 
   playground:
     specifiers:
@@ -78,7 +78,7 @@ importers:
       vite: latest
     dependencies:
       fontaine: 'link:'
-      vite: 3.1.4
+      vite: 3.1.6
 
 packages:
 
@@ -780,8 +780,8 @@ packages:
     resolution: {integrity: sha512-jhuKLIRrhvCPLqwPcx6INqmKeiA5EWrsCOPhrlFSrbrmU4ZMPjj5Ul/oLCMDO98XRUIwVm78xICz4EPCektzeQ==}
     dev: true
 
-  /@types/node/18.8.2:
-    resolution: {integrity: sha512-cRMwIgdDN43GO4xMWAfJAecYn8wV4JbsOGHNfNUIDiuYkUYAR5ec4Rj7IO2SAhFPEfpPtLtUTbbny/TCT7aDwA==}
+  /@types/node/18.8.3:
+    resolution: {integrity: sha512-0os9vz6BpGwxGe9LOhgP/ncvYN5Tx1fNcd2TM3rD/aCGBkysb+ZWpXEocG24h6ZzOi13+VB8HndAQFezsSOw1w==}
     dev: true
 
   /@types/normalize-package-data/2.4.1:
@@ -795,13 +795,13 @@ packages:
   /@types/resolve/1.17.1:
     resolution: {integrity: sha512-yy7HuzQhj0dhGpD8RLXSZWEkLsV9ibvxvi6EiJ3bkqLAO1RGo0WbkWQiwpRlSFymTJRz0d3k5LM3kkx8ArDbLw==}
     dependencies:
-      '@types/node': 18.8.2
+      '@types/node': 18.8.3
     dev: true
 
   /@types/serve-handler/6.1.1:
     resolution: {integrity: sha512-bIwSmD+OV8w0t2e7EWsuQYlGoS1o5aEdVktgkXaa43Zm0qVWi21xaSRb3DQA1UXD+DJ5bRq1Rgu14ZczB+CjIQ==}
     dependencies:
-      '@types/node': 18.8.2
+      '@types/node': 18.8.3
     dev: true
 
   /@typescript-eslint/eslint-plugin/5.39.0_xyciw6oqjoiiono4dhv3uhn5my:
@@ -930,11 +930,11 @@ packages:
       eslint-visitor-keys: 3.3.0
     dev: true
 
-  /@vitest/coverage-c8/0.23.4:
-    resolution: {integrity: sha512-jmD00a5DQH9gu9K+YdvVhcMuv2CzHvU4gCnySS40Ec5hKlXtlCzRfNHl00VnhfuBeaQUmaQYe60BLT413HyDdg==}
+  /@vitest/coverage-c8/0.24.0:
+    resolution: {integrity: sha512-Ho5256BOrLnsJgEgE368ED17cr8rOAXrxvwpZ+XZUA4yAcMBxGAX08cCeG4dibmNVD2NE9Hcpd2foMZsTge3wA==}
     dependencies:
       c8: 7.12.0
-      vitest: 0.23.4
+      vitest: 0.24.0
     transitivePeerDependencies:
       - '@edge-runtime/vm'
       - '@vitest/browser'
@@ -4325,7 +4325,7 @@ packages:
     resolution: {integrity: sha512-LaJ8yuh4v0zEmge/g3c7jjFlhoCPfQn6RCjXgm9A0Qiuochq4BcuOxVfWmdnCoLTlg2MV+hqhOek+W2OhG0Lwg==}
     dependencies:
       acorn: 8.8.0
-      pathe: 0.3.8
+      pathe: 0.3.9
       pkg-types: 0.3.5
       ufo: 0.8.5
 
@@ -4764,8 +4764,8 @@ packages:
     resolution: {integrity: sha512-sTitTPYnn23esFR3RlqYBWn4c45WGeLcsKzQiUpXJAyfcWkolvlYpV8FLo7JishK946oQwMFUCHXQ9AjGPKExw==}
     dev: true
 
-  /pathe/0.3.8:
-    resolution: {integrity: sha512-c71n61F1skhj/jzZe+fWE9XDoTYjWbUwIKVwFftZ5IOgiX44BVkTkD+/803YDgR50tqeO4eXWxLyVHBLWQAD1g==}
+  /pathe/0.3.9:
+    resolution: {integrity: sha512-6Y6s0vT112P3jD8dGfuS6r+lpa0qqNrLyHPOwvXMnyNTQaYiwgau2DP3aNDsR13xqtGj7rrPo+jFUATpU6/s+g==}
 
   /pathval/1.1.1:
     resolution: {integrity: sha512-Dp6zGqpTdETdR63lehJYPeIOqpiNBNtc7BpWSLrOje7UaIsE5aY92r/AunQA7rsXvet3lrJ3JnZX29UPTKXyKQ==}
@@ -4805,7 +4805,7 @@ packages:
     dependencies:
       jsonc-parser: 3.2.0
       mlly: 0.5.16
-      pathe: 0.3.8
+      pathe: 0.3.9
 
   /pluralize/8.0.0:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
@@ -5822,7 +5822,7 @@ packages:
       mkdist: 0.3.13_typescript@4.8.4
       mlly: 0.5.16
       mri: 1.2.0
-      pathe: 0.3.8
+      pathe: 0.3.9
       pkg-types: 0.3.5
       pretty-bytes: 6.0.0
       rimraf: 3.0.2
@@ -5958,8 +5958,8 @@ packages:
       spdx-expression-parse: 3.0.1
     dev: true
 
-  /vite/3.1.4:
-    resolution: {integrity: sha512-JoQI08aBjY9lycL7jcEq4p9o1xUjq5aRvdH4KWaXtkSx7e7RpAh9D3IjzDWRD4Fg44LS3oDAIOG/Kq1L+82psA==}
+  /vite/3.1.6:
+    resolution: {integrity: sha512-qMXIwnehvvcK5XfJiXQUiTxoYAEMKhM+jqCY6ZSTKFBKu1hJnAKEzP3AOcnTerI0cMZYAaJ4wpW1wiXLMDt4mA==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:
@@ -5984,8 +5984,8 @@ packages:
     optionalDependencies:
       fsevents: 2.3.2
 
-  /vitest/0.23.4:
-    resolution: {integrity: sha512-iukBNWqQAv8EKDBUNntspLp9SfpaVFbmzmM0sNcnTxASQZMzRw3PsM6DMlsHiI+I6GeO5/sYDg3ecpC+SNFLrQ==}
+  /vitest/0.24.0:
+    resolution: {integrity: sha512-k5j3FPTor+MJx2x0pDW2gtVk+s9VC6nSHT3SoqOIk9Je5fFpPgict+Xy2eAVXUogvSixs45Ya1oZk+oK93BO0w==}
     engines: {node: '>=v14.16.0'}
     hasBin: true
     peerDependencies:
@@ -6008,7 +6008,7 @@ packages:
     dependencies:
       '@types/chai': 4.3.3
       '@types/chai-subset': 1.3.3
-      '@types/node': 18.8.2
+      '@types/node': 18.8.3
       chai: 4.3.6
       debug: 4.3.4
       local-pkg: 0.4.2
@@ -6016,7 +6016,7 @@ packages:
       tinybench: 2.2.1
       tinypool: 0.3.0
       tinyspy: 1.0.2
-      vite: 3.1.4
+      vite: 3.1.6
     transitivePeerDependencies:
       - less
       - sass
