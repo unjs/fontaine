@@ -7,8 +7,8 @@
 
 > Automatic font fallback based on font metrics
 
-- [✨ &nbsp;Changelog](https://github.com/danielroe/fontaine/blob/main/CHANGELOG.md)
-- [▶️ &nbsp;Online playground](https://stackblitz.com/github/danielroe/fontaine/tree/main/playground)
+- [✨ &nbsp;Changelog](https://github.com/unjs/fontaine/blob/main/CHANGELOG.md)
+- [▶️ &nbsp;Online playground](https://stackblitz.com/github/unjs/fontaine/tree/main/playground)
 
 ## Features
 
@@ -133,7 +133,7 @@ Published under [MIT License](./LICENCE).
 [npm-version-href]: https://npmjs.com/package/fontaine
 [npm-downloads-src]: https://img.shields.io/npm/dm/fontaine?style=flat-square
 [npm-downloads-href]: https://npmjs.com/package/fontaine
-[github-actions-src]: https://img.shields.io/github/workflow/status/danielroe/fontaine/ci/main?style=flat-square
-[github-actions-href]: https://github.com/danielroe/fontaine/actions?query=workflow%3Aci
-[codecov-src]: https://img.shields.io/codecov/c/gh/danielroe/fontaine/main?style=flat-square
-[codecov-href]: https://codecov.io/gh/danielroe/fontaine
+[github-actions-src]: https://img.shields.io/github/workflow/status/unjs/fontaine/ci/main?style=flat-square
+[github-actions-href]: https://github.com/unjs/fontaine/actions?query=workflow%3Aci
+[codecov-src]: https://img.shields.io/codecov/c/gh/unjs/fontaine/main?style=flat-square
+[codecov-href]: https://codecov.io/gh/unjs/fontaine

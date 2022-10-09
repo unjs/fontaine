@@ -13,7 +13,7 @@ body:
       required: true
     attributes:
       label: 🛠️ To reproduce
-      description: A reproduction of the bug via https://stackblitz.com/github/danielroe/fontaine/tree/main/playground
+      description: A reproduction of the bug via https://stackblitz.com/github/unjs/fontaine/tree/main/playground
       placeholder: https://stackblitz.com/[...]
   - type: textarea
     validations:

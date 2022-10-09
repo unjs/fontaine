@@ -2,7 +2,7 @@
   "name": "fontaine",
   "version": "0.1.1",
   "description": "Automatic font fallback based on font metrics",
-  "repository": "danielroe/fontaine",
+  "repository": "unjs/fontaine",
   "keywords": [
     "fonts",
     "cls",
