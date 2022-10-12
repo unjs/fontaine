@@ -49,7 +49,7 @@ yarn add -D fontaine
 import { FontaineTransform } from 'fontaine'
 
 const options = {
-  fallbacks: ['BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans'],
+  fallbacks: ['BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'],
   // You may need to resolve assets like `/fonts/Roboto.woff2` to a particular directory
   resolvePath: (id) => 'file:///path/to/public/dir' + id,
 }
@@ -87,9 +87,8 @@ export default {
 /* This additional font-face declaration will be added to your CSS. */
 @font-face {
   font-family: 'Roboto override';
-  src: local('BlinkMacSystemFont'), local('Segoe UI'), local('Roboto'), local(
-      'Helvetica Neue'
-    ), local('Arial'), local('Noto Sans');
+  src: local('BlinkMacSystemFont'), local('Segoe UI'), local('Helvetica Neue'),
+      local('Arial'), local('Noto Sans');
   ascent-override: 92.7734375%;
   descent-override: 24.4140625%;
   line-gap-override: 0%;
