@@ -69,6 +69,23 @@ export default {
     return config
   },
 }
+
+// Docusaurus plugin - to be provided to the plugins option of docusaurus.config.js
+// n.b. you'll likely need to require fontaine rather than importing it
+const fontaine = require('fontaine')
+
+function fontainePlugin(_context, _options) {
+  return {
+    name: 'fontaine-plugin',
+    configureWebpack(_config, _isServer) {
+      return {
+        plugins: [
+          fontaine.FontaineTransform.webpack(options),
+        ],
+      };
+    },
+  };
+}
 ```
 
 > **Note**
