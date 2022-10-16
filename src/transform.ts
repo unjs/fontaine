@@ -10,6 +10,7 @@ import MagicString from 'magic-string'
 import { generateFontFace, parseFontFace, generateOverrideName } from './css'
 import { getMetricsForFamily, readMetrics } from './metrics'
 import { parseURL } from 'ufo'
+import { isAbsolute, join } from 'pathe'
 
 interface FontaineTransformOptions {
   css?: { value?: string }
@@ -22,6 +23,16 @@ export const FontaineTransform = createUnplugin(
   (options: FontaineTransformOptions) => {
     const cssContext = (options.css = options.css || {})
     cssContext.value = ''
+    options.resolvePath = options.resolvePath || (id => id)
+
+    function readMetricsFromId(path: string, importer: string) {
+      const resolvedPath =
+        isAbsolute(importer) && path.startsWith('.')
+          ? join(importer, path)
+          : options.resolvePath!(path)
+      return readMetrics(resolvedPath)
+    }
+
     return {
       name: 'fontaine-transform',
       enforce: 'pre',
@@ -44,11 +55,7 @@ export const FontaineTransform = createUnplugin(
 
           const metrics =
             (await getMetricsForFamily(family)) ||
-            (source
-              ? await readMetrics(
-                  options.resolvePath ? options.resolvePath(source) : source
-                ).catch(() => null)
-              : null)
+            (source && (await readMetricsFromId(source, id).catch(() => null)))
 
           if (metrics) {
             const fontFace = generateFontFace(metrics, {
