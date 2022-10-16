@@ -11,6 +11,11 @@
     format('woff2');
 }
 
+:root {
+  /* Adding this manually for now */
+  --someFont: 'Poppins variant', 'Poppins variant override';
+}
+
 h1 {
   font-family: 'Poppins variant', sans-serif;
 }
@@ -21,4 +26,8 @@ h2 {
 
 p {
   font-family: 'Poppins variant';
+}
+
+div {
+  font-family: var(--someFont);
 }

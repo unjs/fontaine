@@ -74,7 +74,12 @@ export const FontaineTransform = createUnplugin(
           // Skip font-family definitions _within_ @font-face blocks
           if (faceRanges.some(([start, end]) => index > start && index < end))
             continue
-          const families = matchContent.split(',').map(f => f.trim())
+          const families = matchContent
+            .split(',')
+            .map(f => f.trim())
+            .filter(f => !f.startsWith('var('))
+
+          if (!families.length) continue
 
           s.overwrite(
             index,
