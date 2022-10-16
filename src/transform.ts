@@ -16,6 +16,8 @@ interface FontaineTransformOptions {
   css?: { value?: string }
   fallbacks: string[]
   resolvePath?: (path: string) => string | URL
+  /** this should produce an unquoted font family name */
+  overrideName?: (name: string) => string
   sourcemap?: boolean
 }
 
@@ -23,13 +25,14 @@ export const FontaineTransform = createUnplugin(
   (options: FontaineTransformOptions) => {
     const cssContext = (options.css = options.css || {})
     cssContext.value = ''
-    options.resolvePath = options.resolvePath || (id => id)
+    const resolvePath = options.resolvePath || (id => id)
+    const overrideName = options.overrideName || generateOverrideName
 
     function readMetricsFromId(path: string, importer: string) {
       const resolvedPath =
         isAbsolute(importer) && path.startsWith('.')
           ? join(importer, path)
-          : options.resolvePath!(path)
+          : resolvePath(path)
       return readMetrics(resolvedPath)
     }
 
@@ -59,7 +62,7 @@ export const FontaineTransform = createUnplugin(
 
           if (metrics) {
             const fontFace = generateFontFace(metrics, {
-              name: generateOverrideName(family),
+              name: overrideName(family),
               fallbacks: options.fallbacks,
             })
             cssContext.value += fontFace
