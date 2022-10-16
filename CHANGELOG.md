@@ -1,3 +1,12 @@
+
+
+## [0.1.2](https://github.com/unjs/fontaine/compare/0.1.1...0.1.2) (2022-10-16)
+
+
+### Bug Fixes
+
+* resolve relative CSS paths in relation to importer ([7b6e45b](https://github.com/unjs/fontaine/commit/7b6e45b248c0212325c28cf78f1fc829b667a017))
+
 ## [0.1.1](https://github.com/unjs/fontaine/compare/0.1.0...0.1.1) (2022-09-29)
 
 ### Bug Fixes
