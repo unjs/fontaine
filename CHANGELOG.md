@@ -1,5 +1,12 @@
 
 
+## [0.1.3](https://github.com/unjs/fontaine/compare/0.1.2...0.1.3) (2022-10-16)
+
+
+### Bug Fixes
+
+* don't match CSS variables as font families ([a708bb0](https://github.com/unjs/fontaine/commit/a708bb07ccc48f385c67ccc3b1eed280d8ee47fc))
+
 ## [0.1.2](https://github.com/unjs/fontaine/compare/0.1.1...0.1.2) (2022-10-16)
 
 
