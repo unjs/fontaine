@@ -1,5 +1,12 @@
 
 
+## [0.2.0](https://github.com/unjs/fontaine/compare/0.1.3...0.2.0) (2022-10-17)
+
+
+### Features
+
+* allow customising font override name ([fa3470b](https://github.com/unjs/fontaine/commit/fa3470bdf2c8c05c340b13a6316b84d38f360de4))
+
 ## [0.1.3](https://github.com/unjs/fontaine/compare/0.1.2...0.1.3) (2022-10-16)
 
 
