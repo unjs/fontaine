@@ -91,6 +91,17 @@ function fontainePlugin(_context, _options) {
 > **Note**
 > If you are using Nuxt, check out [nuxt-font-metrics](https://github.com/danielroe/nuxt-font-metrics) which uses `fontaine` under the hood.
 
+If your custom font is used through the mechanism of CSS variables, you'll need to make a tweak to your CSS variables to give fontaine a helping hand. Docusaurus is an example of this, it uses the `--ifm-font-family-base` variable to reference a custom font. In order that fontaine can connect the variable with the font, we need to add a `{Name of Font} override` suffix to that variable. What does this look like? Well imagine we were using the custom font Poppins which is referenced from the `--ifm-font-family-base` variable, we'd make the following adjustment:
+
+```diff
+:root {
+  /* ... */
+-  --ifm-font-family-base: 'Poppins';
++  --ifm-font-family-base: 'Poppins', 'Poppins override';
+```
+
+Behind the scenes, there is a 'Poppins override' `@font-face` rule that has been created by fontaine. By manually adding this override font family to our CSS variable, we make our site use the fallback `@font-face` rule with the correct font metrics that fontaine generates.
+
 ## How it works
 
 `fontaine` will scan your `@font-face` rules and generate fallback rules with the correct metrics. For example:
