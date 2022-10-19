@@ -1,5 +1,12 @@
 
 
+## [0.2.1](https://github.com/unjs/fontaine/compare/0.2.0...0.2.1) (2022-10-19)
+
+
+### Bug Fixes
+
+* include sass/scss files in transform ([998994d](https://github.com/unjs/fontaine/commit/998994d7fa9a5b45127c6d88ee877f878e298568))
+
 ## [0.2.0](https://github.com/unjs/fontaine/compare/0.1.3...0.2.0) (2022-10-17)
 
 
