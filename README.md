@@ -86,6 +86,15 @@ function fontainePlugin(_context, _options) {
     },
   };
 }
+
+// Gatsby config - gatsby-node.js
+const { FontaineTransform } = require('fontaine')
+
+exports.onCreateWebpackConfig = ({ stage, actions, getConfig }) => {
+  const config = getConfig()
+  config.plugins.push(FontaineTransform.webpack(options))
+  actions.replaceWebpackConfig(config)
+}
 ```
 
 > **Note**
