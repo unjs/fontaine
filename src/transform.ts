@@ -1,5 +1,6 @@
 import { createUnplugin } from 'unplugin'
 import {
+  anyOf,
   createRegExp,
   exactly,
   charIn,
@@ -41,7 +42,7 @@ export const FontaineTransform = createUnplugin(
       enforce: 'pre',
       transformInclude(id) {
         const { pathname } = parseURL(id)
-        return pathname.endsWith('.css') || id.endsWith('.css')
+        return CSS_RE.test(pathname) || CSS_RE.test(id)
       },
       async transform(code, id) {
         const s = new MagicString(code)
@@ -125,4 +126,8 @@ const FONT_FAMILY_RE = createRegExp(
     .after(exactly('font-family:').and(whitespace.times.any()))
     .before(charIn(';}').or(exactly('').at.lineEnd())),
   ['g']
+)
+
+const CSS_RE = createRegExp(
+  exactly('.').and(anyOf('sass', 'css', 'scss')).at.lineEnd()
 )
