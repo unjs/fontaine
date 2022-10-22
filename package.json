@@ -53,7 +53,7 @@
     "pathe": "^0.3.9",
     "scule": "^0.3.2",
     "ufo": "^0.8.6",
-    "unplugin": "^0.10.0"
+    "unplugin": "^0.10.1"
   },
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "latest",
@@ -83,5 +83,5 @@
   "resolutions": {
     "fontaine": "link:."
   },
-  "packageManager": "pnpm@7.13.6"
+  "packageManager": "pnpm@7.14.0"
 }
