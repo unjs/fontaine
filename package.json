@@ -48,7 +48,7 @@
   "dependencies": {
     "@capsizecss/metrics": "^0.3.0",
     "@capsizecss/unpack": "^0.1.0",
-    "magic-regexp": "^0.5.0",
+    "magic-regexp": "^0.6.0",
     "magic-string": "^0.26.7",
     "pathe": "^0.3.9",
     "scule": "^0.3.2",
