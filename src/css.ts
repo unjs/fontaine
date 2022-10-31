@@ -24,6 +24,8 @@ export function* parseFontFace(
       }
     }
   }
+
+  yield { family: '', source: '' }
 }
 
 export const generateOverrideName = (name: string) => {
