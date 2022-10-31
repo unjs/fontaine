@@ -1,5 +1,12 @@
 
 
+## [0.2.2](https://github.com/unjs/fontaine/compare/0.2.1...0.2.2) (2022-10-31)
+
+
+### Bug Fixes
+
+* handle multiple sources and only try reading woff/woff2/ttf files ([8f40d28](https://github.com/unjs/fontaine/commit/8f40d281865d2f3d8eff152a5f17217035359168))
+
 ## [0.2.1](https://github.com/unjs/fontaine/compare/0.2.0...0.2.1) (2022-10-19)
 
 
