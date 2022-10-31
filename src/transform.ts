@@ -22,6 +22,8 @@ interface FontaineTransformOptions {
   sourcemap?: boolean
 }
 
+const supportedExtensions = ['woff2', 'woff', 'ttf']
+
 export const FontaineTransform = createUnplugin(
   (options: FontaineTransformOptions) => {
     const cssContext = (options.css = options.css || {})
@@ -54,20 +56,23 @@ export const FontaineTransform = createUnplugin(
 
           faceRanges.push([match.index, match.index + matchContent.length])
 
-          const { family, source } = parseFontFace(matchContent)
-          if (!family) continue
+          for (const { family, source } of parseFontFace(matchContent)) {
+            if (!family) continue
+            if (!supportedExtensions.some(e => source?.endsWith(e))) continue
 
-          const metrics =
-            (await getMetricsForFamily(family)) ||
-            (source && (await readMetricsFromId(source, id).catch(() => null)))
+            const metrics =
+              (await getMetricsForFamily(family)) ||
+              (source &&
+                (await readMetricsFromId(source, id).catch(() => null)))
 
-          if (metrics) {
-            const fontFace = generateFontFace(metrics, {
-              name: overrideName(family),
-              fallbacks: options.fallbacks,
-            })
-            cssContext.value += fontFace
-            s.appendLeft(match.index, fontFace)
+            if (metrics) {
+              const fontFace = generateFontFace(metrics, {
+                name: overrideName(family),
+                fallbacks: options.fallbacks,
+              })
+              cssContext.value += fontFace
+              s.appendLeft(match.index, fontFace)
+            }
           }
         }
 

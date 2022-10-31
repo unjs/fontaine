@@ -7,21 +7,23 @@ import {
   whitespace,
 } from 'magic-regexp'
 
-export const parseFontFace = (
+export function* parseFontFace(
   css: string
-): { family?: string; source?: string } => {
+): Generator<{ family?: string; source?: string }> {
   const fontFamily = css.match(FAMILY_RE)?.groups.fontFamily
-  const src = css.match(SOURCE_RE)?.groups.src
-
   const family = withoutQuotes(fontFamily?.split(',')[0] || '')
-  const source = withoutQuotes(
-    src
-      ?.split(',')
-      .map(source => source.match(URL_RE)?.groups.url)
-      .filter(Boolean)[0] || ''
-  )
 
-  return { family, source }
+  for (const match of css.matchAll(SOURCE_RE)) {
+    const sources = match.groups.src?.split(',') || []
+    for (const entry of sources) {
+      for (const url of entry.matchAll(URL_RE)) {
+        const source = withoutQuotes(url.groups?.url || '')
+        if (source) {
+          yield { family, source }
+        }
+      }
+    }
+  }
 }
 
 export const generateOverrideName = (name: string) => {
@@ -91,9 +93,11 @@ const FAMILY_RE = createRegExp(
 const SOURCE_RE = createRegExp(
   exactly('src:')
     .and(whitespace.optionally())
-    .and(charNotIn(';}').times.any().as('src'))
+    .and(charNotIn(';}').times.any().as('src')),
+  ['g']
 )
 
 const URL_RE = createRegExp(
-  exactly('url(').and(charNotIn(')').times.any().as('url')).and(')')
+  exactly('url(').and(charNotIn(')').times.any().as('url')).and(')'),
+  ['g']
 )
