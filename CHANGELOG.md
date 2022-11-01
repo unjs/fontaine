@@ -1,5 +1,12 @@
 
 
+## [0.2.3](https://github.com/unjs/fontaine/compare/0.2.2...0.2.3) (2022-11-01)
+
+
+### Bug Fixes
+
+* fallback to empty family/source ([7f1d967](https://github.com/unjs/fontaine/commit/7f1d967418b9c585d2548e0bcbe200d0081867d2))
+
 ## [0.2.2](https://github.com/unjs/fontaine/compare/0.2.1...0.2.2) (2022-10-31)
 
 
