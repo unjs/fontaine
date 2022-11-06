@@ -1,3 +1,3 @@
 export { FontaineTransform } from './transform'
-export { generateOverrideName, generateFontFace } from './css'
+export { generateFallbackName, generateFontFace } from './css'
 export { getMetricsForFamily, readMetrics } from './metrics'

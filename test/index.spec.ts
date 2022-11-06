@@ -7,24 +7,24 @@ import { getRandomPort } from 'get-port-please'
 import {
   generateFontFace,
   parseFontFace,
-  generateOverrideName,
+  generateFallbackName,
 } from '../src/css'
 import { getMetricsForFamily, readMetrics } from '../src/metrics'
 
 const fixtureURL = new URL('../playground/fonts/font.ttf', import.meta.url)
 
 describe('generateFontFace', () => {
-  it('generates CSS font face override ', async () => {
+  it('generates CSS font face fallback ', async () => {
     const metrics = await readMetrics(fixtureURL)
     // @ts-expect-error if metrics is not defined the test should throw
     const result = generateFontFace(metrics, {
-      name: 'example override',
+      name: 'example fallback',
       fallbacks: ['fallback'],
       'font-weight': 'bold',
     })
     expect(result).toMatchInlineSnapshot(`
       "@font-face {
-        font-family: \\"example override\\";
+        font-family: \\"example fallback\\";
         src: local(\\"fallback\\");
         ascent-override: 105%;
         descent-override: 35%;
@@ -36,9 +36,9 @@ describe('generateFontFace', () => {
   })
 })
 
-describe('generateOverrideName', () => {
+describe('generateFallbackName', () => {
   it('works', () => {
-    expect(generateOverrideName('some thing')).toBe('some thing override')
+    expect(generateFallbackName('some thing')).toBe('some thing fallback')
   })
 })
 
@@ -62,12 +62,12 @@ describe('getMetricsForFamily', () => {
     expect(
       // eslint-disable-next-line
       generateFontFace(metrics!, {
-        name: 'Merriweather Sans override',
+        name: 'Merriweather Sans fallback',
         fallbacks: ['Arial'],
       })
     ).toMatchInlineSnapshot(`
       "@font-face {
-        font-family: \\"Merriweather Sans override\\";
+        font-family: \\"Merriweather Sans fallback\\";
         src: local(\\"Arial\\");
         ascent-override: 98.4%;
         descent-override: 27.3%;

@@ -8,7 +8,7 @@ import {
   whitespace,
 } from 'magic-regexp'
 import MagicString from 'magic-string'
-import { generateFontFace, parseFontFace, generateOverrideName } from './css'
+import { generateFontFace, parseFontFace, generateFallbackName } from './css'
 import { getMetricsForFamily, readMetrics } from './metrics'
 import { parseURL } from 'ufo'
 import { isAbsolute, join } from 'pathe'
@@ -18,6 +18,8 @@ interface FontaineTransformOptions {
   fallbacks: string[]
   resolvePath?: (path: string) => string | URL
   /** this should produce an unquoted font family name */
+  fallbackName?: (name: string) => string
+  /** @deprecated use fallbackName */
   overrideName?: (name: string) => string
   sourcemap?: boolean
 }
@@ -29,7 +31,8 @@ export const FontaineTransform = createUnplugin(
     const cssContext = (options.css = options.css || {})
     cssContext.value = ''
     const resolvePath = options.resolvePath || (id => id)
-    const overrideName = options.overrideName || generateOverrideName
+    const fallbackName =
+      options.fallbackName || options.overrideName || generateFallbackName
 
     function readMetricsFromId(path: string, importer: string) {
       const resolvedPath =
@@ -67,7 +70,7 @@ export const FontaineTransform = createUnplugin(
 
             if (metrics) {
               const fontFace = generateFontFace(metrics, {
-                name: overrideName(family),
+                name: fallbackName(family),
                 fallbacks: options.fallbacks,
               })
               cssContext.value += fontFace
@@ -96,7 +99,7 @@ export const FontaineTransform = createUnplugin(
             ' ' +
               [
                 families[0],
-                `"${generateOverrideName(families[0])}"`,
+                `"${generateFallbackName(families[0])}"`,
                 ...families.slice(1),
               ].join(', ')
           )

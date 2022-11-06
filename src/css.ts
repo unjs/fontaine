@@ -28,10 +28,10 @@ export function* parseFontFace(
   yield { family: '', source: '' }
 }
 
-export const generateOverrideName = (name: string) => {
+export const generateFallbackName = (name: string) => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const firstFamily = withoutQuotes(name.split(',').shift()!)
-  return `${firstFamily} override`
+  return `${firstFamily} fallback`
 }
 
 export const withoutQuotes = (str: string) => str.trim().replace(QUOTES_RE, '')

@@ -13,7 +13,7 @@
 
 :root {
   /* Adding this manually for now */
-  --someFont: 'Poppins variant', 'Poppins variant override';
+  --someFont: 'Poppins variant', 'Poppins variant fallback';
 }
 
 h1 {
