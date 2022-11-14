@@ -14,8 +14,8 @@ export function* parseFontFace(
   const family = withoutQuotes(fontFamily?.split(',')[0] || '')
 
   for (const match of css.matchAll(SOURCE_RE)) {
-    const sources = match.groups.src?.split(',') || []
-    for (const entry of sources) {
+    const sources = match.groups.src?.split(',')
+    for (const entry of sources /* c8 ignore next */ || []) {
       for (const url of entry.matchAll(URL_RE)) {
         const source = withoutQuotes(url.groups?.url || '')
         if (source) {

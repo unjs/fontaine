@@ -168,6 +168,26 @@ describe('parseFontFace', () => {
       }
     `)
     }
+    expect([
+      ...parseFontFace(
+        `@font-face {
+        font-family: 'Something'
+        src: url("") format("woff"), url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
+      }`
+      ),
+    ]).toMatchInlineSnapshot(`
+      [
+        {
+          "family": "Something'
+              src: url(\\"\\") format(\\"woff\\")",
+          "source": "/fonts/OpenSans-Regular-webfont.woff2",
+        },
+        {
+          "family": "",
+          "source": "",
+        },
+      ]
+    `)
   })
   it('should handle sources without urls', () => {
     for (const result of parseFontFace(
