@@ -7,7 +7,7 @@ importers:
 
   .:
     specifiers:
-      '@capsizecss/metrics': ^0.3.0
+      '@capsizecss/metrics': ^0.4.0
       '@capsizecss/unpack': ^0.1.0
       '@nuxtjs/eslint-config-typescript': latest
       '@release-it/conventional-changelog': latest
@@ -39,7 +39,7 @@ importers:
       vite: 3.2.3
       vitest: 0.24.5
     dependencies:
-      '@capsizecss/metrics': 0.3.0
+      '@capsizecss/metrics': 0.4.0
       '@capsizecss/unpack': 0.1.0
       magic-regexp: 0.6.0
       magic-string: 0.26.7
@@ -292,8 +292,8 @@ packages:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
 
-  /@capsizecss/metrics/0.3.0:
-    resolution: {integrity: sha512-QehVN9u96URt4ji/bSQs2F5t6SX2XuW6KLJJvoUqg7RFqZeSFogVoJtcxwxjSJ0SH34il3xid5iyMG7Rle2yYA==}
+  /@capsizecss/metrics/0.4.0:
+    resolution: {integrity: sha512-jPQDSAcJWli5YV2Ab8e4i3IYQLZOMCVoYprbL8rJWLwg9Ct0FNtVxA9LfmWdj+bXYh1r+i8WPHCXZ/RXR0fnyg==}
     dev: false
 
   /@capsizecss/unpack/0.1.0:
