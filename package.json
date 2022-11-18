@@ -83,5 +83,5 @@
   "resolutions": {
     "fontaine": "link:."
   },
-  "packageManager": "pnpm@7.16.0"
+  "packageManager": "pnpm@7.16.1"
 }
