@@ -30,7 +30,7 @@ importers:
       pinst: latest
       prettier: latest
       release-it: latest
-      scule: ^0.3.2
+      scule: ^1.0.0
       serve-handler: 6.1.5
       typescript: latest
       ufo: ^0.8.6
@@ -44,7 +44,7 @@ importers:
       magic-regexp: 0.6.0
       magic-string: 0.26.7
       pathe: 0.3.9
-      scule: 0.3.2
+      scule: 1.0.0
       ufo: 0.8.6
       unplugin: 0.10.2
     devDependencies:
@@ -5098,13 +5098,8 @@ packages:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
     dev: true
 
-  /scule/0.3.2:
-    resolution: {integrity: sha512-zIvPdjOH8fv8CgrPT5eqtxHQXmPNnV/vHJYffZhE43KZkvULvpCTvOt1HPlFaCZx287INL9qaqrZg34e8NgI4g==}
-    dev: false
-
   /scule/1.0.0:
     resolution: {integrity: sha512-4AsO/FrViE/iDNEPaAQlb77tf0csuq27EsVpy6ett584EcRTp6pTDLoGWVxCD77y5iU5FauOvhsI4o1APwPoSQ==}
-    dev: true
 
   /semver-diff/4.0.0:
     resolution: {integrity: sha512-0Ju4+6A8iOnpL/Thra7dZsSlOHYAHIeMxfhWQRI1/VLcT3WDBZKKtQt/QkBOsiIN9ZpuvHE6cGZ0x4glCMmfiA==}
