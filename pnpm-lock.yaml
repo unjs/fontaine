@@ -26,7 +26,7 @@ importers:
       lint-staged: latest
       magic-regexp: ^0.6.0
       magic-string: ^0.26.7
-      pathe: ^0.3.9
+      pathe: ^1.0.0
       pinst: latest
       prettier: latest
       release-it: latest
@@ -43,7 +43,7 @@ importers:
       '@capsizecss/unpack': 0.1.0
       magic-regexp: 0.6.0
       magic-string: 0.26.7
-      pathe: 0.3.9
+      pathe: 1.0.0
       scule: 1.0.0
       ufo: 1.0.0
       unplugin: 1.0.0
@@ -4596,7 +4596,6 @@ packages:
 
   /pathe/1.0.0:
     resolution: {integrity: sha512-nPdMG0Pd09HuSsr7QOKUXO2Jr9eqaDiZvDwdyIhNG5SHYujkQHYKDfGQkulBxvbDHz8oHLsTgKN86LSwYzSHAg==}
-    dev: true
 
   /pathval/1.1.1:
     resolution: {integrity: sha512-Dp6zGqpTdETdR63lehJYPeIOqpiNBNtc7BpWSLrOje7UaIsE5aY92r/AunQA7rsXvet3lrJ3JnZX29UPTKXyKQ==}
