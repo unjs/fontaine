@@ -35,7 +35,7 @@ importers:
       typescript: latest
       ufo: ^0.8.6
       unbuild: latest
-      unplugin: ^0.10.2
+      unplugin: ^1.0.0
       vite: 3.2.4
       vitest: 0.25.2
     dependencies:
@@ -46,7 +46,7 @@ importers:
       pathe: 0.3.9
       scule: 0.3.2
       ufo: 0.8.6
-      unplugin: 0.10.2
+      unplugin: 1.0.0
     devDependencies:
       '@nuxtjs/eslint-config-typescript': 12.0.0_hsf322ms6xhhd4b5ne6lb74y4a
       '@release-it/conventional-changelog': 5.1.1_release-it@15.5.0
@@ -5732,6 +5732,15 @@ packages:
       webpack-virtual-modules: 0.4.5
     dev: false
 
+  /unplugin/1.0.0:
+    resolution: {integrity: sha512-H5UnBUxfhTXBXGo2AwKsl0UaLSHzSNDZNehPQSgdhVfO/t+XAS1Yoj3vmLrrlBrS9ZwtH5tejbX/TCp5DcyCKg==}
+    dependencies:
+      acorn: 8.8.1
+      chokidar: 3.5.3
+      webpack-sources: 3.2.3
+      webpack-virtual-modules: 0.4.6
+    dev: false
+
   /untyped/1.0.0:
     resolution: {integrity: sha512-aBeR3Z51038d7zVzsNShYEdO7u/VCp5R17fxpPXlD2QvG9g6uVJ+JM+zMJ7KFPIt1BNf3I6bU6PhAlsAFkIfdA==}
     dependencies:
@@ -5965,6 +5974,10 @@ packages:
 
   /webpack-virtual-modules/0.4.5:
     resolution: {integrity: sha512-8bWq0Iluiv9lVf9YaqWQ9+liNgXSHICm+rg544yRgGYaR8yXZTVBaHZkINZSB2yZSWo4b0F6MIxqJezVfOEAlg==}
+    dev: false
+
+  /webpack-virtual-modules/0.4.6:
+    resolution: {integrity: sha512-5tyDlKLqPfMqjT3Q9TAqf2YqjwmnUleZwzJi1A5qXnlBCdj2AtOJ6wAWdglTIDOPgOiOrXeBeFcsQ8+aGQ6QbA==}
     dev: false
 
   /whatwg-url/5.0.0:
