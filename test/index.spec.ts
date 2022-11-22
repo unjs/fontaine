@@ -99,10 +99,7 @@ describe('readMetrics', () => {
         "capHeight": 698,
         "descent": -350,
         "familyName": "Poppins",
-        "fullName": "Poppins Regular",
         "lineGap": 100,
-        "postscriptName": "Poppins-Regular",
-        "subfamilyName": "Regular",
         "unitsPerEm": 1000,
         "xHeight": 548,
       }
@@ -123,10 +120,7 @@ describe('readMetrics', () => {
         "capHeight": 698,
         "descent": -350,
         "familyName": "Poppins",
-        "fullName": "Poppins Regular",
         "lineGap": 100,
-        "postscriptName": "Poppins-Regular",
-        "subfamilyName": "Regular",
         "unitsPerEm": 1000,
         "xHeight": 548,
       }
