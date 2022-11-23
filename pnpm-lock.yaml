@@ -15,7 +15,7 @@ importers:
       '@types/serve-handler': 6.1.1
       '@typescript-eslint/eslint-plugin': 5.44.0
       '@typescript-eslint/parser': 5.44.0
-      '@vitest/coverage-c8': 0.25.2
+      '@vitest/coverage-c8': 0.25.3
       conventional-changelog-conventionalcommits: latest
       eslint: 8.28.0
       eslint-config-prettier: latest
@@ -37,7 +37,7 @@ importers:
       unbuild: latest
       unplugin: ^1.0.0
       vite: 3.2.4
-      vitest: 0.25.2
+      vitest: 0.25.3
     dependencies:
       '@capsizecss/metrics': 0.4.0
       '@capsizecss/unpack': 0.2.1
@@ -54,23 +54,23 @@ importers:
       '@types/serve-handler': 6.1.1
       '@typescript-eslint/eslint-plugin': 5.44.0_fnsv2sbzcckq65bwfk7a5xwslu
       '@typescript-eslint/parser': 5.44.0_hsf322ms6xhhd4b5ne6lb74y4a
-      '@vitest/coverage-c8': 0.25.2
+      '@vitest/coverage-c8': 0.25.3
       conventional-changelog-conventionalcommits: 5.0.0
       eslint: 8.28.0
       eslint-config-prettier: 8.5.0_eslint@8.28.0
-      eslint-plugin-prettier: 4.2.1_pgxuib4rd7wiymfktharf5ydt4
+      eslint-plugin-prettier: 4.2.1_cwlo2dingkvfydnaculr42urve
       execa: 6.1.0
       get-port-please: 2.6.1
       husky: 8.0.2
       lint-staged: 13.0.3
       pinst: 3.0.0
-      prettier: 2.7.1
+      prettier: 2.8.0
       release-it: 15.5.0
       serve-handler: 6.1.5
       typescript: 4.9.3
       unbuild: 1.0.1
       vite: 3.2.4_@types+node@18.11.9
-      vitest: 0.25.2
+      vitest: 0.25.3
 
   playground:
     specifiers:
@@ -940,11 +940,11 @@ packages:
       eslint-visitor-keys: 3.3.0
     dev: true
 
-  /@vitest/coverage-c8/0.25.2:
-    resolution: {integrity: sha512-qKsiUJh3bjbB5Q229CbxEWCqiDBwvIrcZ9OOuQdMEC0pce3/LlTUK3+K3hd7WqAYEbbiqXfC5MVMKHZkV82PgA==}
+  /@vitest/coverage-c8/0.25.3:
+    resolution: {integrity: sha512-+tmrB3E7pZTSM+aWKzLk0FpyyaQOoRQf0594hHp+E3Kk0tiFONiEFYf7+9a1Z+C2ffU/0w6KvyBjpNPdashMrg==}
     dependencies:
       c8: 7.12.0
-      vitest: 0.25.2
+      vitest: 0.25.3
     transitivePeerDependencies:
       - '@edge-runtime/vm'
       - '@vitest/browser'
@@ -2455,7 +2455,7 @@ packages:
       semver: 6.3.0
     dev: true
 
-  /eslint-plugin-prettier/4.2.1_pgxuib4rd7wiymfktharf5ydt4:
+  /eslint-plugin-prettier/4.2.1_cwlo2dingkvfydnaculr42urve:
     resolution: {integrity: sha512-f/0rXLXUt0oFYs8ra4w49wYZBG5GKZpAYsJSm6rnYL5uVDjd+zowwMwVZHnAjf4edNrKpCDYfXDgmRE/Ak7QyQ==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
@@ -2468,7 +2468,7 @@ packages:
     dependencies:
       eslint: 8.28.0
       eslint-config-prettier: 8.5.0_eslint@8.28.0
-      prettier: 2.7.1
+      prettier: 2.8.0
       prettier-linter-helpers: 1.0.0
     dev: true
 
@@ -4654,8 +4654,8 @@ packages:
       fast-diff: 1.2.0
     dev: true
 
-  /prettier/2.7.1:
-    resolution: {integrity: sha512-ujppO+MkdPqoVINuDFDRLClm7D78qbDt0/NR+wp5FqEZOoTNAjPHWj17QRhu7geIHJfcNhRk1XVQmF8Bp3ye+g==}
+  /prettier/2.8.0:
+    resolution: {integrity: sha512-9Lmg8hTFZKG0Asr/kW9Bp8tJjRVluO8EJQVfY2T7FMw9T5jy4I/Uvx0Rca/XWf50QQ1/SS48+6IJWnrb+2yemA==}
     engines: {node: '>=10.13.0'}
     hasBin: true
     dev: true
@@ -5850,8 +5850,8 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /vitest/0.25.2:
-    resolution: {integrity: sha512-qqkzfzglEFbQY7IGkgSJkdOhoqHjwAao/OrphnHboeYHC5JzsVFoLCaB2lnAy8krhj7sbrFTVRApzpkTOeuDWQ==}
+  /vitest/0.25.3:
+    resolution: {integrity: sha512-/UzHfXIKsELZhL7OaM2xFlRF8HRZgAHtPctacvNK8H4vOcbJJAMEgbWNGSAK7Y9b1NBe5SeM7VTuz2RsTHFJJA==}
     engines: {node: '>=v14.16.0'}
     hasBin: true
     peerDependencies:
