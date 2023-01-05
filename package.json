@@ -68,7 +68,7 @@
     "eslint-config-prettier": "latest",
     "eslint-plugin-prettier": "latest",
     "execa": "6.1.0",
-    "get-port-please": "2.6.1",
+    "get-port-please": "3.0.1",
     "husky": "latest",
     "lint-staged": "latest",
     "pinst": "latest",
