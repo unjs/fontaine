@@ -64,7 +64,7 @@
     "@typescript-eslint/parser": "5.49.0",
     "@vitest/coverage-c8": "0.28.3",
     "conventional-changelog-conventionalcommits": "latest",
-    "eslint": "8.32.0",
+    "eslint": "8.33.0",
     "eslint-config-prettier": "latest",
     "eslint-plugin-prettier": "latest",
     "execa": "6.1.0",
