@@ -2,9 +2,21 @@ import { fileURLToPath } from 'node:url'
 import { fromFile, fromUrl, Font } from '@capsizecss/unpack'
 import { parseURL } from 'ufo'
 import { camelCase } from 'scule'
-import { withoutQuotes } from './css'
+import { FontFaceMetrics, withoutQuotes } from './css'
 
-const metricCache: Record<string, Font | null> = {}
+const metricCache: Record<string, FontFaceMetrics | null> = {}
+
+const filterRequiredMetrics = ({
+  ascent,
+  descent,
+  lineGap,
+  unitsPerEm,
+}: Font) => ({
+  ascent,
+  descent,
+  lineGap,
+  unitsPerEm,
+})
 
 export async function getMetricsForFamily(family: string) {
   family = withoutQuotes(family)
@@ -13,11 +25,13 @@ export async function getMetricsForFamily(family: string) {
 
   try {
     const name = camelCase(family).replace(/ /, '')
-    const metrics: Font = await import(`@capsizecss/metrics/${name}.js`).then(
+    const metrics = await import(`@capsizecss/metrics/${name}.js`).then(
       r => r.default /* c8 ignore next */ || r
     )
-    metricCache[family] = metrics
-    return metrics
+
+    const filteredMetrics = filterRequiredMetrics(metrics)
+    metricCache[family] = filteredMetrics
+    return filteredMetrics
   } catch {
     metricCache[family] = null
     return null
@@ -40,7 +54,8 @@ export async function readMetrics(_source: URL | string) {
       ? await fromFile(fileURLToPath(source))
       : await fromUrl(source)
 
-  metricCache[source] = metrics
+  const filteredMetrics = filterRequiredMetrics(metrics)
+  metricCache[source] = filteredMetrics
 
-  return metrics
+  return filteredMetrics
 }

@@ -46,8 +46,8 @@
     "postpublish": "pinst --enable"
   },
   "dependencies": {
-    "@capsizecss/metrics": "^0.4.0",
-    "@capsizecss/unpack": "^0.2.0",
+    "@capsizecss/metrics": "^1.0.1",
+    "@capsizecss/unpack": "^1.0.0",
     "magic-regexp": "^0.6.0",
     "magic-string": "^0.27.0",
     "pathe": "^1.0.0",
