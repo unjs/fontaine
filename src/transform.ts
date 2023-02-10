@@ -91,7 +91,7 @@ export const FontaineTransform = createUnplugin(
             .map(f => f.trim())
             .filter(f => !f.startsWith('var('))
 
-          if (!families.length) continue
+          if (!families.length || families[0] === 'inherit') continue
 
           s.overwrite(
             index,
