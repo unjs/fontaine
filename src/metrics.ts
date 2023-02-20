@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import { fromFile, fromUrl, Font } from '@capsizecss/unpack'
+import { fontFamilyToCamelCase } from '@capsizecss/metrics'
 import { parseURL } from 'ufo'
-import { camelCase } from 'scule'
 import { FontFaceMetrics, withoutQuotes } from './css'
 
 const metricCache: Record<string, FontFaceMetrics | null> = {}
@@ -24,7 +24,7 @@ export async function getMetricsForFamily(family: string) {
   if (family in metricCache) return metricCache[family]
 
   try {
-    const name = camelCase(family).replace(/ /, '')
+    const name = fontFamilyToCamelCase(family)
     const metrics = await import(`@capsizecss/metrics/${name}.js`).then(
       r => r.default /* c8 ignore next */ || r
     )
