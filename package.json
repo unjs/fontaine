@@ -49,7 +49,7 @@
     "@capsizecss/metrics": "^1.1.0",
     "@capsizecss/unpack": "^1.0.0",
     "magic-regexp": "^0.6.0",
-    "magic-string": "^0.29.0",
+    "magic-string": "^0.30.0",
     "pathe": "^1.0.0",
     "ufo": "^1.0.0",
     "unplugin": "^1.0.0"
@@ -57,11 +57,11 @@
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "latest",
     "@release-it/conventional-changelog": "latest",
-    "@types/node": "18.14.0",
+    "@types/node": "18.14.2",
     "@types/serve-handler": "6.1.1",
     "@typescript-eslint/eslint-plugin": "5.53.0",
     "@typescript-eslint/parser": "5.53.0",
-    "@vitest/coverage-c8": "0.28.5",
+    "@vitest/coverage-c8": "0.29.1",
     "conventional-changelog-conventionalcommits": "latest",
     "eslint": "8.34.0",
     "eslint-config-prettier": "latest",
@@ -77,10 +77,10 @@
     "typescript": "latest",
     "unbuild": "latest",
     "vite": "3.2.5",
-    "vitest": "0.28.5"
+    "vitest": "0.29.1"
   },
   "resolutions": {
     "fontaine": "link:."
   },
-  "packageManager": "pnpm@7.27.1"
+  "packageManager": "pnpm@7.28.0"
 }
