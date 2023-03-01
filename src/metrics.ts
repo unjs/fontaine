@@ -12,7 +12,7 @@ export async function getMetricsForFamily(family: string) {
   if (family in metricCache) return metricCache[family]
 
   try {
-    const name = camelCase(family).replace(/ /, '')
+    const name = camelCase(family).replace(/ /g, '')
     const metrics: Font = await import(`@capsizecss/metrics/${name}.js`).then(
       r => r.default /* c8 ignore next */ || r
     )

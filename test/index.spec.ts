@@ -77,6 +77,40 @@ describe('getMetricsForFamily', () => {
     `)
   })
 
+  it('handles font families with more than one space in the name', async () => {
+    const metrics = await getMetricsForFamily('IBM Plex Mono')
+    expect(metrics).toMatchInlineSnapshot(`
+      {
+        "ascent": 1025,
+        "capHeight": 698,
+        "descent": -275,
+        "familyName": "IBM Plex Mono",
+        "lineGap": 0,
+        "unitsPerEm": 1000,
+        "xHeight": 516,
+      }
+    `)
+    // Test cache
+    expect(await getMetricsForFamily('IBM Plex Mono')).toEqual(metrics)
+
+    expect(
+      // eslint-disable-next-line
+      generateFontFace(metrics!, {
+        name: 'IBM Plex Mono fallback',
+        fallbacks: ['Arial'],
+      })
+    ).toMatchInlineSnapshot(`
+      "@font-face {
+        font-family: \\"IBM Plex Mono fallback\\";
+        src: local(\\"Arial\\");
+        ascent-override: 102.5%;
+        descent-override: 27.5%;
+        line-gap-override: 0%;
+      }
+      "
+    `)
+  })
+
   it('handles non-existent metrics', async () => {
     const metrics = await getMetricsForFamily('Bingo Bob the Font')
     expect(metrics).toBeNull()
