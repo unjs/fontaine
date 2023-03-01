@@ -62,7 +62,7 @@
     "@types/serve-handler": "6.1.1",
     "@typescript-eslint/eslint-plugin": "5.54.0",
     "@typescript-eslint/parser": "5.54.0",
-    "@vitest/coverage-c8": "0.29.1",
+    "@vitest/coverage-c8": "0.29.2",
     "conventional-changelog-conventionalcommits": "latest",
     "eslint": "8.35.0",
     "eslint-config-prettier": "latest",
@@ -78,7 +78,7 @@
     "typescript": "latest",
     "unbuild": "latest",
     "vite": "3.2.5",
-    "vitest": "0.29.1"
+    "vitest": "0.29.2"
   },
   "resolutions": {
     "fontaine": "link:."
