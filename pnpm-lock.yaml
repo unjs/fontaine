@@ -7,7 +7,7 @@ importers:
 
   .:
     specifiers:
-      '@capsizecss/metrics': ^0.4.0
+      '@capsizecss/metrics': ^1.0.0
       '@capsizecss/unpack': ^0.2.0
       '@nuxtjs/eslint-config-typescript': latest
       '@release-it/conventional-changelog': latest
@@ -39,7 +39,7 @@ importers:
       vite: 3.2.5
       vitest: 0.29.2
     dependencies:
-      '@capsizecss/metrics': 0.4.0
+      '@capsizecss/metrics': 1.1.1
       '@capsizecss/unpack': 0.2.1
       magic-regexp: 0.6.0
       magic-string: 0.30.0
@@ -49,7 +49,7 @@ importers:
       unplugin: 1.0.0
     devDependencies:
       '@nuxtjs/eslint-config-typescript': 12.0.0_ycpbpc6yetojsgtrx3mwntkhsu
-      '@release-it/conventional-changelog': 5.1.1_release-it@15.6.1
+      '@release-it/conventional-changelog': 5.1.1_release-it@15.7.0
       '@types/node': 18.14.2
       '@types/serve-handler': 6.1.1
       '@typescript-eslint/eslint-plugin': 5.54.0_6mj2wypvdnknez7kws2nfdgupi
@@ -65,7 +65,7 @@ importers:
       lint-staged: 13.1.2
       pinst: 3.0.0
       prettier: 2.8.4
-      release-it: 15.6.1
+      release-it: 15.7.0
       serve-handler: 6.1.5
       typescript: 4.9.5
       unbuild: 1.1.2
@@ -293,8 +293,8 @@ packages:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
 
-  /@capsizecss/metrics/0.4.0:
-    resolution: {integrity: sha512-jPQDSAcJWli5YV2Ab8e4i3IYQLZOMCVoYprbL8rJWLwg9Ct0FNtVxA9LfmWdj+bXYh1r+i8WPHCXZ/RXR0fnyg==}
+  /@capsizecss/metrics/1.1.1:
+    resolution: {integrity: sha512-YFONV2KvBPYr3FCJTMCZ5rkTHbaVCqO37VYJo9HrrzU2aLcWk5JPQln64yMmKtWUj5Pwi1vIqeFqCoYQxd20gg==}
     dev: false
 
   /@capsizecss/unpack/0.2.1:
@@ -1005,7 +1005,7 @@ packages:
       config-chain: 1.1.13
     dev: true
 
-  /@release-it/conventional-changelog/5.1.1_release-it@15.6.1:
+  /@release-it/conventional-changelog/5.1.1_release-it@15.7.0:
     resolution: {integrity: sha512-QtbDBe36dQfzexAfDYrbLPvd5Cb5bMWmLcjcGhCOWBss7fe1/gCjoxDULVz+7N7G5Nu2UMeBwHcUp/w8RDh5VQ==}
     engines: {node: '>=14'}
     peerDependencies:
@@ -1014,7 +1014,7 @@ packages:
       concat-stream: 2.0.0
       conventional-changelog: 3.1.25
       conventional-recommended-bump: 6.1.0
-      release-it: 15.6.1
+      release-it: 15.7.0
       semver: 7.3.8
     dev: true
 
@@ -5427,8 +5427,8 @@ packages:
       rc: 1.2.8
     dev: true
 
-  /release-it/15.6.1:
-    resolution: {integrity: sha512-oPJKP2yxMcA/TaGFnS5uB0spDSPiDXXd1yGKSSMQ2xutyiSs8X+1UahlJCF/xHnp01QwUqRv0fpsV9MFr2GKmQ==}
+  /release-it/15.7.0:
+    resolution: {integrity: sha512-/ajllmzQNuxXCrPySwx+MiR/nBHp8H+lTn42QFw9YlFPJQpLFwgMjCOFTB4hhuavi9jMbDpWcTPFy31QJgzNcw==}
     engines: {node: '>=14.9'}
     hasBin: true
     dependencies:
