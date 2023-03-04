@@ -11,7 +11,7 @@ const filterRequiredMetrics = ({
   descent,
   lineGap,
   unitsPerEm,
-}: Font) => ({
+}: Pick<Font, 'ascent' | 'descent' | 'lineGap' | 'unitsPerEm'>) => ({
   ascent,
   descent,
   lineGap,
@@ -25,9 +25,11 @@ export async function getMetricsForFamily(family: string) {
 
   try {
     const name = fontFamilyToCamelCase(family)
-    const metrics = await import(`@capsizecss/metrics/${name}.js`).then(
-      r => r.default /* c8 ignore next */ || r
+    const { entireMetricsCollection } = await import(
+      `@capsizecss/metrics/entireMetricsCollection`
     )
+    const metrics =
+      entireMetricsCollection[name as keyof typeof entireMetricsCollection]
 
     const filteredMetrics = filterRequiredMetrics(metrics)
     metricCache[family] = filteredMetrics

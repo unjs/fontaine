@@ -79,12 +79,9 @@ describe('getMetricsForFamily', () => {
     expect(metrics).toMatchInlineSnapshot(`
       {
         "ascent": 1025,
-        "capHeight": 698,
         "descent": -275,
-        "familyName": "IBM Plex Mono",
         "lineGap": 0,
         "unitsPerEm": 1000,
-        "xHeight": 516,
       }
     `)
     // Test cache
