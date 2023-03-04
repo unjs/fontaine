@@ -7,8 +7,8 @@ importers:
 
   .:
     specifiers:
-      '@capsizecss/metrics': ^0.4.0
-      '@capsizecss/unpack': ^0.2.0
+      '@capsizecss/metrics': ^1.1.0
+      '@capsizecss/unpack': ^1.0.0
       '@nuxtjs/eslint-config-typescript': latest
       '@release-it/conventional-changelog': latest
       '@types/node': 18.14.2
@@ -30,7 +30,6 @@ importers:
       pinst: latest
       prettier: latest
       release-it: latest
-      scule: ^1.0.0
       serve-handler: 6.1.5
       typescript: latest
       ufo: ^1.0.0
@@ -39,12 +38,11 @@ importers:
       vite: 3.2.5
       vitest: 0.29.2
     dependencies:
-      '@capsizecss/metrics': 0.4.0
-      '@capsizecss/unpack': 0.2.1
+      '@capsizecss/metrics': 1.1.0
+      '@capsizecss/unpack': 1.0.0
       magic-regexp: 0.6.0
       magic-string: 0.30.0
       pathe: 1.0.0
-      scule: 1.0.0
       ufo: 1.0.0
       unplugin: 1.0.0
     devDependencies:
@@ -293,12 +291,12 @@ packages:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
 
-  /@capsizecss/metrics/0.4.0:
-    resolution: {integrity: sha512-jPQDSAcJWli5YV2Ab8e4i3IYQLZOMCVoYprbL8rJWLwg9Ct0FNtVxA9LfmWdj+bXYh1r+i8WPHCXZ/RXR0fnyg==}
+  /@capsizecss/metrics/1.1.0:
+    resolution: {integrity: sha512-HnnFHi/WXkvwueKEaQbBVsBSFcBG8xoumbHlI4+tIMUv7oqmtqDsrm48cHREFl1MfFuowNP96AJVHj17JH+VyA==}
     dev: false
 
-  /@capsizecss/unpack/0.2.1:
-    resolution: {integrity: sha512-JuMIMpgaHyKjTUy6bv+OQgOjaSd6VeOU6XZcO5yQnzbPgrHA57XvnPzSPkokHQELChoSOllFz9RoLmR6sT0qSA==}
+  /@capsizecss/unpack/1.0.0:
+    resolution: {integrity: sha512-cXPI7IWQrPANXKYZwqZf53q2SuYnDkexpi9KzGNWls1NDK26lZqkE1Ry2XuMo9eGkqcmMSgVI8gJbMEgjX7bTQ==}
     dependencies:
       blob-to-buffer: 1.2.9
       cross-fetch: 3.1.5
@@ -5607,6 +5605,7 @@ packages:
 
   /scule/1.0.0:
     resolution: {integrity: sha512-4AsO/FrViE/iDNEPaAQlb77tf0csuq27EsVpy6ett584EcRTp6pTDLoGWVxCD77y5iU5FauOvhsI4o1APwPoSQ==}
+    dev: true
 
   /semver-diff/4.0.0:
     resolution: {integrity: sha512-0Ju4+6A8iOnpL/Thra7dZsSlOHYAHIeMxfhWQRI1/VLcT3WDBZKKtQt/QkBOsiIN9ZpuvHE6cGZ0x4glCMmfiA==}

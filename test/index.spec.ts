@@ -48,12 +48,9 @@ describe('getMetricsForFamily', () => {
     expect(metrics).toMatchInlineSnapshot(`
       {
         "ascent": 1968,
-        "capHeight": 1486,
         "descent": -546,
-        "familyName": "Merriweather Sans",
         "lineGap": 0,
         "unitsPerEm": 2000,
-        "xHeight": 1114,
       }
     `)
     // Test cache
@@ -82,12 +79,9 @@ describe('getMetricsForFamily', () => {
     expect(metrics).toMatchInlineSnapshot(`
       {
         "ascent": 1025,
-        "capHeight": 698,
         "descent": -275,
-        "familyName": "IBM Plex Mono",
         "lineGap": 0,
         "unitsPerEm": 1000,
-        "xHeight": 516,
       }
     `)
     // Test cache
@@ -130,12 +124,9 @@ describe('readMetrics', () => {
     expect(metrics).toMatchInlineSnapshot(`
       {
         "ascent": 1050,
-        "capHeight": 698,
         "descent": -350,
-        "familyName": "Poppins",
         "lineGap": 100,
         "unitsPerEm": 1000,
-        "xHeight": 548,
       }
     `)
   })
@@ -151,12 +142,9 @@ describe('readMetrics', () => {
     expect(metrics).toMatchInlineSnapshot(`
       {
         "ascent": 1050,
-        "capHeight": 698,
         "descent": -350,
-        "familyName": "Poppins",
         "lineGap": 100,
         "unitsPerEm": 1000,
-        "xHeight": 548,
       }
     `)
     server.close()

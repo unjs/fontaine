@@ -42,7 +42,14 @@ interface GenerateOptions {
   [key: string]: any
 }
 
-export const generateFontFace = (metrics: Font, options: GenerateOptions) => {
+export type FontFaceMetrics = Pick<
+  Font,
+  'ascent' | 'descent' | 'lineGap' | 'unitsPerEm'
+>
+export const generateFontFace = (
+  metrics: FontFaceMetrics,
+  options: GenerateOptions
+) => {
   const { name, fallbacks, ...properties } = options
 
   // TODO: implement size-adjust: 'width' of web font / 'width' of fallback font
