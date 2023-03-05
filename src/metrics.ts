@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import { fromFile, fromUrl, Font } from '@capsizecss/unpack'
+// @ts-expect-error TODO: fix upstream typings
 import { fontFamilyToCamelCase } from '@capsizecss/metrics'
 import { parseURL } from 'ufo'
 import { FontFaceMetrics, withoutQuotes } from './css'
@@ -25,6 +26,7 @@ export async function getMetricsForFamily(family: string) {
 
   try {
     const name = fontFamilyToCamelCase(family)
+    // @ts-expect-error TODO: fix upstream typings
     const { entireMetricsCollection } = await import(
       `@capsizecss/metrics/entireMetricsCollection`
     )
