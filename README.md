@@ -95,6 +95,22 @@ exports.onCreateWebpackConfig = ({ stage, actions, getConfig }) => {
   config.plugins.push(FontaineTransform.webpack(options))
   actions.replaceWebpackConfig(config)
 }
+
+// Astro config - astro.config.mjs
+import { defineConfig } from 'astro/config'
+import { FontaineTransform } from 'fontaine'
+
+export default defineConfig({
+  integrations: [],
+  vite: {
+    plugins: [
+      FontaineTransform.vite({
+        fallbacks: ['Arial'],
+        resolvePath: (id) => new URL(`./public${id}`, import.meta.url), // id is the font src value in the CSS
+      }),
+    ],
+  },
+})
 ```
 
 > **Note**
