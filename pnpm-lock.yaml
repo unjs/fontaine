@@ -19,7 +19,7 @@ importers:
       eslint: 8.36.0
       eslint-config-prettier: latest
       eslint-plugin-prettier: latest
-      execa: 7.1.0
+      execa: 7.1.1
       get-port-please: 3.0.1
       husky: latest
       lint-staged: latest
@@ -54,7 +54,7 @@ importers:
       eslint: 8.36.0
       eslint-config-prettier: 8.7.0_eslint@8.36.0
       eslint-plugin-prettier: 4.2.1_eqzx3hpkgx5nnvxls3azrcc7dm
-      execa: 7.1.0
+      execa: 7.1.1
       get-port-please: 3.0.1
       husky: 8.0.3
       lint-staged: 13.2.0
@@ -2257,8 +2257,8 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /execa/7.1.0:
-    resolution: {integrity: sha512-T6nIJO3LHxUZ6ahVRaxXz9WLEruXLqdcluA+UuTptXmLM7nDAn9lx9IfkxPyzEL21583qSt4RmL44pO71EHaJQ==}
+  /execa/7.1.1:
+    resolution: {integrity: sha512-wH0eMf/UXckdUYnO21+HDztteVv05rq2GXksxT4fCGeHkBhw1DROXh40wcjMcRqDOWE7iPJ4n3M7e2+YFP+76Q==}
     engines: {node: ^14.18.0 || ^16.14.0 || >=18.0.0}
     dependencies:
       cross-spawn: 7.0.3
@@ -2957,7 +2957,7 @@ packages:
       cli-truncate: 3.1.0
       commander: 10.0.0
       debug: 4.3.4
-      execa: 7.1.0
+      execa: 7.1.1
       lilconfig: 2.1.0
       listr2: 5.0.7
       micromatch: 4.0.5
