@@ -28,7 +28,7 @@ export async function getMetricsForFamily(family: string) {
     const name = fontFamilyToCamelCase(family)
     // @ts-expect-error TODO: fix upstream typings
     const { entireMetricsCollection } = await import(
-      `@capsizecss/metrics/entireMetricsCollection`
+      '@capsizecss/metrics/entireMetricsCollection/dist/capsizecss-metrics-entireMetricsCollection.cjs.js'
     )
     const metrics =
       entireMetricsCollection[name as keyof typeof entireMetricsCollection]
