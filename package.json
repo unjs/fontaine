@@ -68,11 +68,11 @@
     "execa": "7.1.1",
     "get-port-please": "3.0.1",
     "husky": "latest",
-    "lint-staged": "^13.2.0",
+    "lint-staged": "13.2.0",
     "pinst": "latest",
     "prettier": "latest",
     "serve-handler": "6.1.5",
-    "typescript": "^5.0.2",
+    "typescript": "5.0.2",
     "unbuild": "latest",
     "vite": "4.2.0",
     "vitest": "0.29.3"
