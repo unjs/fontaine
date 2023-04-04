@@ -39,11 +39,9 @@
     "lint:eslint": "eslint --fix",
     "lint:prettier": "prettier --write --loglevel warn",
     "prepare": "husky install && pnpm build",
-    "prepublishOnly": "pnpm lint && pnpm test && pinst --disable",
+    "prepublishOnly": "pnpm lint && pnpm test",
     "release": "pnpm test && bumpp && npm publish",
-    "test": "vitest run",
-    "postinstall": "husky install",
-    "postpublish": "pinst --enable"
+    "test": "vitest run"
   },
   "dependencies": {
     "@capsizecss/metrics": "^1.1.1",
@@ -69,7 +67,6 @@
     "get-port-please": "3.0.1",
     "husky": "latest",
     "lint-staged": "13.2.0",
-    "pinst": "latest",
     "prettier": "latest",
     "serve-handler": "6.1.5",
     "typescript": "5.0.3",
