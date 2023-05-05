@@ -12,11 +12,16 @@ const filterRequiredMetrics = ({
   descent,
   lineGap,
   unitsPerEm,
-}: Pick<Font, 'ascent' | 'descent' | 'lineGap' | 'unitsPerEm'>) => ({
+  xWidthAvg,
+}: Pick<
+  Font,
+  'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'
+>) => ({
   ascent,
   descent,
   lineGap,
   unitsPerEm,
+  xWidthAvg,
 })
 
 export async function getMetricsForFamily(family: string) {

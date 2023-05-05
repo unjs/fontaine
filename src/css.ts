@@ -31,56 +31,57 @@ export function* parseFontFace(
 export const generateFallbackName = (name: string) => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const firstFamily = withoutQuotes(name.split(',').shift()!)
-  return `${firstFamily} fallback`
+  return `${firstFamily} Fallback`
 }
 
 export const withoutQuotes = (str: string) => str.trim().replace(QUOTES_RE, '')
 
-interface GenerateOptions {
-  name: string
-  fallbacks: string[]
-  [key: string]: any
-}
-
 export type FontFaceMetrics = Pick<
   Font,
-  'ascent' | 'descent' | 'lineGap' | 'unitsPerEm'
+  'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'
 >
+
 export const generateFontFace = (
   metrics: FontFaceMetrics,
-  options: GenerateOptions
+  fallbackMetrics: FontFaceMetrics,
+  fallbackName: string,
+  fallbackFont: string
 ) => {
-  const { name, fallbacks, ...properties } = options
+  // Credits to: https://github.com/seek-oss/capsize/blob/master/packages/core/src/createFontStack.ts
 
-  // TODO: implement size-adjust: 'width' of web font / 'width' of fallback font
-  const sizeAdjust = 1
+  // Calculate size adjust
+  const preferredFontXAvgRatio = metrics.xWidthAvg / metrics.unitsPerEm
+  const fallbackFontXAvgRatio =
+    fallbackMetrics.xWidthAvg / fallbackMetrics.unitsPerEm
+
+  const sizeAdjust =
+    preferredFontXAvgRatio && fallbackFontXAvgRatio
+      ? preferredFontXAvgRatio / fallbackFontXAvgRatio
+      : 1
+
+  const adjustedEmSquare = metrics.unitsPerEm * sizeAdjust
+
+  // Calculate metric overrides for preferred font
+  const ascentOverride = metrics.ascent / adjustedEmSquare
+  const descentOverride = Math.abs(metrics.descent) / adjustedEmSquare
+  const lineGapOverride = metrics.lineGap / adjustedEmSquare
 
   const declaration = {
-    'font-family': JSON.stringify(name),
-    src: fallbacks.map(f => `local(${JSON.stringify(f)})`),
-    // 'size-adjust': toPercentage(sizeAdjust),
-    'ascent-override': toPercentage(
-      metrics.ascent / (metrics.unitsPerEm * sizeAdjust)
-    ),
-    'descent-override': toPercentage(
-      Math.abs(metrics.descent / (metrics.unitsPerEm * sizeAdjust))
-    ),
-    'line-gap-override': toPercentage(
-      metrics.lineGap / (metrics.unitsPerEm * sizeAdjust)
-    ),
-    ...properties,
+    'font-family': `'${fallbackName}'`,
+    src: `local('${fallbackFont}')`,
+    'size-adjust': toPercentage(sizeAdjust),
+    'ascent-override': toPercentage(ascentOverride),
+    'descent-override': toPercentage(descentOverride),
+    'line-gap-override': toPercentage(lineGapOverride),
   }
 
   return `@font-face {\n${toCSS(declaration)}\n}\n`
 }
 
-const toPercentage = (value: number, fractionDigits = 8) => {
+// See: https://github.com/seek-oss/capsize/blob/master/packages/core/src/round.ts
+const toPercentage = (value: number, fractionDigits = 4) => {
   const percentage = value * 100
-  return (
-    (percentage % 1
-      ? percentage.toFixed(fractionDigits).replace(/0+$/, '')
-      : percentage) + '%'
-  )
+  return +percentage.toFixed(fractionDigits) + '%'
 }
 
 const toCSS = (properties: Record<string, any>, indent = 2) =>
