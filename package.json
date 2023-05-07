@@ -46,7 +46,7 @@
   "dependencies": {
     "@capsizecss/metrics": "^1.1.1",
     "@capsizecss/unpack": "^1.0.0",
-    "magic-regexp": "^0.6.3",
+    "magic-regexp": "^0.7.0",
     "magic-string": "^0.30.0",
     "pathe": "^1.1.0",
     "ufo": "^1.1.1",
