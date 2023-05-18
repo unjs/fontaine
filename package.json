@@ -71,7 +71,7 @@
     "serve-handler": "6.1.5",
     "typescript": "5.0.4",
     "unbuild": "latest",
-    "vite": "4.3.5",
+    "vite": "4.3.8",
     "vitest": "0.31.0"
   },
   "resolutions": {
