@@ -1,7 +1,14 @@
 @font-face {
-  font-family: 'Poppins';
+  font-family: 'Poppins variant';
   font-display: swap;
   src: url('/fonts/font.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Roboto';
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu72xKKTU1Kvnz.woff2')
+    format('woff2');
 }
 
 @font-face {
@@ -11,10 +18,27 @@
     format('woff2');
 }
 
-.poppins {
-  font-family: 'Poppins';
+:root {
+  /* Adding this manually for now */
+  --someFont: 'Poppins variant', 'Poppins variant fallback';
+}
+
+h1 {
+  font-family: 'Poppins variant', sans-serif;
+}
+
+.roboto {
+  font-family: 'Roboto', Arial, Helvetica, sans-serif;
+}
+
+p {
+  font-family: 'Poppins variant';
+}
+
+div {
+  font-family: var(--someFont);
 }
 
 .inter {
-  font-family: 'Inter';
+  font-family: Inter;
 }
