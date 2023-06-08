@@ -19,13 +19,14 @@ describe('generateFontFace', () => {
     // @ts-expect-error if metrics is not defined the test should throw
     const result = generateFontFace(metrics, {
       name: 'example fallback',
-      fallbacks: ['fallback'],
+      font: 'fallback',
       'font-weight': 'bold',
     })
     expect(result).toMatchInlineSnapshot(`
       "@font-face {
-        font-family: \\"example fallback\\";
-        src: local(\\"fallback\\");
+        font-family: 'example fallback';
+        src: local('fallback');
+        size-adjust: 100%;
         ascent-override: 105%;
         descent-override: 35%;
         line-gap-override: 10%;
@@ -51,6 +52,7 @@ describe('getMetricsForFamily', () => {
         "descent": -546,
         "lineGap": 0,
         "unitsPerEm": 2000,
+        "xWidthAvg": 936,
       }
     `)
     // Test cache
@@ -60,14 +62,16 @@ describe('getMetricsForFamily', () => {
       // eslint-disable-next-line
       generateFontFace(metrics!, {
         name: 'Merriweather Sans fallback',
-        fallbacks: ['Arial'],
+        font: 'Arial',
+        metrics: (await getMetricsForFamily('Arial'))!,
       })
     ).toMatchInlineSnapshot(`
       "@font-face {
-        font-family: \\"Merriweather Sans fallback\\";
-        src: local(\\"Arial\\");
-        ascent-override: 98.4%;
-        descent-override: 27.3%;
+        font-family: 'Merriweather Sans fallback';
+        src: local('Arial');
+        size-adjust: 106.0248%;
+        ascent-override: 92.8085%;
+        descent-override: 25.7487%;
         line-gap-override: 0%;
       }
       "
@@ -82,6 +86,7 @@ describe('getMetricsForFamily', () => {
         "descent": -275,
         "lineGap": 0,
         "unitsPerEm": 1000,
+        "xWidthAvg": 600,
       }
     `)
     // Test cache
@@ -91,14 +96,16 @@ describe('getMetricsForFamily', () => {
       // eslint-disable-next-line
       generateFontFace(metrics!, {
         name: 'IBM Plex Mono fallback',
-        fallbacks: ['Arial'],
+        font: 'Arial',
+        metrics: (await getMetricsForFamily('Arial'))!,
       })
     ).toMatchInlineSnapshot(`
       "@font-face {
-        font-family: \\"IBM Plex Mono fallback\\";
-        src: local(\\"Arial\\");
-        ascent-override: 102.5%;
-        descent-override: 27.5%;
+        font-family: 'IBM Plex Mono fallback';
+        src: local('Arial');
+        size-adjust: 135.9292%;
+        ascent-override: 75.4069%;
+        descent-override: 20.2311%;
         line-gap-override: 0%;
       }
       "
@@ -127,6 +134,7 @@ describe('readMetrics', () => {
         "descent": -350,
         "lineGap": 100,
         "unitsPerEm": 1000,
+        "xWidthAvg": 502,
       }
     `)
   })
@@ -145,6 +153,7 @@ describe('readMetrics', () => {
         "descent": -350,
         "lineGap": 100,
         "unitsPerEm": 1000,
+        "xWidthAvg": 502,
       }
     `)
     server.close()

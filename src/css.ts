@@ -36,6 +36,13 @@ export const generateFallbackName = (name: string) => {
 
 export const withoutQuotes = (str: string) => str.trim().replace(QUOTES_RE, '')
 
+interface FallbackOptions {
+  name: string
+  font: string
+  metrics: FontFaceMetrics
+  [key: string]: any
+}
+
 export type FontFaceMetrics = Pick<
   Font,
   'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'
@@ -43,19 +50,25 @@ export type FontFaceMetrics = Pick<
 
 export const generateFontFace = (
   metrics: FontFaceMetrics,
-  fallbackMetrics: FontFaceMetrics,
-  fallbackName: string,
-  fallbackFont: string
+  fallback: FallbackOptions
 ) => {
+  const {
+    name: fallbackName,
+    font: fallbackFontName,
+    metrics: fallbackMetrics,
+    ...properties
+  } = fallback
+
   // Credits to: https://github.com/seek-oss/capsize/blob/master/packages/core/src/createFontStack.ts
 
   // Calculate size adjust
   const preferredFontXAvgRatio = metrics.xWidthAvg / metrics.unitsPerEm
-  const fallbackFontXAvgRatio =
-    fallbackMetrics.xWidthAvg / fallbackMetrics.unitsPerEm
+  const fallbackFontXAvgRatio = fallbackMetrics
+    ? fallbackMetrics.xWidthAvg / fallbackMetrics.unitsPerEm
+    : 1
 
   const sizeAdjust =
-    preferredFontXAvgRatio && fallbackFontXAvgRatio
+    fallbackMetrics && preferredFontXAvgRatio && fallbackFontXAvgRatio
       ? preferredFontXAvgRatio / fallbackFontXAvgRatio
       : 1
 
@@ -68,11 +81,12 @@ export const generateFontFace = (
 
   const declaration = {
     'font-family': `'${fallbackName}'`,
-    src: `local('${fallbackFont}')`,
+    src: `local('${fallbackFontName}')`,
     'size-adjust': toPercentage(sizeAdjust),
     'ascent-override': toPercentage(ascentOverride),
     'descent-override': toPercentage(descentOverride),
     'line-gap-override': toPercentage(lineGapOverride),
+    ...properties,
   }
 
   return `@font-face {\n${toCSS(declaration)}\n}\n`

@@ -28,8 +28,6 @@ const supportedExtensions = ['woff2', 'woff', 'ttf']
 
 export const FontaineTransform = createUnplugin(
   (options: FontaineTransformOptions) => {
-    console.log(options)
-
     const cssContext = (options.css = options.css || {})
     cssContext.value = ''
     const resolvePath = options.resolvePath || (id => id)
@@ -71,11 +69,8 @@ export const FontaineTransform = createUnplugin(
                 (await readMetricsFromId(source, id).catch(() => null)))
 
             if (!metrics) {
-              console.log(`No metrics for ${family}`)
               continue
             }
-
-            console.log(`Family: ${family}`)
 
             // Iterate backwards: Browsers will use the last working font-face in the stylesheet
             for (let i = options.fallbacks.length - 1; i >= 0; i--) {
@@ -83,18 +78,14 @@ export const FontaineTransform = createUnplugin(
               const fallbackMetrics = await getMetricsForFamily(fallback)
 
               if (!fallbackMetrics) {
-                console.log(`No metrics for ${fallback}`)
                 continue
               }
 
-              console.log(`Fallback: ${fallback}`)
-
-              const fontFace = generateFontFace(
-                metrics,
-                fallbackMetrics,
-                fallbackName(family),
-                fallback
-              )
+              const fontFace = generateFontFace(metrics, {
+                name: fallbackName(family),
+                font: fallback,
+                metrics: fallbackMetrics,
+              })
               cssContext.value += fontFace
               s.appendLeft(match.index, fontFace)
             }
