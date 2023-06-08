@@ -17,7 +17,7 @@ export interface FontaineTransformOptions {
   css?: { value?: string }
   fallbacks: string[]
   resolvePath?: (path: string) => string | URL
-  skipFontFaceGeneration?: (name: string) => boolean
+  skipFontFaceGeneration?: (fallbackName: string) => boolean
   /** this should produce an unquoted font family name */
   fallbackName?: (name: string) => string
   /** @deprecated use fallbackName */
@@ -66,7 +66,7 @@ export const FontaineTransform = createUnplugin(
           for (const { family, source } of parseFontFace(matchContent)) {
             if (!family) continue
             if (!supportedExtensions.some(e => source?.endsWith(e))) continue
-            if (skipFontFaceGeneration(family)) continue
+            if (skipFontFaceGeneration(fallbackName(family))) continue
 
             const metrics =
               (await getMetricsForFamily(family)) ||
