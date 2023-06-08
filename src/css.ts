@@ -39,7 +39,7 @@ export const withoutQuotes = (str: string) => str.trim().replace(QUOTES_RE, '')
 interface FallbackOptions {
   name: string
   font: string
-  metrics: FontFaceMetrics
+  metrics?: FontFaceMetrics
   [key: string]: any
 }
 
