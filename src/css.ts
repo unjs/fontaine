@@ -80,8 +80,8 @@ export const generateFontFace = (
   const lineGapOverride = metrics.lineGap / adjustedEmSquare
 
   const declaration = {
-    'font-family': `'${fallbackName}'`,
-    src: `local('${fallbackFontName}')`,
+    'font-family': JSON.stringify(fallbackName),
+    src: `local(${JSON.stringify(fallbackFontName)})`,
     'size-adjust': toPercentage(sizeAdjust),
     'ascent-override': toPercentage(ascentOverride),
     'descent-override': toPercentage(descentOverride),
