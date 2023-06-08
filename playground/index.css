@@ -7,7 +7,14 @@
 @font-face {
   font-family: 'Roboto';
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu72xKKTU1Kvnz.woff2)
+  src: url('https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu72xKKTU1Kvnz.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/inter/v12/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7.woff2')
     format('woff2');
 }
 
@@ -20,7 +27,7 @@ h1 {
   font-family: 'Poppins variant', sans-serif;
 }
 
-h2 {
+.roboto {
   font-family: 'Roboto', Arial, Helvetica, sans-serif;
 }
 
@@ -30,4 +37,8 @@ p {
 
 div {
   font-family: var(--someFont);
+}
+
+.inter {
+  font-family: Inter;
 }
