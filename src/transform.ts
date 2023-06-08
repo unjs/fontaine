@@ -13,7 +13,7 @@ import { getMetricsForFamily, readMetrics } from './metrics'
 import { parseURL } from 'ufo'
 import { isAbsolute, join } from 'pathe'
 
-interface FontaineTransformOptions {
+export interface FontaineTransformOptions {
   css?: { value?: string }
   fallbacks: string[]
   resolvePath?: (path: string) => string | URL
