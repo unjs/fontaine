@@ -13,10 +13,11 @@ import { getMetricsForFamily, readMetrics } from './metrics'
 import { parseURL } from 'ufo'
 import { isAbsolute, join } from 'pathe'
 
-interface FontaineTransformOptions {
+export interface FontaineTransformOptions {
   css?: { value?: string }
   fallbacks: string[]
   resolvePath?: (path: string) => string | URL
+  skipFontFaceGeneration?: (fallbackName: string) => boolean
   /** this should produce an unquoted font family name */
   fallbackName?: (name: string) => string
   /** @deprecated use fallbackName */
@@ -33,6 +34,9 @@ export const FontaineTransform = createUnplugin(
     const resolvePath = options.resolvePath || (id => id)
     const fallbackName =
       options.fallbackName || options.overrideName || generateFallbackName
+
+    const skipFontFaceGeneration =
+      options.skipFontFaceGeneration || (() => false)
 
     function readMetricsFromId(path: string, importer: string) {
       const resolvedPath =
@@ -64,16 +68,30 @@ export const FontaineTransform = createUnplugin(
           )) {
             if (!family) continue
             if (!supportedExtensions.some(e => source?.endsWith(e))) continue
+            if (skipFontFaceGeneration(fallbackName(family))) continue
 
             const metrics =
               (await getMetricsForFamily(family)) ||
               (source &&
                 (await readMetricsFromId(source, id).catch(() => null)))
 
-            if (metrics) {
+            if (!metrics) {
+              continue
+            }
+
+            // Iterate backwards: Browsers will use the last working font-face in the stylesheet
+            for (let i = options.fallbacks.length - 1; i >= 0; i--) {
+              const fallback = options.fallbacks[i]
+              const fallbackMetrics = await getMetricsForFamily(fallback)
+
+              if (!fallbackMetrics) {
+                continue
+              }
+
               const fontFace = generateFontFace(metrics, {
                 name: fallbackName(family),
-                fallbacks: options.fallbacks,
+                font: fallback,
+                metrics: fallbackMetrics,
                 ...properties,
               })
               cssContext.value += fontFace

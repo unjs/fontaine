@@ -54,6 +54,7 @@ const options = {
   resolvePath: (id) => 'file:///path/to/public/dir' + id,
   // overrideName: (originalName) => `${name} override`
   // sourcemap: false
+  // skipFontFaceGeneration: (fallbackName) => fallbackName === 'Roboto override'
 }
 
 // Vite

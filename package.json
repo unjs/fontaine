@@ -1,6 +1,6 @@
 {
   "name": "fontaine",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Automatic font fallback based on font metrics",
   "repository": "unjs/fontaine",
   "keywords": [
@@ -46,7 +46,7 @@
   "dependencies": {
     "@capsizecss/metrics": "^1.1.1",
     "@capsizecss/unpack": "^1.0.0",
-    "magic-regexp": "^0.6.3",
+    "magic-regexp": "^0.7.0",
     "magic-string": "^0.30.0",
     "pathe": "^1.1.0",
     "ufo": "^1.1.1",
@@ -54,28 +54,28 @@
   },
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "latest",
-    "@types/node": "18.16.1",
+    "@types/node": "18.17.5",
     "@types/serve-handler": "6.1.1",
-    "@typescript-eslint/eslint-plugin": "5.59.1",
-    "@typescript-eslint/parser": "5.59.1",
-    "@vitest/coverage-c8": "0.30.1",
-    "bumpp": "9.1.0",
-    "eslint": "8.39.0",
-    "eslint-config-prettier": "8.8.0",
+    "@typescript-eslint/eslint-plugin": "6.4.0",
+    "@typescript-eslint/parser": "6.4.0",
+    "@vitest/coverage-v8": "0.34.1",
+    "bumpp": "9.1.1",
+    "eslint": "8.47.0",
+    "eslint-config-prettier": "9.0.0",
     "eslint-plugin-prettier": "latest",
-    "execa": "7.1.1",
+    "execa": "7.2.0",
     "get-port-please": "3.0.1",
     "husky": "latest",
-    "lint-staged": "13.2.2",
+    "lint-staged": "13.3.0",
     "prettier": "latest",
     "serve-handler": "6.1.5",
-    "typescript": "5.0.4",
+    "typescript": "5.1.6",
     "unbuild": "latest",
-    "vite": "4.3.3",
-    "vitest": "0.30.1"
+    "vite": "4.4.9",
+    "vitest": "0.34.1"
   },
   "resolutions": {
     "fontaine": "link:."
   },
-  "packageManager": "pnpm@8.3.1"
+  "packageManager": "pnpm@8.6.12"
 }

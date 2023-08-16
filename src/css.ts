@@ -7,9 +7,7 @@ import {
   whitespace,
 } from 'magic-regexp'
 
-export function* parseFontFace(
-  css: string
-): Generator<{
+export function* parseFontFace(css: string): Generator<{
   family?: string
   source?: string
   properties?: FontProperties
@@ -41,51 +39,66 @@ export const generateFallbackName = (name: string) => {
 
 export const withoutQuotes = (str: string) => str.trim().replace(QUOTES_RE, '')
 
-interface GenerateOptions {
+interface FallbackOptions {
   name: string
-  fallbacks: string[]
+  font: string
+  metrics?: FontFaceMetrics
   [key: string]: any
 }
 
 export type FontFaceMetrics = Pick<
   Font,
-  'ascent' | 'descent' | 'lineGap' | 'unitsPerEm'
+  'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'
 >
+
 export const generateFontFace = (
   metrics: FontFaceMetrics,
-  options: GenerateOptions
+  fallback: FallbackOptions
 ) => {
-  const { name, fallbacks, ...properties } = options
+  const {
+    name: fallbackName,
+    font: fallbackFontName,
+    metrics: fallbackMetrics,
+    ...properties
+  } = fallback
 
-  // TODO: implement size-adjust: 'width' of web font / 'width' of fallback font
-  const sizeAdjust = 1
+  // Credits to: https://github.com/seek-oss/capsize/blob/master/packages/core/src/createFontStack.ts
+
+  // Calculate size adjust
+  const preferredFontXAvgRatio = metrics.xWidthAvg / metrics.unitsPerEm
+  const fallbackFontXAvgRatio = fallbackMetrics
+    ? fallbackMetrics.xWidthAvg / fallbackMetrics.unitsPerEm
+    : 1
+
+  const sizeAdjust =
+    fallbackMetrics && preferredFontXAvgRatio && fallbackFontXAvgRatio
+      ? preferredFontXAvgRatio / fallbackFontXAvgRatio
+      : 1
+
+  const adjustedEmSquare = metrics.unitsPerEm * sizeAdjust
+
+  // Calculate metric overrides for preferred font
+  const ascentOverride = metrics.ascent / adjustedEmSquare
+  const descentOverride = Math.abs(metrics.descent) / adjustedEmSquare
+  const lineGapOverride = metrics.lineGap / adjustedEmSquare
 
   const declaration = {
-    'font-family': JSON.stringify(name),
-    src: fallbacks.map(f => `local(${JSON.stringify(f)})`),
-    // 'size-adjust': toPercentage(sizeAdjust),
-    'ascent-override': toPercentage(
-      metrics.ascent / (metrics.unitsPerEm * sizeAdjust)
-    ),
-    'descent-override': toPercentage(
-      Math.abs(metrics.descent / (metrics.unitsPerEm * sizeAdjust))
-    ),
-    'line-gap-override': toPercentage(
-      metrics.lineGap / (metrics.unitsPerEm * sizeAdjust)
-    ),
+    'font-family': JSON.stringify(fallbackName),
+    src: `local(${JSON.stringify(fallbackFontName)})`,
+    'size-adjust': toPercentage(sizeAdjust),
+    'ascent-override': toPercentage(ascentOverride),
+    'descent-override': toPercentage(descentOverride),
+    'line-gap-override': toPercentage(lineGapOverride),
     ...properties,
   }
 
   return `@font-face {\n${toCSS(declaration)}\n}\n`
 }
 
-const toPercentage = (value: number, fractionDigits = 8) => {
+// See: https://github.com/seek-oss/capsize/blob/master/packages/core/src/round.ts
+const toPercentage = (value: number, fractionDigits = 4) => {
   const percentage = value * 100
-  return (
-    (percentage % 1
-      ? percentage.toFixed(fractionDigits).replace(/0+$/, '')
-      : percentage) + '%'
-  )
+  return +percentage.toFixed(fractionDigits) + '%'
 }
 
 const toCSS = (properties: Record<string, any>, indent = 2) =>

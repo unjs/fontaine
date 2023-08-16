@@ -6,7 +6,7 @@ export default defineConfig({
   root: '../playground',
   plugins: [
     FontaineTransform.vite({
-      fallbacks: ['Arial'],
+      fallbacks: ['Arial', 'Segoe UI'],
       // resolve absolute URL -> file
       resolvePath: id =>
         new URL(join('../playground', '.' + id), import.meta.url),
