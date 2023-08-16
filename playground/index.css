@@ -1,7 +1,31 @@
 @font-face {
-  font-family: 'Poppins variant';
+  font-family: 'Poppins';
   font-display: swap;
+  font-weight: normal;
   src: url('/fonts/font.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-display: swap;
+  font-weight: 700;
+  src: url('/fonts/font-bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-display: swap;
+  font-weight: normal;
+  font-style: italic;
+  src: url('/fonts/font-italic.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-display: swap;
+  font-weight: 700;
+  font-style: italic;
+  src: url('/fonts/font-bold-italic.ttf') format('truetype');
 }
 
 @font-face {
@@ -13,11 +37,11 @@
 
 :root {
   /* Adding this manually for now */
-  --someFont: 'Poppins variant', 'Poppins variant fallback';
+  --someFont: 'Poppins', 'Poppins fallback';
 }
 
 h1 {
-  font-family: 'Poppins variant', sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 h2 {
@@ -25,7 +49,7 @@ h2 {
 }
 
 p {
-  font-family: 'Poppins variant';
+  font-family: 'Poppins';
 }
 
 div {

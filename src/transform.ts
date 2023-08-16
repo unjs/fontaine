@@ -59,7 +59,9 @@ export const FontaineTransform = createUnplugin(
 
           faceRanges.push([match.index, match.index + matchContent.length])
 
-          for (const { family, source } of parseFontFace(matchContent)) {
+          for (const { family, source, ...properties } of parseFontFace(
+            matchContent
+          )) {
             if (!family) continue
             if (!supportedExtensions.some(e => source?.endsWith(e))) continue
 
@@ -72,6 +74,7 @@ export const FontaineTransform = createUnplugin(
               const fontFace = generateFontFace(metrics, {
                 name: fallbackName(family),
                 fallbacks: options.fallbacks,
+                ...properties,
               })
               cssContext.value += fontFace
               s.appendLeft(match.index, fontFace)
