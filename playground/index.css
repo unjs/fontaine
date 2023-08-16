@@ -1,19 +1,19 @@
 @font-face {
-  font-family: 'Poppins';
+  font-family: 'Poppins variant';
   font-display: swap;
   font-weight: normal;
   src: url('/fonts/font.ttf') format('truetype');
 }
 
 @font-face {
-  font-family: 'Poppins';
+  font-family: 'Poppins variant';
   font-display: swap;
   font-weight: 700;
   src: url('/fonts/font-bold.ttf') format('truetype');
 }
 
 @font-face {
-  font-family: 'Poppins';
+  font-family: 'Poppins variant';
   font-display: swap;
   font-weight: normal;
   font-style: italic;
@@ -21,7 +21,7 @@
 }
 
 @font-face {
-  font-family: 'Poppins';
+  font-family: 'Poppins variant';
   font-display: swap;
   font-weight: 700;
   font-style: italic;
@@ -44,11 +44,11 @@
 
 :root {
   /* Adding this manually for now */
-  --someFont: 'Poppins', 'Poppins fallback';
+  --someFont: 'Poppins variant', 'Poppins variant fallback';
 }
 
 h1 {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins variant', sans-serif;
 }
 
 .roboto {
@@ -56,7 +56,7 @@ h1 {
 }
 
 p {
-  font-family: 'Poppins';
+  font-family: 'Poppins variant';
 }
 
 div {
