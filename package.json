@@ -1,6 +1,6 @@
 {
   "name": "fontaine",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Automatic font fallback based on font metrics",
   "repository": "unjs/fontaine",
   "keywords": [
