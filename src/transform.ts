@@ -155,5 +155,7 @@ const FONT_FAMILY_RE = createRegExp(
 )
 
 const CSS_RE = createRegExp(
-  exactly('.').and(anyOf('sass', 'css', 'scss')).at.lineEnd()
+  exactly('.')
+    .and(anyOf('sass', 'css', 'scss'))
+    .at.lineEnd()
 )

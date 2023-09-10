@@ -37,7 +37,7 @@
     "lint:all:eslint": "pnpm lint:eslint --ext .ts,.js,.mjs,.cjs .",
     "lint:all:prettier": "pnpm lint:prettier \"{src,test}/**/*.{js,json,ts}\"",
     "lint:eslint": "eslint --fix",
-    "lint:prettier": "prettier --write --loglevel warn",
+    "lint:prettier": "prettier --write --log-level warn",
     "prepare": "husky install && pnpm build",
     "prepublishOnly": "pnpm lint && pnpm test",
     "release": "pnpm test && bumpp && npm publish",
