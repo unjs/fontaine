@@ -40,8 +40,8 @@ importers:
         specifier: 18.17.19
         version: 18.17.19
       '@types/serve-handler':
-        specifier: 6.1.1
-        version: 6.1.1
+        specifier: 6.1.2
+        version: 6.1.2
       '@typescript-eslint/eslint-plugin':
         specifier: 6.4.1
         version: 6.4.1(@typescript-eslint/parser@6.4.1)(eslint@8.48.0)(typescript@5.1.6)
@@ -1029,8 +1029,8 @@ packages:
     resolution: {integrity: sha512-G8hZ6XJiHnuhQKR7ZmysCeJWE08o8T0AXtk5darsCaTVsYZhhgUrq53jizaR2FvsoeCwJhlmwTjkXBY5Pn/ZHw==}
     dev: true
 
-  /@types/serve-handler@6.1.1:
-    resolution: {integrity: sha512-bIwSmD+OV8w0t2e7EWsuQYlGoS1o5aEdVktgkXaa43Zm0qVWi21xaSRb3DQA1UXD+DJ5bRq1Rgu14ZczB+CjIQ==}
+  /@types/serve-handler@6.1.2:
+    resolution: {integrity: sha512-g9j/B9svpVzXqa7MgfZfdFQoVvy5C/DOKkFFrcsLNBgDDMtqlSxYUrvi+93k4PFR2VR9vqHRuot9wzKNutcmVQ==}
     dependencies:
       '@types/node': 18.17.19
     dev: true
