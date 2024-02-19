@@ -15,8 +15,8 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0
       '@capsizecss/unpack':
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^2.0.0
+        version: 2.0.0
       magic-regexp:
         specifier: ^0.7.0
         version: 0.7.0
@@ -323,8 +323,8 @@ packages:
     resolution: {integrity: sha512-zUYcqaR0rv4TYXyY97G1vRMMOyz+3EteXqLsM1XO/N8LnThwR1wYSE5cU15CUx3KPAiAEIbUZ13B7+plxYjHUA==}
     dev: false
 
-  /@capsizecss/unpack@1.0.0:
-    resolution: {integrity: sha512-cXPI7IWQrPANXKYZwqZf53q2SuYnDkexpi9KzGNWls1NDK26lZqkE1Ry2XuMo9eGkqcmMSgVI8gJbMEgjX7bTQ==}
+  /@capsizecss/unpack@2.0.0:
+    resolution: {integrity: sha512-ChlammbsWcdvFffQ8P1czmdih1TgBgdVWzqlbpZqwrfTEb9qLWdjzf/zWJ1tG/n6NSSjpdswuT3sJ+8ndLJ5hA==}
     dependencies:
       blob-to-buffer: 1.2.9
       cross-fetch: 3.1.8
