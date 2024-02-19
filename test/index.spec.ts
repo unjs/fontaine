@@ -24,8 +24,8 @@ describe('generateFontFace', () => {
     })
     expect(result).toMatchInlineSnapshot(`
       "@font-face {
-        font-family: \\"example fallback\\";
-        src: local(\\"fallback\\");
+        font-family: "example fallback";
+        src: local("fallback");
         size-adjust: 100%;
         ascent-override: 105%;
         descent-override: 35%;
@@ -67,8 +67,8 @@ describe('getMetricsForFamily', () => {
       })
     ).toMatchInlineSnapshot(`
       "@font-face {
-        font-family: \\"Merriweather Sans fallback\\";
-        src: local(\\"Arial\\");
+        font-family: "Merriweather Sans fallback";
+        src: local("Arial");
         size-adjust: 106.0248%;
         ascent-override: 92.8085%;
         descent-override: 25.7487%;
@@ -101,8 +101,8 @@ describe('getMetricsForFamily', () => {
       })
     ).toMatchInlineSnapshot(`
       "@font-face {
-        font-family: \\"IBM Plex Mono fallback\\";
-        src: local(\\"Arial\\");
+        font-family: "IBM Plex Mono fallback";
+        src: local("Arial");
         size-adjust: 135.9292%;
         ascent-override: 75.4069%;
         descent-override: 20.2311%;
@@ -204,7 +204,7 @@ describe('parseFontFace', () => {
       [
         {
           "family": "Something'
-              src: url(\\"\\") format(\\"woff\\")",
+              src: url("") format("woff")",
           "source": "/fonts/OpenSans-Regular-webfont.woff2",
         },
         {
