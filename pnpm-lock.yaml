@@ -12,8 +12,8 @@ importers:
   .:
     dependencies:
       '@capsizecss/metrics':
-        specifier: ^1.2.0
-        version: 1.2.0
+        specifier: ^2.0.0
+        version: 2.0.0
       '@capsizecss/unpack':
         specifier: ^1.0.0
         version: 1.0.0
@@ -319,8 +319,8 @@ packages:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
 
-  /@capsizecss/metrics@1.2.0:
-    resolution: {integrity: sha512-zUYcqaR0rv4TYXyY97G1vRMMOyz+3EteXqLsM1XO/N8LnThwR1wYSE5cU15CUx3KPAiAEIbUZ13B7+plxYjHUA==}
+  /@capsizecss/metrics@2.0.0:
+    resolution: {integrity: sha512-tbYOyIXIMqWZJ2mw2JXvpQiecgTpvioBmduzUEJ+55xGbJz4AtlcatiuNI/rVYiOLLLvGuOOxpkuaY8qAxN63g==}
     dev: false
 
   /@capsizecss/unpack@1.0.0:
