@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: "pnpm"
+          cache: 'pnpm'
 
       - name: 📦 Install dependencies
         run: pnpm install
@@ -35,7 +35,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: "pnpm"
+          cache: 'pnpm'
 
       - name: 📦 Install dependencies
         run: pnpm install
@@ -48,3 +48,5 @@ jobs:
 
       - name: 🟩 Coverage
         uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
