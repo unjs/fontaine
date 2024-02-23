@@ -24,8 +24,8 @@ describe('generateFontFace', () => {
     })
     expect(result).toMatchInlineSnapshot(`
       "@font-face {
-        font-family: \\"example fallback\\";
-        src: local(\\"fallback\\");
+        font-family: "example fallback";
+        src: local("fallback");
         size-adjust: 100%;
         ascent-override: 105%;
         descent-override: 35%;
@@ -52,7 +52,7 @@ describe('getMetricsForFamily', () => {
         "descent": -546,
         "lineGap": 0,
         "unitsPerEm": 2000,
-        "xWidthAvg": 936,
+        "xWidthAvg": 1056,
       }
     `)
     // Test cache
@@ -67,11 +67,11 @@ describe('getMetricsForFamily', () => {
       })
     ).toMatchInlineSnapshot(`
       "@font-face {
-        font-family: \\"Merriweather Sans fallback\\";
-        src: local(\\"Arial\\");
-        size-adjust: 106.0248%;
-        ascent-override: 92.8085%;
-        descent-override: 25.7487%;
+        font-family: "Merriweather Sans fallback";
+        src: local("Arial");
+        size-adjust: 110.9071%;
+        ascent-override: 88.7229%;
+        descent-override: 24.6152%;
         line-gap-override: 0%;
       }
       "
@@ -101,11 +101,11 @@ describe('getMetricsForFamily', () => {
       })
     ).toMatchInlineSnapshot(`
       "@font-face {
-        font-family: \\"IBM Plex Mono fallback\\";
-        src: local(\\"Arial\\");
-        size-adjust: 135.9292%;
-        ascent-override: 75.4069%;
-        descent-override: 20.2311%;
+        font-family: "IBM Plex Mono fallback";
+        src: local("Arial");
+        size-adjust: 126.0308%;
+        ascent-override: 81.3293%;
+        descent-override: 21.8201%;
         line-gap-override: 0%;
       }
       "
@@ -134,7 +134,7 @@ describe('readMetrics', () => {
         "descent": -350,
         "lineGap": 100,
         "unitsPerEm": 1000,
-        "xWidthAvg": 502,
+        "xWidthAvg": 542,
       }
     `)
   })
@@ -153,7 +153,7 @@ describe('readMetrics', () => {
         "descent": -350,
         "lineGap": 100,
         "unitsPerEm": 1000,
-        "xWidthAvg": 502,
+        "xWidthAvg": 542,
       }
     `)
     server.close()
@@ -243,7 +243,7 @@ describe('parseFontFace', () => {
       [
         {
           "family": "Something'
-              src: url(\\"\\") format(\\"woff\\")",
+              src: url("") format("woff")",
           "source": "/fonts/OpenSans-Regular-webfont.woff2",
         },
         {
