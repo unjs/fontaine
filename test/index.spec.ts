@@ -181,6 +181,45 @@ describe('parseFontFace', () => {
       }
     `)
   })
+  it('should extract weight/style/stretch', () => {
+    const result = parseFontFace(
+      `@font-face {
+        font-family: Roboto;
+        font-weight: 700;
+        font-style: italic;
+        src: url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
+        font-stretch: condensed;
+      }`
+    ).next().value
+
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "family": "Roboto",
+        "font-stretch": "condensed",
+        "font-style": "italic",
+        "font-weight": "700",
+        "source": "/fonts/OpenSans-Regular-webfont.woff2",
+      }
+    `)
+  })
+  it('should handle invalid weight/style/stretch', () => {
+    const result = parseFontFace(
+      `@font-face {
+        font-family: Roboto;
+        font-weight;
+        font-style;
+        src: url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
+        font-stretch;
+      }`
+    ).next().value
+
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "family": "Roboto",
+        "source": "/fonts/OpenSans-Regular-webfont.woff2",
+      }
+    `)
+  })
   it('should handle incomplete font-faces', () => {
     for (const result of parseFontFace(
       `@font-face {
