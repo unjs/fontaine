@@ -52,7 +52,7 @@ describe('getMetricsForFamily', () => {
         "descent": -546,
         "lineGap": 0,
         "unitsPerEm": 2000,
-        "xWidthAvg": 1056,
+        "xWidthAvg": 949,
       }
     `)
     // Test cache
@@ -69,9 +69,9 @@ describe('getMetricsForFamily', () => {
       "@font-face {
         font-family: "Merriweather Sans fallback";
         src: local("Arial");
-        size-adjust: 110.9071%;
-        ascent-override: 88.7229%;
-        descent-override: 24.6152%;
+        size-adjust: 106.4377%;
+        ascent-override: 92.4485%;
+        descent-override: 25.6488%;
         line-gap-override: 0%;
       }
       "
@@ -103,9 +103,9 @@ describe('getMetricsForFamily', () => {
       "@font-face {
         font-family: "IBM Plex Mono fallback";
         src: local("Arial");
-        size-adjust: 126.0308%;
-        ascent-override: 81.3293%;
-        descent-override: 21.8201%;
+        size-adjust: 134.5893%;
+        ascent-override: 76.1576%;
+        descent-override: 20.4325%;
         line-gap-override: 0%;
       }
       "
@@ -134,7 +134,7 @@ describe('readMetrics', () => {
         "descent": -350,
         "lineGap": 100,
         "unitsPerEm": 1000,
-        "xWidthAvg": 542,
+        "xWidthAvg": 500,
       }
     `)
   })
@@ -153,7 +153,7 @@ describe('readMetrics', () => {
         "descent": -350,
         "lineGap": 100,
         "unitsPerEm": 1000,
-        "xWidthAvg": 542,
+        "xWidthAvg": 500,
       }
     `)
     server.close()
