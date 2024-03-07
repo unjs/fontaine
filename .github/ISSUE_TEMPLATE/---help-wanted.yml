@@ -1,6 +1,6 @@
-name: "\U0001F198 Help"
+name: 🆘 Help
 description: I need help with ...
-labels: ["help"]
+labels: [help]
 body:
   - type: textarea
     validations:

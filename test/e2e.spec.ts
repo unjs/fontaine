@@ -1,17 +1,17 @@
-import { expect, it, describe } from 'vitest'
+import { readFile, readdir } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
+import { describe, expect, it } from 'vitest'
 import { execaCommand } from 'execa'
-import { readdir, readFile } from 'fs/promises'
-import { fileURLToPath } from 'url'
 import { join } from 'pathe'
 
 describe('fontaine', () => {
   it('e2e', async () => {
     const assetsDir = fileURLToPath(
-      new URL('../playground/dist/assets', import.meta.url)
+      new URL('../playground/dist/assets', import.meta.url),
     )
     await $`pnpm vite build playground --config test/vite.config.mjs`
     const cssFile = await readdir(assetsDir).then(files =>
-      files.find(f => f.endsWith('.css'))
+      files.find(f => f.endsWith('.css')),
     )
     // @ts-expect-error there must be a file or we _want_ a test failure
     const css = await readFile(join(assetsDir, cssFile), 'utf-8')
@@ -27,8 +27,9 @@ async function $(literals: TemplateStringsArray, ...values: any[]) {
   const cmd = literals.reduce(
     (result, current, i) =>
       result + current + (values?.[i] != null ? `${values[i]}` : ''),
-    ''
+    '',
   )
+  // eslint-disable-next-line no-console
   console.log(`${process.cwd()} $> ${cmd}`)
   const proc = execaCommand(cmd, {
     stdio: 'pipe',

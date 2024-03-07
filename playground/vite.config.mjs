@@ -6,7 +6,7 @@ export default defineConfig({
     FontaineTransform.vite({
       fallbacks: ['Arial'],
       // resolve absolute URL -> file
-      resolvePath: id => new URL('.' + id, import.meta.url),
+      resolvePath: id => new URL(`.${id}`, import.meta.url),
     }),
   ],
 })

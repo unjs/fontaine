@@ -2,12 +2,12 @@ import { createServer } from 'node:http'
 import { fileURLToPath } from 'node:url'
 import { dirname } from 'pathe'
 import handler from 'serve-handler'
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { getRandomPort } from 'get-port-please'
 import {
+  generateFallbackName,
   generateFontFace,
   parseFontFace,
-  generateFallbackName,
 } from '../src/css'
 import { getMetricsForFamily, readMetrics } from '../src/metrics'
 
@@ -18,8 +18,8 @@ describe('generateFontFace', () => {
     const metrics = await readMetrics(fixtureURL)
     // @ts-expect-error if metrics is not defined the test should throw
     const result = generateFontFace(metrics, {
-      name: 'example fallback',
-      font: 'fallback',
+      'name': 'example fallback',
+      'font': 'fallback',
       'font-weight': 'bold',
     })
     expect(result).toMatchInlineSnapshot(`
@@ -59,12 +59,12 @@ describe('getMetricsForFamily', () => {
     expect(await getMetricsForFamily('Merriweather Sans')).toEqual(metrics)
 
     expect(
-      // eslint-disable-next-line
+
       generateFontFace(metrics!, {
         name: 'Merriweather Sans fallback',
         font: 'Arial',
         metrics: (await getMetricsForFamily('Arial'))!,
-      })
+      }),
     ).toMatchInlineSnapshot(`
       "@font-face {
         font-family: "Merriweather Sans fallback";
@@ -93,12 +93,12 @@ describe('getMetricsForFamily', () => {
     expect(await getMetricsForFamily('IBM Plex Mono')).toEqual(metrics)
 
     expect(
-      // eslint-disable-next-line
+
       generateFontFace(metrics!, {
         name: 'IBM Plex Mono fallback',
         font: 'Arial',
         metrics: (await getMetricsForFamily('Arial'))!,
-      })
+      }),
     ).toMatchInlineSnapshot(`
       "@font-face {
         font-family: "IBM Plex Mono fallback";
@@ -126,7 +126,7 @@ describe('getMetricsForFamily', () => {
 describe('readMetrics', () => {
   it('reads font metrics from a file', async () => {
     const metrics = await readMetrics(
-      new URL('../playground/fonts/font.ttf', import.meta.url)
+      new URL('../playground/fonts/font.ttf', import.meta.url),
     )
     expect(metrics).toMatchInlineSnapshot(`
       {
@@ -142,7 +142,7 @@ describe('readMetrics', () => {
     const server = createServer((request, response) =>
       handler(request, response, {
         public: dirname(fileURLToPath(fixtureURL)),
-      })
+      }),
     )
     const port = await getRandomPort()
     server.listen(port)
@@ -172,7 +172,7 @@ describe('parseFontFace', () => {
         src: url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2"),
              url("/fonts/OpenSans-Regular-webfont.woff") format("woff");
         unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+1EA0-1EF9, U+20AB;
-      }`
+      }`,
     ).next().value
     expect(result).toMatchInlineSnapshot(`
       {
@@ -184,7 +184,7 @@ describe('parseFontFace', () => {
   it('should handle incomplete font-faces', () => {
     for (const result of parseFontFace(
       `@font-face {
-      }`
+      }`,
     )) {
       expect(result).toMatchInlineSnapshot(`
       {
@@ -198,7 +198,7 @@ describe('parseFontFace', () => {
         `@font-face {
         font-family: 'Something'
         src: url("") format("woff"), url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
-      }`
+      }`,
       ),
     ]).toMatchInlineSnapshot(`
       [
@@ -218,7 +218,7 @@ describe('parseFontFace', () => {
     for (const result of parseFontFace(
       `@font-face {
         src: local("Arial") url();
-      }`
+      }`,
     )) {
       expect(result).toMatchInlineSnapshot(`
       {
