@@ -50,7 +50,7 @@
     "unplugin": "^1.8.3"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^2.8.0",
+    "@antfu/eslint-config": "2.8.0",
     "@nuxtjs/eslint-config-typescript": "latest",
     "@types/node": "20.11.25",
     "@types/serve-handler": "6.1.4",
@@ -66,7 +66,7 @@
     "lint-staged": "15.2.2",
     "prettier": "latest",
     "serve-handler": "6.1.5",
-    "simple-git-hooks": "^2.10.0",
+    "simple-git-hooks": "2.10.0",
     "typescript": "5.4.2",
     "unbuild": "latest",
     "vite": "5.1.5",
