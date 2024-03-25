@@ -31,7 +31,7 @@ importers:
         version: 1.4.0
       unplugin:
         specifier: ^1.8.3
-        version: 1.8.3
+        version: 1.10.0
     devDependencies:
       '@antfu/eslint-config':
         specifier: 2.9.0
@@ -4674,7 +4674,7 @@ packages:
       regexp-tree: 0.1.27
       type-level-regexp: 0.1.17
       ufo: 1.4.0
-      unplugin: 1.8.3
+      unplugin: 1.10.0
     dev: false
 
   /magic-string@0.27.0:
@@ -6038,8 +6038,8 @@ packages:
     engines: {node: '>= 10.0.0'}
     dev: true
 
-  /unplugin@1.8.3:
-    resolution: {integrity: sha512-ZlLteXGDcyJgsbN2g4sZ3Dw6fpX1O5rjgeaA5MmQhhA2YxnTxsh43f8nDQgFOzcir0iv8GYMjtCV8MtyNnrhEg==}
+  /unplugin@1.10.0:
+    resolution: {integrity: sha512-CuZtvvO8ua2Wl+9q2jEaqH6m3DoQ38N7pvBYQbbaeNlWGvK2l6GHiKi29aIHDPoSxdUzQ7Unevf1/ugil5X6Pg==}
     engines: {node: '>=14.0.0'}
     dependencies:
       acorn: 8.11.3
