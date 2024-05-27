@@ -2,7 +2,7 @@
   "name": "fontaine",
   "type": "module",
   "version": "0.5.0",
-  "packageManager": "pnpm@8.15.7",
+  "packageManager": "pnpm@8.15.8",
   "description": "Automatic font fallback based on font metrics",
   "author": {
     "name": "Daniel Roe <daniel@roe.dev>",
