@@ -63,7 +63,7 @@
     "eslint-plugin-prettier": "latest",
     "execa": "8.0.1",
     "get-port-please": "3.1.2",
-    "lint-staged": "15.2.2",
+    "lint-staged": "15.2.5",
     "prettier": "latest",
     "serve-handler": "6.1.5",
     "simple-git-hooks": "2.10.0",
