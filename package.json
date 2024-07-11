@@ -61,7 +61,7 @@
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-prettier": "latest",
-    "execa": "8.0.1",
+    "execa": "9.3.0",
     "get-port-please": "3.1.2",
     "lint-staged": "15.2.7",
     "prettier": "latest",
