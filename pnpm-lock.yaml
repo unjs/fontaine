@@ -55,8 +55,8 @@ importers:
         specifier: 2.0.2
         version: 2.0.2(vitest@2.0.2(@types/node@20.14.10))
       bumpp:
-        specifier: 9.4.1
-        version: 9.4.1
+        specifier: 9.4.2
+        version: 9.4.2(magicast@0.3.4)
       eslint:
         specifier: 9.7.0
         version: 9.7.0
@@ -1398,8 +1398,8 @@ packages:
   builtins@5.0.1:
     resolution: {integrity: sha512-qwVpFEHNfhYJIzNRBvd2C1kyo6jz3ZSMPyyuR47OPdiKWlbYnZNyDWuyR175qDnAJLiCo5fBBqPb3RiXgWlkOQ==}
 
-  bumpp@9.4.1:
-    resolution: {integrity: sha512-kzhp/LpNX0HkUpEyLd7sU2LTN/mbAVgcxJ1Zi2cAJTE/tul6rypSKGpH8UywDpzKWItL8LVdKsIFnwmylw0+7g==}
+  bumpp@9.4.2:
+    resolution: {integrity: sha512-D0Cb5Mgxei7PObv4FkKQ19v1qSRhA3buQqCEQW6EU4+iort7JxL06DC6bZG5E0x/euZkaBuAQqOtFd2zIJKPjA==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -1407,8 +1407,13 @@ packages:
     resolution: {integrity: sha512-pMhOfFDPiv9t5jjIXkHosWmkSyQbvsgEVNkz0ERHbuLh2T/7j4Mqqpz523Fe8MVY89KC6Sh/QfS2sM+SjgFDcw==}
     engines: {node: '>= 0.8'}
 
-  c12@1.10.0:
-    resolution: {integrity: sha512-0SsG7UDhoRWcuSvKWHaXmu5uNjDCDN3nkQLRL4Q42IlFy+ze58FcCoI3uPwINXinkz7ZinbhEgyzYFw9u9ZV8g==}
+  c12@1.11.1:
+    resolution: {integrity: sha512-KDU0TvSvVdaYcQKQ6iPHATGz/7p/KiVjPg4vQrB6Jg/wX9R0yl5RZxWm9IoZqaIHD2+6PZd81+KMGwRr/lRIUg==}
+    peerDependencies:
+      magicast: ^0.3.4
+    peerDependenciesMeta:
+      magicast:
+        optional: true
 
   cac@6.7.14:
     resolution: {integrity: sha512-b6Ilus+c3RrdDk+JhLKUAQfzzgLEPy6wcXqS7f/xe1EETvsDP6GORG7SFuOs6cID5YkqchW/LXZbX5bc8j7ZcQ==}
@@ -1525,8 +1530,8 @@ packages:
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
-  confbox@0.1.3:
-    resolution: {integrity: sha512-eH3ZxAihl1PhKfpr4VfEN6/vUd87fmgb6JkldHgg/YR6aEBhW63qUDgzP2Y6WM0UumdsYp5H3kibalXAdHfbgg==}
+  confbox@0.1.7:
+    resolution: {integrity: sha512-uJcB/FKZtBMCJpK8MQji6bJHgu1tixKPxRLeGkNzBoOZzpnZUJm0jm2/sBDWcuBx1dYgxV4JU+g5hmNxCyAmdA==}
 
   consola@3.2.3:
     resolution: {integrity: sha512-I5qxpzLv+sJhTVEoLYNcTW+bThDCPsit0vLNKShZx6rLtpilNpmmeTPaeqJb9ZE9dV3DGaeby6Vuhrw38WjeyQ==}
@@ -1593,8 +1598,8 @@ packages:
   defu@6.1.4:
     resolution: {integrity: sha512-mEQCMmwJu317oSz8CwdIOdwf3xMif1ttiM8LTufzc3g6kR+9Pe236twL8j3IYT1F7GfRgGcW6MWxzZjLIkuHIg==}
 
-  destr@2.0.1:
-    resolution: {integrity: sha512-M1Ob1zPSIvlARiJUkKqvAZ3VAqQY6Jcuth/pBKQ2b1dX/Qx0OnJ8Vux6J2H5PTMQeRzWrrbTu70VxBfv/OPDJA==}
+  destr@2.0.3:
+    resolution: {integrity: sha512-2N3BOUU4gYMpTP24s5rF5iP7BDr7uNTCs4ozw3kf/eKfvWSIu93GEBi5m427YoyJoeOzQ5smuu4nNAPGb8idSQ==}
 
   dfa@1.2.0:
     resolution: {integrity: sha512-ED3jP8saaweFTjeGX8HQPjeC1YYyZs98jGNZx6IiBvxW7JG5v492kamAQB3m2wop07CvU/RQmzcKr6bgcC5D/Q==}
@@ -2082,10 +2087,6 @@ packages:
     resolution: {integrity: sha512-f7ccFPK3SXFHpx15UIGyRJ/FJQctuKZ0zVuN3frBo4HnK3cay9VEW0R6yPYFHC0AgqhukPzKjq22t5DmAyqGyw==}
     engines: {node: '>=16'}
 
-  flat@5.0.2:
-    resolution: {integrity: sha512-b6suED+5/3rTpUBdG1gupIl8MPFCAMA0QXwmljLhvCUKcUvdE4gWky9zpuGCcXHOsz4J9wPGNWq6OKpmIzz3hQ==}
-    hasBin: true
-
   flatted@3.2.9:
     resolution: {integrity: sha512-36yxDn5H7OFZQla0/jFJmbIKTdZAQHngCedGxiMmpNfEZM0sdEeT+WczLQrjK6D7o2aiyLYDnkw0R3JK0Qv1RQ==}
 
@@ -2161,8 +2162,8 @@ packages:
   get-tsconfig@4.7.3:
     resolution: {integrity: sha512-ZvkrzoUA0PQZM6fy6+/Hce561s+faD1rsNwhnO5FelNjyy7EMGJ3Rz1AQ8GYDWjhRs/7dBLOEJvhK8MiEJOAFg==}
 
-  giget@1.2.1:
-    resolution: {integrity: sha512-4VG22mopWtIeHwogGSy1FViXVo0YT+m6BrqZfz0JJFwbSsePsCdOzdLIIli5BtMp7Xe8f/o2OmBpQX2NBOC24g==}
+  giget@1.2.3:
+    resolution: {integrity: sha512-8EHPljDvs7qKykr6uw8b+lqLiUc/vUg+KVTI0uND4s63TdsZM2Xus3mflvF0DDG9SiM4RlCkFGL+7aAjRmV7KA==}
     hasBin: true
 
   glob-parent@5.1.2:
@@ -2446,6 +2447,10 @@ packages:
     resolution: {integrity: sha512-gFqAIbuKyyso/3G2qhiO2OM6shY6EPP/R0+mkDbyspxKazh8BXDC5FiFsUjlczgdNz/vfra0da2y+aHrusLG/Q==}
     hasBin: true
 
+  jiti@1.21.6:
+    resolution: {integrity: sha512-2yTgeWTWzMWkHu6Jp9NKgePDaYHbntiwvYuuJLbbN9vl7DC9DvXKOB2BC3ZZ92D3cvV/aflH0osDfwpHepQ53w==}
+    hasBin: true
+
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
@@ -2682,6 +2687,9 @@ packages:
   mlly@1.6.1:
     resolution: {integrity: sha512-vLgaHvaeunuOXHSmEbZ9izxPx3USsk8KCQ8iC+aTlp5sKRSoZvwhHh5L9VbKSaVC6sJDqbyohIS76E2VmHIPAA==}
 
+  mlly@1.7.1:
+    resolution: {integrity: sha512-rrVRZRELyQzrIUAVMHxP97kv+G786pHmOKzuFII8zDYahFBS7qnHh2AlYSl1GAHhaMPCz6/oHjVMcfFYgFYHgA==}
+
   mri@1.2.0:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
     engines: {node: '>=4'}
@@ -2703,8 +2711,8 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
-  node-fetch-native@1.6.2:
-    resolution: {integrity: sha512-69mtXOFZ6hSkYiXAVB5SqaRvrbITC/NPyqv7yuu/qw0nmgPyYbIMYYNIDhNtwPrzk0ptrimrLz/hhjvm4w5Z+w==}
+  node-fetch-native@1.6.4:
+    resolution: {integrity: sha512-IhOigYzAKHd244OC0JIMIUrjzctirCmPkaIfhDeGcEETWof5zKYUW7e7MYvChGWh/4CJeXEgsRyGzuF334rOOQ==}
 
   node-fetch@2.7.0:
     resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
@@ -2732,8 +2740,8 @@ packages:
   nth-check@2.1.1:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
 
-  nypm@0.3.6:
-    resolution: {integrity: sha512-2CATJh3pd6CyNfU5VZM7qSwFu0ieyabkEdnogE30Obn1czrmOYiZ8DOZLe1yBdLKWoyD3Mcy2maUs+0MR3yVjQ==}
+  nypm@0.3.9:
+    resolution: {integrity: sha512-BI2SdqqTHg2d4wJh8P9A1W+bslg33vOE9IZDY6eR2QC+Pu1iNBVZUqczrd43rJb+fMzHU7ltAYKsEFY/kHMFcw==}
     engines: {node: ^14.16.0 || >=16.10.0}
     hasBin: true
 
@@ -2896,6 +2904,9 @@ packages:
   pkg-types@1.0.3:
     resolution: {integrity: sha512-nN7pYi0AQqJnoLPC9eHFQ8AcyaixBUOwvqc5TDnIKCMEE6I0y8P7OKA7fPexsXGCGxQDl/cmrLAp26LhcwxZ4A==}
 
+  pkg-types@1.1.3:
+    resolution: {integrity: sha512-+JrgthZG6m3ckicaOB74TwQ+tBWsFl3qVQg7mN8ulwSOElJ7gBhKzj2VkCPnZ4NlF6kEquYU+RIYNVAvzd54UA==}
+
   pluralize@8.0.0:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
@@ -2947,8 +2958,8 @@ packages:
     resolution: {integrity: sha512-kA5WQoNVo4t9lNx2kQNFCxKeBl5IbbSNBl1M/tLkw9WCn+hxNBAW5Qh8gdhs63CJnhjJ2zQWFoqPJP2sK1AV5A==}
     engines: {node: '>= 0.6'}
 
-  rc9@2.1.1:
-    resolution: {integrity: sha512-lNeOl38Ws0eNxpO3+wD1I9rkHGQyj1NU1jlzv4go2CtEnEQEUfqnIvZG7W+bC/aXdJ27n5x/yUjb6RoT9tko+Q==}
+  rc9@2.1.2:
+    resolution: {integrity: sha512-btXCnMmRIBINM2LDZoEmOogIZU7Qe7zn4BpomSKZ/ykbLObuBdvG+mFq11DL6fjH1DRwHhrlgtYWG96bJiC7Cg==}
 
   read-pkg-up@7.0.1:
     resolution: {integrity: sha512-zK0TB7Xd6JpCLmlLmufqykGE+/TlOePD6qKClNW7hHDKFh/J7/7gCWGR7joEQEW1bKq3a3yUZSObOoWLFQ4ohg==}
@@ -3062,6 +3073,11 @@ packages:
 
   semver@7.6.2:
     resolution: {integrity: sha512-FNAIBWCx9qcRhoHcgcJ0gvU7SN1lYU2ZXuSfl04bSC5OpvDHFyJCjdNHomPXxjQlCBU67YW64PzY7/VIEH7F2w==}
+    engines: {node: '>=10'}
+    hasBin: true
+
+  semver@7.6.3:
+    resolution: {integrity: sha512-oVekP1cKtI+CTDvHWYFUcMtsK/00wmAEfyqKfNdARm8u1wNVhSgaX7A8d4UuIlUI5e84iEwOhs7ZPYRmzU9U6A==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -4836,33 +4852,37 @@ snapshots:
     dependencies:
       semver: 7.6.2
 
-  bumpp@9.4.1:
+  bumpp@9.4.2(magicast@0.3.4):
     dependencies:
       '@jsdevtools/ez-spawn': 3.0.4
-      c12: 1.10.0
+      c12: 1.11.1(magicast@0.3.4)
       cac: 6.7.14
       escalade: 3.1.2
       fast-glob: 3.3.2
       js-yaml: 4.1.0
       prompts: 2.4.2
-      semver: 7.6.2
+      semver: 7.6.3
+    transitivePeerDependencies:
+      - magicast
 
   bytes@3.0.0: {}
 
-  c12@1.10.0:
+  c12@1.11.1(magicast@0.3.4):
     dependencies:
       chokidar: 3.6.0
-      confbox: 0.1.3
+      confbox: 0.1.7
       defu: 6.1.4
       dotenv: 16.4.5
-      giget: 1.2.1
-      jiti: 1.21.0
-      mlly: 1.6.1
+      giget: 1.2.3
+      jiti: 1.21.6
+      mlly: 1.7.1
       ohash: 1.1.3
       pathe: 1.1.2
       perfect-debounce: 1.0.0
-      pkg-types: 1.0.3
-      rc9: 2.1.1
+      pkg-types: 1.1.3
+      rc9: 2.1.2
+    optionalDependencies:
+      magicast: 0.3.4
 
   cac@6.7.14: {}
 
@@ -4971,7 +4991,7 @@ snapshots:
 
   concat-map@0.0.1: {}
 
-  confbox@0.1.3: {}
+  confbox@0.1.7: {}
 
   consola@3.2.3: {}
 
@@ -5025,7 +5045,7 @@ snapshots:
 
   defu@6.1.4: {}
 
-  destr@2.0.1: {}
+  destr@2.0.3: {}
 
   dfa@1.2.0: {}
 
@@ -5781,8 +5801,6 @@ snapshots:
       flatted: 3.2.9
       keyv: 4.5.4
 
-  flat@5.0.2: {}
-
   flatted@3.2.9: {}
 
   fontkit@2.0.2:
@@ -5865,13 +5883,13 @@ snapshots:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
-  giget@1.2.1:
+  giget@1.2.3:
     dependencies:
       citty: 0.1.6
       consola: 3.2.3
       defu: 6.1.4
-      node-fetch-native: 1.6.2
-      nypm: 0.3.6
+      node-fetch-native: 1.6.4
+      nypm: 0.3.9
       ohash: 1.1.3
       pathe: 1.1.2
       tar: 6.2.0
@@ -6136,6 +6154,8 @@ snapshots:
 
   jiti@1.21.0: {}
 
+  jiti@1.21.6: {}
+
   js-tokens@4.0.0: {}
 
   js-tokens@9.0.0: {}
@@ -6383,6 +6403,13 @@ snapshots:
       pkg-types: 1.0.3
       ufo: 1.5.4
 
+  mlly@1.7.1:
+    dependencies:
+      acorn: 8.12.0
+      pathe: 1.1.2
+      pkg-types: 1.1.3
+      ufo: 1.5.4
+
   mri@1.2.0: {}
 
   ms@2.1.2: {}
@@ -6395,7 +6422,7 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  node-fetch-native@1.6.2: {}
+  node-fetch-native@1.6.4: {}
 
   node-fetch@2.7.0:
     dependencies:
@@ -6420,11 +6447,13 @@ snapshots:
     dependencies:
       boolbase: 1.0.0
 
-  nypm@0.3.6:
+  nypm@0.3.9:
     dependencies:
       citty: 0.1.6
+      consola: 3.2.3
       execa: 8.0.1
       pathe: 1.1.2
+      pkg-types: 1.1.3
       ufo: 1.5.4
 
   object-inspect@1.12.3: {}
@@ -6580,6 +6609,12 @@ snapshots:
       mlly: 1.6.1
       pathe: 1.1.2
 
+  pkg-types@1.1.3:
+    dependencies:
+      confbox: 0.1.7
+      mlly: 1.7.1
+      pathe: 1.1.2
+
   pluralize@8.0.0: {}
 
   postcss-selector-parser@6.0.15:
@@ -6620,11 +6655,10 @@ snapshots:
 
   range-parser@1.2.0: {}
 
-  rc9@2.1.1:
+  rc9@2.1.2:
     dependencies:
       defu: 6.1.4
-      destr: 2.0.1
-      flat: 5.0.2
+      destr: 2.0.3
 
   read-pkg-up@7.0.1:
     dependencies:
@@ -6757,6 +6791,8 @@ snapshots:
   semver@6.3.1: {}
 
   semver@7.6.2: {}
+
+  semver@7.6.3: {}
 
   serve-handler@6.1.5:
     dependencies:
