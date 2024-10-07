@@ -64,15 +64,36 @@ export function* parseFontFace(
   yield { family: '', source: '' }
 }
 
+/**
+ * Generates a fallback name based on the first font family specified in the input string.
+ * @param {string} name - The full font family string.
+ * @returns {string} - The fallback font name.
+ */
 export function generateFallbackName(name: string) {
   const firstFamily = withoutQuotes(name.split(',').shift()!)
   return `${firstFamily} fallback`
 }
 
 interface FallbackOptions {
+  /**
+   * The name of the fallback font.
+   */
   name: string
+
+  /**
+   * The fallback font family name.
+   */
   font: string
+  
+  /**
+   * Metrics for fallback face calculations.
+   * @optional
+   */
   metrics?: FontFaceMetrics
+
+  /**
+   * Additional properties that may be included dynamically
+   */
   [key: string]: any
 }
 
@@ -81,6 +102,12 @@ export type FontFaceMetrics = Pick<
   'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'
 >
 
+/**
+ * Generates a CSS `@font-face' declaration for a font, taking fallback and resizing into account.
+ * @param {FontFaceMetrics} metrics - The metrics of the preferred font. See {@link FontFaceMetrics}.
+ * @param {FallbackOptions} fallback - The fallback options, including name, font and optional metrics. See {@link FallbackOptions}.
+ * @returns {string} - The full `@font-face` CSS declaration.
+ */
 export function generateFontFace(metrics: FontFaceMetrics, fallback: FallbackOptions) {
   const {
     name: fallbackName,

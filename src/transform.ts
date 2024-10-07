@@ -14,14 +14,49 @@ import { generateFallbackName, generateFontFace, parseFontFace } from './css'
 import { getMetricsForFamily, readMetrics } from './metrics'
 
 export interface FontaineTransformOptions {
-  css?: { value?: string }
+  /**
+   * Configuration options for the CSS transformation.
+   * @optional
+   */
+  css?: {
+    /**
+     * Holds the current value of the CSS being transformed.
+     * @optional
+     */
+    value?: string
+  }
+
+  /**
+   * An array of fallback font family names to use.
+   */
   fallbacks: string[]
+
+  /**
+   * Function to resolve a given path to a valid URL or local path.
+   * This is typically used to resolve font file paths.
+   * @optional
+   */
   resolvePath?: (path: string) => string | URL
+
+  /**
+   * A function to determine whether to skip font face generation for a given fallback name.
+   * @optional
+   */
   skipFontFaceGeneration?: (fallbackName: string) => boolean
-  /** this should produce an unquoted font family name */
+
+  /**
+   * Function to generate an unquoted font family name to use as a fallback.
+   * This should return a valid CSS font family name and should not include quotes.
+   * @optional
+   */
   fallbackName?: (name: string) => string
   /** @deprecated use fallbackName */
   overrideName?: (name: string) => string
+
+  /**
+   * Specifies whether to create a source map for the transformation.
+   * @optional
+   */
   sourcemap?: boolean
 }
 
@@ -51,6 +86,12 @@ const CSS_RE = createRegExp(
     .at.lineEnd(),
 )
 
+/**
+ * Transforms CSS files to include font fallbacks.
+ * 
+ * @param options - The transformation options. See {@link FontaineTransformOptions}.
+ * @returns The unplugin instance.
+ */
 export const FontaineTransform = createUnplugin(
   (options: FontaineTransformOptions) => {
     const cssContext = (options.css = options.css || {})

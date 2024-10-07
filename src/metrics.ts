@@ -27,6 +27,12 @@ function filterRequiredMetrics({
   }
 }
 
+/**
+ * Retrieves the font metrics for a given font family from the metrics collection. Uses caching to avoid redundant calculations.
+ * @param {string} family - The name of the font family for which metrics are requested.
+ * @returns {Promise<FontFaceMetrics | null>} - A promise that resolves with the filtered font metrics or null if not found. See {@link FontFaceMetrics}.
+ * @async
+ */
 export async function getMetricsForFamily(family: string) {
   family = withoutQuotes(family)
 
@@ -51,6 +57,13 @@ export async function getMetricsForFamily(family: string) {
   }
 }
 
+/**
+ * Reads font metrics from a specified source URL or file path. This function supports both local files and remote URLs.
+ * It caches the results to optimise subsequent requests for the same source.
+ * @param {URL | string} _source - The source URL or local file path from which to read the font metrics.
+ * @returns {Promise<FontFaceMetrics | null>} - A promise that resolves to the filtered font metrics or null if the source cannot be processed.
+ * @async
+ */
 export async function readMetrics(_source: URL | string) {
   const source
     = typeof _source !== 'string' && 'href' in _source ? _source.href : _source
