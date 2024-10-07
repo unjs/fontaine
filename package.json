@@ -41,7 +41,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@capsizecss/metrics": "^2.1.1",
+    "@capsizecss/metrics": "^3.0.0",
     "@capsizecss/unpack": "^2.0.1",
     "magic-regexp": "^0.8.0",
     "magic-string": "^0.30.10",
