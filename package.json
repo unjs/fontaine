@@ -5,11 +5,15 @@
   "packageManager": "pnpm@9.12.1",
   "description": "Automatic font fallback based on font metrics",
   "author": {
-    "name": "Daniel Roe <daniel@roe.dev>",
+    "name": "Daniel Roe",
+    "email": "daniel@roe.dev",
     "url": "https://github.com/danielroe"
   },
   "license": "MIT",
-  "repository": "unjs/fontaine",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unjs/fontaine.git"
+  },
   "keywords": [
     "fonts",
     "cls",
@@ -80,7 +84,7 @@
   },
   "lint-staged": {
     "*.{js,ts,mjs,cjs,json,.*rc}": [
-      "pnpm eslint --fix"
+      "npx eslint --fix"
     ]
   }
 }
