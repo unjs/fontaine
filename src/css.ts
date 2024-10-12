@@ -113,10 +113,9 @@ export function generateFontFace(metrics: FontFaceMetrics, fallback: FallbackOpt
     ? fallbackMetrics.xWidthAvg / fallbackMetrics.unitsPerEm
     : 1
 
-  const sizeAdjust
-    = fallbackMetrics && preferredFontXAvgRatio && fallbackFontXAvgRatio
-      ? preferredFontXAvgRatio / fallbackFontXAvgRatio
-      : 1
+  const sizeAdjust = fallbackMetrics && preferredFontXAvgRatio && fallbackFontXAvgRatio
+    ? preferredFontXAvgRatio / fallbackFontXAvgRatio
+    : 1
 
   const adjustedEmSquare = metrics.unitsPerEm * sizeAdjust
 

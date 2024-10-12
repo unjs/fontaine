@@ -10,7 +10,7 @@ import { withoutQuotes } from './css'
 
 const metricCache: Record<string, FontFaceMetrics | null> = {}
 
-function filterRequiredMetrics({ ascent, descent, lineGap, unitsPerEm, xWidthAvg }: Pick< Font, 'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'>) {
+function filterRequiredMetrics({ ascent, descent, lineGap, unitsPerEm, xWidthAvg }: Pick<Font, 'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'>) {
   return {
     ascent,
     descent,
@@ -36,6 +36,11 @@ export async function getMetricsForFamily(family: string) {
     const name = fontFamilyToCamelCase(family)
     const { entireMetricsCollection } = await import('@capsizecss/metrics/entireMetricsCollection')
     const metrics = entireMetricsCollection[name as keyof typeof entireMetricsCollection]
+
+    if (!('descent' in metrics)) {
+      metricCache[family] = null
+      return null
+    }
 
     const filteredMetrics = filterRequiredMetrics(metrics)
     metricCache[family] = filteredMetrics
