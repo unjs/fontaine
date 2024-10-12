@@ -20,13 +20,13 @@ const QUOTES_RE = createRegExp(
 
 const PROPERTIES_WHITELIST = ['font-weight', 'font-style', 'font-stretch']
 
-type FontProperties = {
+interface FontProperties {
   'font-weight'?: string
   'font-style'?: string
   'font-stretch'?: string
 }
 
-const parseFontProperties = (css: string): FontProperties => {
+function parseFontProperties(css: string): FontProperties {
   return PROPERTIES_WHITELIST.reduce(
     (properties: FontProperties, property: string) => {
       const value = css.match(createPropertyRE(property))?.groups.value
@@ -36,15 +36,15 @@ const parseFontProperties = (css: string): FontProperties => {
 
       return properties
     },
-    {}
+    {},
   )
 }
 
-const createPropertyRE = (property: string) => {
+function createPropertyRE(property: string) {
   return createRegExp(
     exactly(`${property}:`)
       .and(whitespace.optionally())
-      .and(charNotIn(';}').times.any().as('value'))
+      .and(charNotIn(';}').times.any().as('value')),
   )
 }
 

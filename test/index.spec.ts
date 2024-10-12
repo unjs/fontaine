@@ -189,7 +189,7 @@ describe('parseFontFace', () => {
         font-style: italic;
         src: url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
         font-stretch: condensed;
-      }`
+      }`,
     ).next().value
 
     expect(result).toMatchInlineSnapshot(`
@@ -210,7 +210,7 @@ describe('parseFontFace', () => {
         font-style;
         src: url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
         font-stretch;
-      }`
+      }`,
     ).next().value
 
     expect(result).toMatchInlineSnapshot(`
