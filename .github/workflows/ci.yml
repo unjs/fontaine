@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - main
+      - renovate/*
 
 jobs:
   lint:
@@ -18,7 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'pnpm'
+          cache: pnpm
 
       - name: 📦 Install dependencies
         run: pnpm install
@@ -35,7 +36,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'pnpm'
+          cache: pnpm
 
       - name: 📦 Install dependencies
         run: pnpm install

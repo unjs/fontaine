@@ -2,8 +2,8 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "strict": true,
     "moduleResolution": "Bundler",
+    "strict": true,
     "esModuleInterop": true
   }
 }

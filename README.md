@@ -48,10 +48,13 @@ yarn add -D fontaine
 ```js
 import { FontaineTransform } from 'fontaine'
 
+// Astro config - astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 const options = {
   fallbacks: ['BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'],
   // You may need to resolve assets like `/fonts/Roboto.woff2` to a particular directory
-  resolvePath: (id) => 'file:///path/to/public/dir' + id,
+  resolvePath: id => `file:///path/to/public/dir${id}`,
   // overrideName: (originalName) => `${name} override`
   // sourcemap: false
   // skipFontFaceGeneration: (fallbackName) => fallbackName === 'Roboto override'
@@ -83,9 +86,9 @@ function fontainePlugin(_context, _options) {
         plugins: [
           fontaine.FontaineTransform.webpack(options),
         ],
-      };
+      }
     },
-  };
+  }
 }
 
 // Gatsby config - gatsby-node.js
@@ -97,17 +100,13 @@ exports.onCreateWebpackConfig = ({ stage, actions, getConfig }) => {
   actions.replaceWebpackConfig(config)
 }
 
-// Astro config - astro.config.mjs
-import { defineConfig } from 'astro/config'
-import { FontaineTransform } from 'fontaine'
-
 export default defineConfig({
   integrations: [],
   vite: {
     plugins: [
       FontaineTransform.vite({
         fallbacks: ['Arial'],
-        resolvePath: (id) => new URL(`./public${id}`, import.meta.url), // id is the font src value in the CSS
+        resolvePath: id => new URL(`./public${id}`, import.meta.url), // id is the font src value in the CSS
       }),
     ],
   },
