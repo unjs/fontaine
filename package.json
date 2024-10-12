@@ -2,7 +2,7 @@
   "name": "fontaine",
   "type": "module",
   "version": "0.5.0",
-  "packageManager": "pnpm@9.11.0",
+  "packageManager": "pnpm@9.12.1",
   "description": "Automatic font fallback based on font metrics",
   "author": {
     "name": "Daniel Roe <daniel@roe.dev>",
@@ -42,22 +42,22 @@
   },
   "dependencies": {
     "@capsizecss/metrics": "^2.1.1",
-    "@capsizecss/unpack": "^2.0.1",
+    "@capsizecss/unpack": "^2.3.0",
     "magic-regexp": "^0.8.0",
-    "magic-string": "^0.30.10",
+    "magic-string": "^0.30.12",
     "pathe": "^1.1.2",
-    "ufo": "^1.5.3",
-    "unplugin": "^1.11.0"
+    "ufo": "^1.5.4",
+    "unplugin": "^1.14.1"
   },
   "devDependencies": {
     "@antfu/eslint-config": "3.7.3",
     "@nuxtjs/eslint-config-typescript": "latest",
-    "@types/node": "20.16.10",
+    "@types/node": "20.16.11",
     "@types/serve-handler": "6.1.4",
-    "@typescript-eslint/eslint-plugin": "8.8.0",
-    "@typescript-eslint/parser": "8.8.0",
+    "@typescript-eslint/eslint-plugin": "8.8.1",
+    "@typescript-eslint/parser": "8.8.1",
     "@vitest/coverage-v8": "2.1.2",
-    "bumpp": "9.6.1",
+    "bumpp": "9.7.1",
     "eslint": "9.12.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-prettier": "latest",
@@ -67,7 +67,7 @@
     "prettier": "latest",
     "serve-handler": "6.1.5",
     "simple-git-hooks": "2.11.1",
-    "typescript": "5.6.2",
+    "typescript": "5.6.3",
     "unbuild": "latest",
     "vite": "5.4.8",
     "vitest": "2.1.2"
