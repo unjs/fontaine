@@ -12,8 +12,8 @@ importers:
   .:
     dependencies:
       '@capsizecss/metrics':
-        specifier: ^2.1.1
-        version: 2.2.0
+        specifier: ^3.0.0
+        version: 3.3.0
       '@capsizecss/unpack':
         specifier: ^2.3.0
         version: 2.3.0
@@ -242,8 +242,8 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@capsizecss/metrics@2.2.0':
-    resolution: {integrity: sha512-DkFIser1KbGxWyG2hhQQeCit72TnOQDx5pr9bkA7+XlIy7qv+4lYtslH3bidVxm2qkY2guAgypSIPYuQQuk70A==}
+  '@capsizecss/metrics@3.3.0':
+    resolution: {integrity: sha512-WAQtKgyz7fZDEMuERSLPmWXuV53O/HDJZLof8BMWEX1GTWYiiNdqGA6j56+GCSSeVyzYDxkBnm5taIh0YyW6fQ==}
 
   '@capsizecss/unpack@2.3.0':
     resolution: {integrity: sha512-qkf9IoFIVTOkkpr8oZtCNSmubyWFCuPU4EOWO6J/rFPP5Ks2b1k1EHDSQRLwfokh6nCd7mJgBT2lhcuDCE6w4w==}
@@ -4057,7 +4057,7 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@capsizecss/metrics@2.2.0': {}
+  '@capsizecss/metrics@3.3.0': {}
 
   '@capsizecss/unpack@2.3.0':
     dependencies:
