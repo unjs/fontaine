@@ -1,11 +1,5 @@
 import type { Font } from '@capsizecss/unpack'
-import {
-  charIn,
-  charNotIn,
-  createRegExp,
-  exactly,
-  whitespace,
-} from 'magic-regexp'
+import { charIn, charNotIn, createRegExp, exactly, whitespace } from 'magic-regexp'
 
 // See: https://github.com/seek-oss/capsize/blob/master/packages/core/src/round.ts
 function toPercentage(value: number, fractionDigits = 4) {
@@ -84,7 +78,7 @@ interface FallbackOptions {
    * The fallback font family name.
    */
   font: string
-  
+
   /**
    * Metrics for fallback face calculations.
    * @optional
@@ -109,12 +103,7 @@ export type FontFaceMetrics = Pick<
  * @returns {string} - The full `@font-face` CSS declaration.
  */
 export function generateFontFace(metrics: FontFaceMetrics, fallback: FallbackOptions) {
-  const {
-    name: fallbackName,
-    font: fallbackFontName,
-    metrics: fallbackMetrics,
-    ...properties
-  } = fallback
+  const { name: fallbackName, font: fallbackFontName, metrics: fallbackMetrics, ...properties } = fallback
 
   // Credits to: https://github.com/seek-oss/capsize/blob/master/packages/core/src/createFontStack.ts
 

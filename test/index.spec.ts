@@ -1,9 +1,9 @@
 import { createServer } from 'node:http'
 import { fileURLToPath } from 'node:url'
+import { getRandomPort } from 'get-port-please'
 import { dirname } from 'pathe'
 import handler from 'serve-handler'
 import { describe, expect, it } from 'vitest'
-import { getRandomPort } from 'get-port-please'
 import {
   generateFallbackName,
   generateFontFace,

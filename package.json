@@ -38,7 +38,7 @@
     "dev": "vitest",
     "demo": "vite dev playground",
     "demo:dev": "pnpm demo --config test/vite.config.mjs",
-    "lint": "eslint --fix .",
+    "lint": "eslint .",
     "prepare": "simple-git-hooks install && pnpm build",
     "prepublishOnly": "pnpm lint && pnpm test",
     "release": "pnpm test && bumpp && npm publish",

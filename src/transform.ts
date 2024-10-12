@@ -1,15 +1,9 @@
-import { createUnplugin } from 'unplugin'
-import {
-  anyOf,
-  charIn,
-  charNotIn,
-  createRegExp,
-  exactly,
-  whitespace,
-} from 'magic-regexp'
+import { anyOf, charIn, charNotIn, createRegExp, exactly, whitespace } from 'magic-regexp'
 import MagicString from 'magic-string'
-import { parseURL } from 'ufo'
 import { isAbsolute, join } from 'pathe'
+import { parseURL } from 'ufo'
+import { createUnplugin } from 'unplugin'
+
 import { generateFallbackName, generateFontFace, parseFontFace } from './css'
 import { getMetricsForFamily, readMetrics } from './metrics'
 
@@ -88,7 +82,7 @@ const CSS_RE = createRegExp(
 
 /**
  * Transforms CSS files to include font fallbacks.
- * 
+ *
  * @param options - The transformation options. See {@link FontaineTransformOptions}.
  * @returns The unplugin instance.
  */
@@ -137,10 +131,7 @@ export const FontaineTransform = createUnplugin(
             if (skipFontFaceGeneration(fallbackName(family)))
               continue
 
-            const metrics
-              = (await getMetricsForFamily(family))
-              || (source
-              && (await readMetricsFromId(source, id).catch(() => null)))
+            const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsFromId(source, id).catch(() => null)))
 
             if (!metrics)
               continue

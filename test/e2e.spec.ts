@@ -1,8 +1,8 @@
-import { readFile, readdir } from 'node:fs/promises'
+import { readdir, readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import { describe, expect, it } from 'vitest'
 import { execaCommand } from 'execa'
 import { join } from 'pathe'
+import { describe, expect, it } from 'vitest'
 
 describe('fontaine', () => {
   it('e2e', async () => {

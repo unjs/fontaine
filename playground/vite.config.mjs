@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite'
 import { FontaineTransform } from 'fontaine'
+import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [
