@@ -56,7 +56,7 @@
   "devDependencies": {
     "@antfu/eslint-config": "3.7.3",
     "@nuxtjs/eslint-config-typescript": "latest",
-    "@types/node": "20.16.11",
+    "@types/node": "22.8.2",
     "@types/serve-handler": "6.1.4",
     "@typescript-eslint/eslint-plugin": "8.8.1",
     "@typescript-eslint/parser": "8.8.1",
