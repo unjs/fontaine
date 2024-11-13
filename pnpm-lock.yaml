@@ -13,7 +13,7 @@ importers:
     dependencies:
       '@capsizecss/metrics':
         specifier: ^3.3.0
-        version: 3.3.0
+        version: 3.4.0
       '@capsizecss/unpack':
         specifier: ^2.3.0
         version: 2.3.0
@@ -234,8 +234,8 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@capsizecss/metrics@3.3.0':
-    resolution: {integrity: sha512-WAQtKgyz7fZDEMuERSLPmWXuV53O/HDJZLof8BMWEX1GTWYiiNdqGA6j56+GCSSeVyzYDxkBnm5taIh0YyW6fQ==}
+  '@capsizecss/metrics@3.4.0':
+    resolution: {integrity: sha512-hIn8MAHxLvwyUh6ZvLQHDt2GPShBz6+gxBs1JTD9GleBkht1AZvtCFo0adr7bQvYYuQzUJeKi69zqlAwgKMHNA==}
 
   '@capsizecss/unpack@2.3.0':
     resolution: {integrity: sha512-qkf9IoFIVTOkkpr8oZtCNSmubyWFCuPU4EOWO6J/rFPP5Ks2b1k1EHDSQRLwfokh6nCd7mJgBT2lhcuDCE6w4w==}
@@ -3234,6 +3234,10 @@ packages:
     resolution: {integrity: sha512-GCRK8F6+Dl7xYniR5a4FYbpBzU8XnZVeowqsQFYdcXuSbChgiks7qybSkbvnaeqv0G0B+dd9/jJgH8kkLDQeEA==}
     engines: {node: ^10 || ^12 || >=14}
 
+  postcss@8.4.49:
+    resolution: {integrity: sha512-OCVPnIObs4N29kxTjzLfUryOkvZEq+pf8jTF0lg8E7uETuWHA+v7j3c/xJmiqpX450191LlmZfUKkXxkTry7nA==}
+    engines: {node: ^10 || ^12 || >=14}
+
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
@@ -4052,7 +4056,7 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@capsizecss/metrics@3.3.0': {}
+  '@capsizecss/metrics@3.4.0': {}
 
   '@capsizecss/unpack@2.3.0':
     dependencies:
@@ -4902,7 +4906,7 @@ snapshots:
       '@vue/shared': 3.5.12
       estree-walker: 2.0.2
       magic-string: 0.30.12
-      postcss: 8.4.48
+      postcss: 8.4.49
       source-map-js: 1.2.1
 
   '@vue/compiler-ssr@3.5.12':
@@ -7352,6 +7356,12 @@ snapshots:
   postcss-value-parser@4.2.0: {}
 
   postcss@8.4.48:
+    dependencies:
+      nanoid: 3.3.7
+      picocolors: 1.1.1
+      source-map-js: 1.2.1
+
+  postcss@8.4.49:
     dependencies:
       nanoid: 3.3.7
       picocolors: 1.1.1
