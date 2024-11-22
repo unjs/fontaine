@@ -71,7 +71,7 @@
     "prettier": "latest",
     "serve-handler": "6.1.6",
     "simple-git-hooks": "2.11.1",
-    "typescript": "5.6.3",
+    "typescript": "5.7.2",
     "unbuild": "latest",
     "vite": "5.4.11",
     "vitest": "2.1.5"
