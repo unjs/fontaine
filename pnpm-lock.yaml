@@ -91,8 +91,8 @@ importers:
         specifier: latest
         version: 2.0.0(typescript@5.7.2)
       vite:
-        specifier: 5.4.11
-        version: 5.4.11(@types/node@22.10.0)
+        specifier: 6.0.0
+        version: 6.0.0(@types/node@22.10.0)(jiti@2.4.0)(yaml@2.6.1)
       vitest:
         specifier: 2.1.5
         version: 2.1.5(@types/node@22.10.0)
@@ -103,8 +103,8 @@ importers:
         specifier: link:..
         version: link:..
       vite:
-        specifier: ^5.4.8
-        version: 5.4.11(@types/node@22.10.0)
+        specifier: ^6.0.0
+        version: 6.0.0(@types/node@22.10.0)(jiti@2.4.0)(yaml@2.6.1)
 
 packages:
 
@@ -3814,6 +3814,46 @@ packages:
       sugarss:
         optional: true
       terser:
+        optional: true
+
+  vite@6.0.0:
+    resolution: {integrity: sha512-Q2+5yQV79EdnpbNxjD3/QHVMCBaQ3Kpd4/uL51UGuh38bIIM+s4o3FqyCzRvTRwFb+cWIUeZvaWwS9y2LD2qeQ==}
+    engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': ^18.0.0 || ^20.0.0 || >=22.0.0
+      jiti: '>=1.21.0'
+      less: '*'
+      lightningcss: ^1.21.0
+      sass: '*'
+      sass-embedded: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.16.0
+      tsx: ^4.8.1
+      yaml: ^2.4.2
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      jiti:
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      sass-embedded:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+      tsx:
+        optional: true
+      yaml:
         optional: true
 
   vitest@2.1.5:
@@ -8073,6 +8113,17 @@ snapshots:
     optionalDependencies:
       '@types/node': 22.10.0
       fsevents: 2.3.3
+
+  vite@6.0.0(@types/node@22.10.0)(jiti@2.4.0)(yaml@2.6.1):
+    dependencies:
+      esbuild: 0.24.0
+      postcss: 8.4.49
+      rollup: 4.27.4
+    optionalDependencies:
+      '@types/node': 22.10.0
+      fsevents: 2.3.3
+      jiti: 2.4.0
+      yaml: 2.6.1
 
   vitest@2.1.5(@types/node@22.10.0):
     dependencies:
