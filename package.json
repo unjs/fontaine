@@ -54,7 +54,7 @@
     "unplugin": "^1.14.1"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "3.10.0",
+    "@antfu/eslint-config": "3.11.0",
     "@nuxtjs/eslint-config-typescript": "latest",
     "@types/node": "22.10.0",
     "@types/serve-handler": "6.1.4",
