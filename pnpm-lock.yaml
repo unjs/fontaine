@@ -91,8 +91,8 @@ importers:
         specifier: latest
         version: 2.0.0(typescript@5.7.2)
       vite:
-        specifier: 6.0.1
-        version: 6.0.1(@types/node@22.10.1)(jiti@2.4.1)(yaml@2.6.1)
+        specifier: 6.0.2
+        version: 6.0.2(@types/node@22.10.1)(jiti@2.4.1)(yaml@2.6.1)
       vitest:
         specifier: 2.1.5
         version: 2.1.5(@types/node@22.10.1)
@@ -104,7 +104,7 @@ importers:
         version: link:..
       vite:
         specifier: ^6.0.0
-        version: 6.0.1(@types/node@22.10.1)(jiti@2.4.1)(yaml@2.6.1)
+        version: 6.0.2(@types/node@22.10.1)(jiti@2.4.1)(yaml@2.6.1)
 
 packages:
 
@@ -3758,8 +3758,8 @@ packages:
       terser:
         optional: true
 
-  vite@6.0.1:
-    resolution: {integrity: sha512-Ldn6gorLGr4mCdFnmeAOLweJxZ34HjKnDm4HGo6P66IEqTxQb36VEdFJQENKxWjupNfoIjvRUnswjn1hpYEpjQ==}
+  vite@6.0.2:
+    resolution: {integrity: sha512-XdQ+VsY2tJpBsKGs0wf3U/+azx8BBpYRHFAyKm5VeEZNOJZRB63q7Sc8Iup3k0TrN3KO6QgyzFf+opSbfY1y0g==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
     peerDependencies:
@@ -7982,7 +7982,7 @@ snapshots:
       '@types/node': 22.10.1
       fsevents: 2.3.3
 
-  vite@6.0.1(@types/node@22.10.1)(jiti@2.4.1)(yaml@2.6.1):
+  vite@6.0.2(@types/node@22.10.1)(jiti@2.4.1)(yaml@2.6.1):
     dependencies:
       esbuild: 0.24.0
       postcss: 8.4.49
