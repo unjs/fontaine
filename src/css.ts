@@ -18,6 +18,36 @@ const QUOTES_RE = createRegExp(
   ['g'],
 )
 
+const PROPERTIES_WHITELIST = ['font-weight', 'font-style', 'font-stretch']
+
+interface FontProperties {
+  'font-weight'?: string
+  'font-style'?: string
+  'font-stretch'?: string
+}
+
+function parseFontProperties(css: string): FontProperties {
+  return PROPERTIES_WHITELIST.reduce(
+    (properties: FontProperties, property: string) => {
+      const value = css.match(createPropertyRE(property))?.groups.value
+      if (value) {
+        properties[property as keyof FontProperties] = value
+      }
+
+      return properties
+    },
+    {},
+  )
+}
+
+function createPropertyRE(property: string) {
+  return createRegExp(
+    exactly(`${property}:`)
+      .and(whitespace.optionally())
+      .and(charNotIn(';}').times.any().as('value')),
+  )
+}
+
 const FAMILY_RE = createRegExp(
   exactly('font-family:')
     .and(whitespace.optionally())
@@ -38,19 +68,23 @@ const URL_RE = createRegExp(
 
 export const withoutQuotes = (str: string) => str.trim().replace(QUOTES_RE, '')
 
-export function* parseFontFace(
-  css: string,
-): Generator<{ family?: string, source?: string }> {
+export function* parseFontFace(css: string): Generator<{
+  family?: string
+  source?: string
+  properties?: FontProperties
+}> {
   const fontFamily = css.match(FAMILY_RE)?.groups.fontFamily
   const family = withoutQuotes(fontFamily?.split(',')[0] || '')
+  const properties = parseFontProperties(css)
 
   for (const match of css.matchAll(SOURCE_RE)) {
     const sources = match.groups.src?.split(',')
     for (const entry of sources /* c8 ignore next */ || []) {
       for (const url of entry.matchAll(URL_RE)) {
         const source = withoutQuotes(url.groups?.url || '')
-        if (source)
-          yield { family, source }
+        if (source) {
+          yield { family, source, ...properties }
+        }
       }
     }
   }
