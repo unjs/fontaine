@@ -49,7 +49,7 @@
     "@capsizecss/unpack": "^2.3.0",
     "magic-regexp": "^0.8.0",
     "magic-string": "^0.30.12",
-    "pathe": "^1.1.2",
+    "pathe": "^2.0.0",
     "ufo": "^1.5.4",
     "unplugin": "^2.0.0"
   },
