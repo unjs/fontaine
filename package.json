@@ -60,7 +60,7 @@
     "@types/serve-handler": "6.1.4",
     "@typescript-eslint/eslint-plugin": "8.20.0",
     "@typescript-eslint/parser": "8.20.0",
-    "@vitest/coverage-v8": "2.1.8",
+    "@vitest/coverage-v8": "3.0.2",
     "bumpp": "9.10.1",
     "eslint": "9.18.0",
     "execa": "9.5.2",
@@ -71,7 +71,7 @@
     "typescript": "5.7.3",
     "unbuild": "latest",
     "vite": "6.0.9",
-    "vitest": "2.1.8"
+    "vitest": "3.0.2"
   },
   "resolutions": {
     "fontaine": "link:."
