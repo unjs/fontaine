@@ -61,7 +61,7 @@
     "@typescript-eslint/eslint-plugin": "8.22.0",
     "@typescript-eslint/parser": "8.22.0",
     "@vitest/coverage-v8": "3.0.4",
-    "bumpp": "9.11.1",
+    "bumpp": "10.0.1",
     "eslint": "9.19.0",
     "execa": "9.5.2",
     "get-port-please": "3.1.2",
