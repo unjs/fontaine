@@ -2,7 +2,7 @@
   "name": "fontaine",
   "type": "module",
   "version": "0.5.0",
-  "packageManager": "pnpm@10.5.2",
+  "packageManager": "pnpm@10.6.2",
   "description": "Automatic font fallback based on font metrics",
   "author": {
     "name": "Daniel Roe",
@@ -54,9 +54,9 @@
     "unplugin": "^2.0.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "4.4.0",
+    "@antfu/eslint-config": "4.8.1",
     "@nuxtjs/eslint-config-typescript": "latest",
-    "@types/node": "22.13.9",
+    "@types/node": "22.13.10",
     "@types/serve-handler": "6.1.4",
     "@typescript-eslint/eslint-plugin": "8.26.0",
     "@typescript-eslint/parser": "8.26.0",
