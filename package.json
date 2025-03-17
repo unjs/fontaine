@@ -70,7 +70,7 @@
     "simple-git-hooks": "2.11.1",
     "typescript": "5.8.2",
     "unbuild": "latest",
-    "vite": "6.2.1",
+    "vite": "6.2.2",
     "vitest": "3.0.8"
   },
   "resolutions": {
