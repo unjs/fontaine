@@ -52,6 +52,8 @@ export async function getMetricsForFamily(family: string) {
   }
 }
 
+const urlRequestCache = new Map<string, Promise<Font>>()
+
 /**
  * Reads font metrics from a specified source URL or file path. This function supports both local files and remote URLs.
  * It caches the results to optimise subsequent requests for the same source.
@@ -69,11 +71,23 @@ export async function readMetrics(_source: URL | string) {
   if (!protocol)
     return null
 
-  const metrics = protocol === 'file:'
-    ? await fromFile(fileURLToPath(source))
-    : await fromUrl(source)
+  let metrics: Font
+  if (protocol === 'file:') {
+    metrics = await fromFile(fileURLToPath(source))
+  }
+  else {
+    if (urlRequestCache.has(source)) {
+      metrics = await urlRequestCache.get(source)!
+    }
+    else {
+      const requestPromise = fromUrl(source)
+      urlRequestCache.set(source, requestPromise)
 
-  metricCache[source] = filterRequiredMetrics(metrics)
+      metrics = await requestPromise
+    }
+  }
 
-  return metricCache[source]
+  const filteredMetrics = filterRequiredMetrics(metrics)
+  metricCache[source] = filteredMetrics
+  return filteredMetrics
 }
