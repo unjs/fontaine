@@ -65,7 +65,7 @@ export async function readMetrics(_source: URL | string) {
   const source = typeof _source !== 'string' && 'href' in _source ? _source.href : _source
 
   if (source in metricCache)
-    return Promise.resolve(metricCache[source])
+    return metricCache[source]
 
   const { protocol } = parseURL(source)
   if (!protocol)
