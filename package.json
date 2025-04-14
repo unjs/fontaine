@@ -47,16 +47,16 @@
   "dependencies": {
     "@capsizecss/metrics": "^3.3.0",
     "@capsizecss/unpack": "^2.3.0",
-    "magic-regexp": "^0.8.0",
+    "magic-regexp": "^0.9.0",
     "magic-string": "^0.30.12",
     "pathe": "^2.0.0",
     "ufo": "^1.5.4",
     "unplugin": "^2.0.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "4.11.0",
+    "@antfu/eslint-config": "4.12.0",
     "@nuxtjs/eslint-config-typescript": "latest",
-    "@types/node": "22.14.0",
+    "@types/node": "22.14.1",
     "@types/serve-handler": "6.1.4",
     "@typescript-eslint/eslint-plugin": "8.29.1",
     "@typescript-eslint/parser": "8.29.1",
@@ -65,7 +65,7 @@
     "eslint": "9.24.0",
     "execa": "9.5.2",
     "get-port-please": "3.1.2",
-    "lint-staged": "15.5.0",
+    "lint-staged": "15.5.1",
     "serve-handler": "6.1.6",
     "simple-git-hooks": "2.12.1",
     "typescript": "5.8.3",
