@@ -5,6 +5,6 @@
   },
   "dependencies": {
     "fontaine": "latest",
-    "vite": "^5.4.8"
+    "vite": "^6.0.0"
   }
 }
