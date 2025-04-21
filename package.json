@@ -71,7 +71,7 @@
     "typescript": "5.8.3",
     "unbuild": "latest",
     "vite": "6.3.2",
-    "vitest": "3.1.1"
+    "vitest": "3.1.2"
   },
   "resolutions": {
     "fontaine": "link:."
