@@ -162,86 +162,46 @@ describe('readMetrics', () => {
 
 describe('parseFontFace', () => {
   it('should extract source, weight and font-family', () => {
-    const result = parseFontFace(
+    const [result] = parseFontFace(
       `@font-face {
         font-family: Roboto, "Arial Neue", sans-serif;
         src: url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2"),
              url("/fonts/OpenSans-Regular-webfont.woff") format("woff");
         unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+1EA0-1EF9, U+20AB;
       }`,
-    ).next().value
+    )
     expect(result).toMatchInlineSnapshot(`
       {
         "family": "Roboto",
+        "index": 0,
         "source": "/fonts/OpenSans-Regular-webfont.woff2",
       }
     `)
   })
 
-  it('should handle font-family set to a CSS function', () => {
-    expect(parseFontFace(`
-      @layer base {
-        :host {
-          font-family: var(
-            --default-font-family,
-            ui-sans-serif,
-            system-ui,
-            sans-serif,
-            "Apple Color Emoji",
-            "Segoe UI Emoji",
-            "Segoe UI Symbol",
-            "Noto Color Emoji"
-          );
-        }
-      }
-    `).next().value).toMatchInlineSnapshot(`[]`)
-  })
-
-  it('should handle incomplete font-faces', () => {
-    for (const result of parseFontFace(
+  it('should not extract incomplete font-faces', () => {
+    expect(parseFontFace(`@font-face {}`)).toStrictEqual([])
+    expect(parseFontFace(
       `@font-face {
-      }`,
-    )) {
-      expect(result).toMatchInlineSnapshot(`
-      {
-        "family": "",
-        "source": "",
-      }
-    `)
-    }
-    expect([
-      ...parseFontFace(
-        `@font-face {
         font-family: 'Something'
         src: url("") format("woff"), url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
       }`,
-      ),
-    ]).toMatchInlineSnapshot(`
+    )).toStrictEqual([])
+  })
+  
+  it('should handle sources without urls', () => {
+    expect(parseFontFace(
+      `@font-face {
+        font-family: "Arial";
+        src: local("Arial") url();
+      }`,
+    )).toMatchInlineSnapshot(`
       [
         {
-          "family": "Something'
-              src: url("") format("woff")",
-          "source": "/fonts/OpenSans-Regular-webfont.woff2",
-        },
-        {
-          "family": "",
-          "source": "",
+          "family": "Arial",
+          "index": 0,
         },
       ]
     `)
-  })
-  it('should handle sources without urls', () => {
-    for (const result of parseFontFace(
-      `@font-face {
-        src: local("Arial") url();
-      }`,
-    )) {
-      expect(result).toMatchInlineSnapshot(`
-      {
-        "family": "",
-        "source": "",
-      }
-      `)
-    }
   })
 })

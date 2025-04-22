@@ -1,10 +1,11 @@
-import { anyOf, charIn, charNotIn, createRegExp, exactly, whitespace } from 'magic-regexp'
+import { parse, walk } from 'css-tree'
+import { anyOf, createRegExp, exactly } from 'magic-regexp'
 import MagicString from 'magic-string'
 import { isAbsolute, join } from 'pathe'
 import { parseURL } from 'ufo'
-import { createUnplugin } from 'unplugin'
 
-import { generateFallbackName, generateFontFace, parseFontFace } from './css'
+import { createUnplugin } from 'unplugin'
+import { generateFallbackName, generateFontFace, parseFontFace, withoutQuotes } from './css'
 import { getMetricsForFamily, readMetrics } from './metrics'
 
 export interface FontaineTransformOptions {
@@ -56,24 +57,6 @@ export interface FontaineTransformOptions {
 
 const supportedExtensions = ['woff2', 'woff', 'ttf']
 
-const FONT_FACE_RE = createRegExp(
-  exactly('@font-face')
-    .and(whitespace.times.any())
-    .and('{')
-    .and(charNotIn('}').times.any())
-    .and('}'),
-  ['g'],
-)
-
-const FONT_FAMILY_RE = createRegExp(
-  charNotIn(';}')
-    .times.any()
-    .as('family')
-    .after(exactly('font-family:').and(whitespace.times.any()))
-    .before(charIn(';}').or(exactly('').at.lineEnd())),
-  ['g'],
-)
-
 const CSS_RE = createRegExp(
   exactly('.')
     .and(anyOf('sass', 'css', 'scss'))
@@ -108,74 +91,65 @@ export const FontaineTransform = createUnplugin((options: FontaineTransformOptio
     },
     async transform(code, id) {
       const s = new MagicString(code)
-      const faceRanges: [start: number, end: number][] = []
 
-      for (const match of code.matchAll(FONT_FACE_RE)) {
-        const matchContent = match[0]
-        if (match.index === undefined || !matchContent)
+      const ast = parse(code, { positions: true })
+
+      for (const { family, source, index } of parseFontFace(ast)) {
+        if (!supportedExtensions.some(e => source?.endsWith(e)))
+          continue
+        if (skipFontFaceGeneration(fallbackName(family)))
           continue
 
-        faceRanges.push([match.index, match.index + matchContent.length])
+        const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsFromId(source, id).catch(() => null)))
 
-        for (const { family, source } of parseFontFace(matchContent)) {
-          if (!family)
-            continue
-          if (!supportedExtensions.some(e => source?.endsWith(e)))
-            continue
-          if (skipFontFaceGeneration(fallbackName(family)))
-            continue
+        if (!metrics)
+          continue
 
-          const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsFromId(source, id).catch(() => null)))
+        // Iterate backwards: Browsers will use the last working font-face in the stylesheet
+        for (let i = options.fallbacks.length - 1; i >= 0; i--) {
+          const fallback = options.fallbacks[i]
+          const fallbackMetrics = await getMetricsForFamily(fallback)
 
-          if (!metrics)
+          if (!fallbackMetrics)
             continue
 
-          // Iterate backwards: Browsers will use the last working font-face in the stylesheet
-          for (let i = options.fallbacks.length - 1; i >= 0; i--) {
-            const fallback = options.fallbacks[i]
-            const fallbackMetrics = await getMetricsForFamily(fallback)
-
-            if (!fallbackMetrics)
-              continue
-
-            const fontFace = generateFontFace(metrics, {
-              name: fallbackName(family),
-              font: fallback,
-              metrics: fallbackMetrics,
-            })
-            cssContext.value += fontFace
-            s.appendLeft(match.index, fontFace)
-          }
+          const fontFace = generateFontFace(metrics, {
+            name: fallbackName(family),
+            font: fallback,
+            metrics: fallbackMetrics,
+          })
+          cssContext.value += fontFace
+          s.appendLeft(index, fontFace)
         }
       }
 
-      for (const match of code.matchAll(FONT_FAMILY_RE)) {
-        const { index, 0: matchContent } = match
-        if (index === undefined || !matchContent)
-          continue
+      walk(ast, {
+        visit: 'Declaration',
+        enter(node) {
+          if (node.property !== 'font-family')
+            return
+          if (this.atrule && this.atrule.name === 'font-face')
+            return
+          if (node.value.type !== 'Value')
+            return
 
-        // Skip font-family definitions _within_ @font-face blocks
-        if (faceRanges.some(([start, end]) => index > start && index < end))
-          continue
-        const families = matchContent
-          .split(',')
-          .map(f => f.trim())
-          .filter(f => !f.startsWith('var('))
+          for (const child of node.value.children) {
+            let family: string | undefined
+            if (child.type === 'String') {
+              family = withoutQuotes(child.value)
+            }
+            else if (child.type === 'Identifier' && child.name !== 'inherit') {
+              family = child.name
+            }
 
-        if (!families.length || families[0] === 'inherit')
-          continue
+            if (!family)
+              continue
 
-        s.overwrite(
-          index,
-          index + matchContent.length,
-          ` ${
-            [
-              families[0],
-              `"${generateFallbackName(families[0])}"`,
-              ...families.slice(1),
-            ].join(', ')}`,
-        )
-      }
+            s.appendRight(child.loc!.end.offset, `, "${fallbackName(family)}"`)
+            return
+          }
+        },
+      })
 
       if (s.hasChanged()) {
         return {
