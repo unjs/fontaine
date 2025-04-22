@@ -4,11 +4,7 @@ import { getRandomPort } from 'get-port-please'
 import { dirname } from 'pathe'
 import handler from 'serve-handler'
 import { describe, expect, it } from 'vitest'
-import {
-  generateFallbackName,
-  generateFontFace,
-  parseFontFace,
-} from '../src/css'
+import { generateFallbackName, generateFontFace, parseFontFace } from '../src/css'
 import { getMetricsForFamily, readMetrics } from '../src/metrics'
 
 const fixtureURL = new URL('../playground/fonts/font.ttf', import.meta.url)
@@ -181,6 +177,26 @@ describe('parseFontFace', () => {
       }
     `)
   })
+
+  it('should handle font-family set to a CSS function', () => {
+    expect(parseFontFace(`
+      @layer base {
+        :host {
+          font-family: var(
+            --default-font-family,
+            ui-sans-serif,
+            system-ui,
+            sans-serif,
+            "Apple Color Emoji",
+            "Segoe UI Emoji",
+            "Segoe UI Symbol",
+            "Noto Color Emoji"
+          );
+        }
+      }
+    `).next().value).toMatchInlineSnapshot(`[]`)
+  })
+
   it('should handle incomplete font-faces', () => {
     for (const result of parseFontFace(
       `@font-face {

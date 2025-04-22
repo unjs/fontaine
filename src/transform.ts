@@ -86,112 +86,105 @@ const CSS_RE = createRegExp(
  * @param options - The transformation options. See {@link FontaineTransformOptions}.
  * @returns The unplugin instance.
  */
-export const FontaineTransform = createUnplugin(
-  (options: FontaineTransformOptions) => {
-    const cssContext = (options.css = options.css || {})
-    cssContext.value = ''
-    const resolvePath = options.resolvePath || (id => id)
-    const fallbackName
-      = options.fallbackName || options.overrideName || generateFallbackName
+export const FontaineTransform = createUnplugin((options: FontaineTransformOptions) => {
+  const cssContext = (options.css = options.css || {})
+  cssContext.value = ''
+  const resolvePath = options.resolvePath || (id => id)
+  const fallbackName = options.fallbackName || options.overrideName || generateFallbackName
 
-    const skipFontFaceGeneration
-      = options.skipFontFaceGeneration || (() => false)
+  const skipFontFaceGeneration = options.skipFontFaceGeneration || (() => false)
 
-    function readMetricsFromId(path: string, importer: string) {
-      const resolvedPath
-        = isAbsolute(importer) && path.startsWith('.')
-          ? join(importer, path)
-          : resolvePath(path)
-      return readMetrics(resolvedPath)
-    }
+  function readMetricsFromId(path: string, importer: string) {
+    const resolvedPath = isAbsolute(importer) && path.startsWith('.') ? join(importer, path) : resolvePath(path)
+    return readMetrics(resolvedPath)
+  }
 
-    return {
-      name: 'fontaine-transform',
-      enforce: 'pre',
-      transformInclude(id) {
-        const { pathname } = parseURL(id)
-        return CSS_RE.test(pathname) || CSS_RE.test(id)
-      },
-      async transform(code, id) {
-        const s = new MagicString(code)
-        const faceRanges: [start: number, end: number][] = []
+  return {
+    name: 'fontaine-transform',
+    enforce: 'pre',
+    transformInclude(id) {
+      const { pathname } = parseURL(id)
+      return CSS_RE.test(pathname) || CSS_RE.test(id)
+    },
+    async transform(code, id) {
+      const s = new MagicString(code)
+      const faceRanges: [start: number, end: number][] = []
 
-        for (const match of code.matchAll(FONT_FACE_RE)) {
-          const matchContent = match[0]
-          if (match.index === undefined || !matchContent)
+      for (const match of code.matchAll(FONT_FACE_RE)) {
+        const matchContent = match[0]
+        if (match.index === undefined || !matchContent)
+          continue
+
+        faceRanges.push([match.index, match.index + matchContent.length])
+
+        for (const { family, source } of parseFontFace(matchContent)) {
+          if (!family)
+            continue
+          if (!supportedExtensions.some(e => source?.endsWith(e)))
+            continue
+          if (skipFontFaceGeneration(fallbackName(family)))
             continue
 
-          faceRanges.push([match.index, match.index + matchContent.length])
+          const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsFromId(source, id).catch(() => null)))
 
-          for (const { family, source } of parseFontFace(matchContent)) {
-            if (!family)
-              continue
-            if (!supportedExtensions.some(e => source?.endsWith(e)))
-              continue
-            if (skipFontFaceGeneration(fallbackName(family)))
-              continue
+          if (!metrics)
+            continue
 
-            const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsFromId(source, id).catch(() => null)))
+          // Iterate backwards: Browsers will use the last working font-face in the stylesheet
+          for (let i = options.fallbacks.length - 1; i >= 0; i--) {
+            const fallback = options.fallbacks[i]
+            const fallbackMetrics = await getMetricsForFamily(fallback)
 
-            if (!metrics)
+            if (!fallbackMetrics)
               continue
 
-            // Iterate backwards: Browsers will use the last working font-face in the stylesheet
-            for (let i = options.fallbacks.length - 1; i >= 0; i--) {
-              const fallback = options.fallbacks[i]
-              const fallbackMetrics = await getMetricsForFamily(fallback)
-
-              if (!fallbackMetrics)
-                continue
-
-              const fontFace = generateFontFace(metrics, {
-                name: fallbackName(family),
-                font: fallback,
-                metrics: fallbackMetrics,
-              })
-              cssContext.value += fontFace
-              s.appendLeft(match.index, fontFace)
-            }
+            const fontFace = generateFontFace(metrics, {
+              name: fallbackName(family),
+              font: fallback,
+              metrics: fallbackMetrics,
+            })
+            cssContext.value += fontFace
+            s.appendLeft(match.index, fontFace)
           }
         }
+      }
 
-        for (const match of code.matchAll(FONT_FAMILY_RE)) {
-          const { index, 0: matchContent } = match
-          if (index === undefined || !matchContent)
-            continue
+      for (const match of code.matchAll(FONT_FAMILY_RE)) {
+        const { index, 0: matchContent } = match
+        if (index === undefined || !matchContent)
+          continue
 
-          // Skip font-family definitions _within_ @font-face blocks
-          if (faceRanges.some(([start, end]) => index > start && index < end))
-            continue
-          const families = matchContent
-            .split(',')
-            .map(f => f.trim())
-            .filter(f => !f.startsWith('var('))
+        // Skip font-family definitions _within_ @font-face blocks
+        if (faceRanges.some(([start, end]) => index > start && index < end))
+          continue
+        const families = matchContent
+          .split(',')
+          .map(f => f.trim())
+          .filter(f => !f.startsWith('var('))
 
-          if (!families.length || families[0] === 'inherit')
-            continue
+        if (!families.length || families[0] === 'inherit')
+          continue
 
-          s.overwrite(
-            index,
-            index + matchContent.length,
-            ` ${
-              [
-                families[0],
-                `"${generateFallbackName(families[0])}"`,
-                ...families.slice(1),
-              ].join(', ')}`,
-          )
+        s.overwrite(
+          index,
+          index + matchContent.length,
+          ` ${
+            [
+              families[0],
+              `"${generateFallbackName(families[0])}"`,
+              ...families.slice(1),
+            ].join(', ')}`,
+        )
+      }
+
+      if (s.hasChanged()) {
+        return {
+          code: s.toString(),
+          map: options.sourcemap
+            ? s.generateMap({ source: id, includeContent: true })
+            : undefined,
         }
-
-        if (s.hasChanged()) {
-          return {
-            code: s.toString(),
-            map: options.sourcemap
-              ? s.generateMap({ source: id, includeContent: true })
-              : undefined,
-          }
-        }
-      },
-    }
-  },
-)
+      }
+    },
+  }
+})
