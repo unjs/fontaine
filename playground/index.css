@@ -1,31 +1,7 @@
 @font-face {
   font-family: 'Poppins variant';
   font-display: swap;
-  font-weight: normal;
   src: url('/fonts/font.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Poppins variant';
-  font-display: swap;
-  font-weight: 700;
-  src: url('/fonts/font-bold.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Poppins variant';
-  font-display: swap;
-  font-weight: normal;
-  font-style: italic;
-  src: url('/fonts/font-italic.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Poppins variant';
-  font-display: swap;
-  font-weight: 700;
-  font-style: italic;
-  src: url('/fonts/font-bold-italic.ttf') format('truetype');
 }
 
 @font-face {
@@ -36,25 +12,9 @@
 }
 
 @font-face {
-  font-family: 'Roboto';
-  font-weight: 700;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlfBBc4AMP6lQ.woff2')
-    format('woff2');
-}
-
-@font-face {
   font-family: 'Inter';
   font-display: swap;
   src: url('https://fonts.gstatic.com/s/inter/v12/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7.woff2')
-    format('woff2');
-}
-
-@font-face {
-  font-family: 'Inter';
-  font-weight: 700;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiJ-Ek-_EeA.woff2')
     format('woff2');
 }
 
