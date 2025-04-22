@@ -1,12 +1,12 @@
 import { createServer } from 'node:http'
 import { fileURLToPath } from 'node:url'
+import { parse } from 'css-tree'
 import { getRandomPort } from 'get-port-please'
 import { dirname } from 'pathe'
 import handler from 'serve-handler'
 import { describe, expect, it } from 'vitest'
 import { generateFallbackName, generateFontFace, parseFontFace } from '../src/css'
 import { getMetricsForFamily, readMetrics } from '../src/metrics'
-import { parse } from 'css-tree'
 
 const fixtureURL = new URL('../playground/fonts/font.ttf', import.meta.url)
 

@@ -1,13 +1,13 @@
+import { pathToFileURL } from 'node:url'
 import { parse, walk } from 'css-tree'
 import { anyOf, createRegExp, exactly } from 'magic-regexp'
 import MagicString from 'magic-string'
-import { isAbsolute, join, resolve } from 'pathe'
-import { parseURL } from 'ufo'
+import { isAbsolute } from 'pathe'
 
+import { parseURL } from 'ufo'
 import { createUnplugin } from 'unplugin'
 import { generateFallbackName, generateFontFace, parseFontFace, withoutQuotes } from './css'
 import { getMetricsForFamily, readMetrics } from './metrics'
-import { pathToFileURL } from 'node:url'
 
 export interface FontaineTransformOptions {
   /**
@@ -162,7 +162,7 @@ export const FontaineTransform = createUnplugin((options: FontaineTransformOptio
       if (s.hasChanged()) {
         return {
           code: s.toString(),
-          /* v8 ignore next 3 */ 
+          /* v8 ignore next 3 */
           map: options.sourcemap
             ? s.generateMap({ source: id, includeContent: true })
             : undefined,

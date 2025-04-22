@@ -1,9 +1,9 @@
 import type { RollupPlugin } from 'unplugin'
+import type { FontaineTransformOptions } from '../src/transform'
+import { fileURLToPath } from 'node:url'
+import { fromFile, fromUrl } from '@capsizecss/unpack'
 import { describe, expect, it, vi } from 'vitest'
 import { FontaineTransform } from '../src'
-import { fromFile, fromUrl } from '@capsizecss/unpack'
-import { FontaineTransformOptions } from '../src/transform'
-import { fileURLToPath } from 'node:url'
 
 vi.mock('@capsizecss/unpack', { spy: true })
 
@@ -136,7 +136,7 @@ describe('fontaine transform', () => {
 async function transform(css: string, options: Partial<FontaineTransformOptions> = {}, filename = 'test.css') {
   const plugin = FontaineTransform.rollup({
     fallbacks: ['Arial', 'Segoe UI'],
-    ...options
+    ...options,
   }) as RollupPlugin
   const result = await (plugin.transform as any)(css, filename)
   return result?.code.replace(/^ {6}/gm, '').trim()
