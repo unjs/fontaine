@@ -125,7 +125,7 @@ export const FontaineTransform = createUnplugin((options: FontaineTransformOptio
             name: fallbackName(family),
             font: fallback,
             metrics: fallbackMetrics,
-            ...properties
+            ...properties,
           })
           cssContext.value += fontFace
           s.appendLeft(index, fontFace)
