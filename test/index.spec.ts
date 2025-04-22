@@ -188,7 +188,27 @@ describe('parseFontFace', () => {
       }`,
     )).toStrictEqual([])
   })
-  
+
+  it('should handle sources with parentheses', () => {
+    expect(parseFontFace(
+      `@font-face {
+        font-family: 'Inter';
+        font-display: swap;
+
+        src: url('./node_modules/inter-ui/Inter (web)/Inter-Regular.woff2')
+          format('woff2');
+      }`,
+    )).toMatchInlineSnapshot(`
+      [
+        {
+          "family": "Inter",
+          "index": 0,
+          "source": "./node_modules/inter-ui/Inter (web)/Inter-Regular.woff2",
+        },
+      ]
+    `)
+  })
+
   it('should handle sources without urls', () => {
     expect(parseFontFace(
       `@font-face {
