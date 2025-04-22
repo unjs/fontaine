@@ -1,6 +1,6 @@
 import type { Font } from '@capsizecss/unpack'
 import type { CssNode } from 'css-tree'
-import { parse, walk } from 'css-tree'
+import { parse, walk, generate } from 'css-tree'
 import { charIn, createRegExp } from 'magic-regexp'
 
 // See: https://github.com/seek-oss/capsize/blob/master/packages/core/src/round.ts
@@ -86,15 +86,10 @@ export function parseFontFace(css: string | CssNode): Array<{ index: number, fam
 
             if (fontProperties.has(declaration.property)) {
               if (declaration.value.type === 'Value') {
-                const firstValue = declaration.value.children.first
-                if (firstValue?.type === 'Identifier') {
-                  properties[declaration.property as keyof FontProperties] = firstValue.name
-                }
-                else if (firstValue?.type === 'Dimension') {
-                  properties[declaration.property as keyof FontProperties] = firstValue.value
-                }
-                else if (firstValue?.type === 'Number') {
-                  properties[declaration.property as keyof FontProperties] = firstValue.value
+                for (const child of declaration.value.children) {
+                  const hasValue = !!properties[declaration.property as keyof FontProperties]
+                  properties[declaration.property as keyof FontProperties] ||= '' 
+                  properties[declaration.property as keyof FontProperties] += (hasValue ? ' ' : '') + generate(child)
                 }
               }
             }
