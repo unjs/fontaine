@@ -10,8 +10,7 @@ export default defineConfig({
   test: {
     coverage: {
       thresholds: {
-        // TODO: investigate coverage regression
-        // 100: true,
+        100: true,
       },
       include: ['src'],
       reporter: ['text', 'json', 'html'],

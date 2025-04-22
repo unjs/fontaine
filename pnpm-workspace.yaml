@@ -1,2 +1,8 @@
 packages:
   - playground
+
+ignoredBuiltDependencies:
+  - esbuild
+
+onlyBuiltDependencies:
+  - simple-git-hooks

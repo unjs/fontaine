@@ -1,14 +1,11 @@
 import { createServer } from 'node:http'
 import { fileURLToPath } from 'node:url'
+import { parse } from 'css-tree'
 import { getRandomPort } from 'get-port-please'
 import { dirname } from 'pathe'
 import handler from 'serve-handler'
 import { describe, expect, it } from 'vitest'
-import {
-  generateFallbackName,
-  generateFontFace,
-  parseFontFace,
-} from '../src/css'
+import { generateFallbackName, generateFontFace, parseFontFace } from '../src/css'
 import { getMetricsForFamily, readMetrics } from '../src/metrics'
 
 const fixtureURL = new URL('../playground/fonts/font.ttf', import.meta.url)
@@ -166,23 +163,26 @@ describe('readMetrics', () => {
 
 describe('parseFontFace', () => {
   it('should extract source, weight and font-family', () => {
-    const result = parseFontFace(
+    const [result] = parseFontFace(
       `@font-face {
         font-family: Roboto, "Arial Neue", sans-serif;
         src: url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2"),
              url("/fonts/OpenSans-Regular-webfont.woff") format("woff");
         unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+1EA0-1EF9, U+20AB;
       }`,
-    ).next().value
+    )
     expect(result).toMatchInlineSnapshot(`
       {
         "family": "Roboto",
+        "index": 0,
+        "properties": {},
         "source": "/fonts/OpenSans-Regular-webfont.woff2",
       }
     `)
   })
+
   it('should extract weight/style/stretch', () => {
-    const result = parseFontFace(
+    const [result] = parseFontFace(
       `@font-face {
         font-family: Roboto;
         font-weight: 700;
@@ -190,20 +190,24 @@ describe('parseFontFace', () => {
         src: url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
         font-stretch: condensed;
       }`,
-    ).next().value
+    )
 
     expect(result).toMatchInlineSnapshot(`
       {
         "family": "Roboto",
-        "font-stretch": "condensed",
-        "font-style": "italic",
-        "font-weight": "700",
+        "index": 0,
+        "properties": {
+          "font-stretch": "condensed",
+          "font-style": "italic",
+          "font-weight": "700",
+        },
         "source": "/fonts/OpenSans-Regular-webfont.woff2",
       }
     `)
   })
+
   it('should handle invalid weight/style/stretch', () => {
-    const result = parseFontFace(
+    const [result] = parseFontFace(
       `@font-face {
         font-family: Roboto;
         font-weight;
@@ -211,60 +215,83 @@ describe('parseFontFace', () => {
         src: url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
         font-stretch;
       }`,
-    ).next().value
+    )
 
     expect(result).toMatchInlineSnapshot(`
       {
         "family": "Roboto",
+        "index": 0,
+        "properties": {},
         "source": "/fonts/OpenSans-Regular-webfont.woff2",
       }
     `)
   })
-  it('should handle incomplete font-faces', () => {
-    for (const result of parseFontFace(
+
+  it('should not extract incomplete font-faces', () => {
+    expect(parseFontFace(`@font-face {}`)).toStrictEqual([])
+    expect(parseFontFace(
       `@font-face {
-      }`,
-    )) {
-      expect(result).toMatchInlineSnapshot(`
-      {
-        "family": "",
-        "source": "",
-      }
-    `)
-    }
-    expect([
-      ...parseFontFace(
-        `@font-face {
         font-family: 'Something'
         src: url("") format("woff"), url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
       }`,
-      ),
-    ]).toMatchInlineSnapshot(`
+    )).toStrictEqual([])
+  })
+
+  it('should handle sources with parentheses', () => {
+    expect(parseFontFace(
+      `@font-face {
+        font-family: 'Inter';
+        font-display: swap;
+
+        src: url('./node_modules/inter-ui/Inter (web)/Inter-Regular.woff2')
+          format('woff2');
+      }`,
+    )).toMatchInlineSnapshot(`
       [
         {
-          "family": "Something'
-              src: url("") format("woff")",
-          "source": "/fonts/OpenSans-Regular-webfont.woff2",
-        },
-        {
-          "family": "",
-          "source": "",
+          "family": "Inter",
+          "index": 0,
+          "properties": {},
+          "source": "./node_modules/inter-ui/Inter (web)/Inter-Regular.woff2",
         },
       ]
     `)
   })
+
+  it('should handle css without font-face', () => {
+    expect(parseFontFace(`@media {}`)).toStrictEqual([])
+  })
+
+  it('should support being passed the ast', () => {
+    const ast = parse(`@font-face {
+      font-family: "Arial";
+      src: local("Arial") url();
+    }`, { positions: true })
+    expect(parseFontFace(ast)).toMatchInlineSnapshot(`
+      [
+        {
+          "family": "Arial",
+          "index": 0,
+          "properties": {},
+        },
+      ]
+    `)
+  })
+
   it('should handle sources without urls', () => {
-    for (const result of parseFontFace(
+    expect(parseFontFace(
       `@font-face {
+        font-family: "Arial";
         src: local("Arial") url();
       }`,
-    )) {
-      expect(result).toMatchInlineSnapshot(`
-      {
-        "family": "",
-        "source": "",
-      }
-      `)
-    }
+    )).toMatchInlineSnapshot(`
+      [
+        {
+          "family": "Arial",
+          "index": 0,
+          "properties": {},
+        },
+      ]
+    `)
   })
 })
