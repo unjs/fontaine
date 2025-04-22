@@ -37,6 +37,7 @@ export async function getMetricsForFamily(family: string) {
     const { entireMetricsCollection } = await import('@capsizecss/metrics/entireMetricsCollection')
     const metrics = entireMetricsCollection[name as keyof typeof entireMetricsCollection]
 
+    /* v8 ignore next 4 */
     if (!('descent' in metrics)) {
       metricCache[family] = null
       return null

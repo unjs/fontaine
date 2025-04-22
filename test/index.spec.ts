@@ -6,6 +6,7 @@ import handler from 'serve-handler'
 import { describe, expect, it } from 'vitest'
 import { generateFallbackName, generateFontFace, parseFontFace } from '../src/css'
 import { getMetricsForFamily, readMetrics } from '../src/metrics'
+import { parse } from 'css-tree'
 
 const fixtureURL = new URL('../playground/fonts/font.ttf', import.meta.url)
 
@@ -204,6 +205,25 @@ describe('parseFontFace', () => {
           "family": "Inter",
           "index": 0,
           "source": "./node_modules/inter-ui/Inter (web)/Inter-Regular.woff2",
+        },
+      ]
+    `)
+  })
+
+  it('should handle css without font-face', () => {
+    expect(parseFontFace(`@media {}`)).toStrictEqual([])
+  })
+
+  it('should support being passed the ast', () => {
+    const ast = parse(`@font-face {
+      font-family: "Arial";
+      src: local("Arial") url();
+    }`, { positions: true })
+    expect(parseFontFace(ast)).toMatchInlineSnapshot(`
+      [
+        {
+          "family": "Arial",
+          "index": 0,
         },
       ]
     `)

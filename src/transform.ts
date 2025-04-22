@@ -1,12 +1,13 @@
 import { parse, walk } from 'css-tree'
 import { anyOf, createRegExp, exactly } from 'magic-regexp'
 import MagicString from 'magic-string'
-import { isAbsolute, join } from 'pathe'
+import { isAbsolute, join, resolve } from 'pathe'
 import { parseURL } from 'ufo'
 
 import { createUnplugin } from 'unplugin'
 import { generateFallbackName, generateFontFace, parseFontFace, withoutQuotes } from './css'
 import { getMetricsForFamily, readMetrics } from './metrics'
+import { pathToFileURL } from 'node:url'
 
 export interface FontaineTransformOptions {
   /**
@@ -63,6 +64,10 @@ const CSS_RE = createRegExp(
     .at.lineEnd(),
 )
 
+const RELATIVE_RE = createRegExp(
+  exactly('.').or('..').and(anyOf('/', '\\')).at.lineStart(),
+)
+
 /**
  * Transforms CSS files to include font fallbacks.
  *
@@ -78,7 +83,9 @@ export const FontaineTransform = createUnplugin((options: FontaineTransformOptio
   const skipFontFaceGeneration = options.skipFontFaceGeneration || (() => false)
 
   function readMetricsFromId(path: string, importer: string) {
-    const resolvedPath = isAbsolute(importer) && path.startsWith('.') ? join(importer, path) : resolvePath(path)
+    const resolvedPath = isAbsolute(importer) && RELATIVE_RE.test(path)
+      ? new URL(path, pathToFileURL(importer))
+      : resolvePath(path)
     return readMetrics(resolvedPath)
   }
 
@@ -102,6 +109,7 @@ export const FontaineTransform = createUnplugin((options: FontaineTransformOptio
 
         const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsFromId(source, id).catch(() => null)))
 
+        /* v8 ignore next 2 */
         if (!metrics)
           continue
 
@@ -131,7 +139,7 @@ export const FontaineTransform = createUnplugin((options: FontaineTransformOptio
           if (this.atrule && this.atrule.name === 'font-face')
             return
           if (node.value.type !== 'Value')
-            return
+            /* v8 ignore next */ return
 
           for (const child of node.value.children) {
             let family: string | undefined
@@ -154,6 +162,7 @@ export const FontaineTransform = createUnplugin((options: FontaineTransformOptio
       if (s.hasChanged()) {
         return {
           code: s.toString(),
+          /* v8 ignore next 3 */ 
           map: options.sourcemap
             ? s.generateMap({ source: id, includeContent: true })
             : undefined,
