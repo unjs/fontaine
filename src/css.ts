@@ -1,6 +1,6 @@
 import type { Font } from '@capsizecss/unpack'
 import type { CssNode } from 'css-tree'
-import { parse, walk } from 'css-tree'
+import { generate, parse, walk } from 'css-tree'
 import { charIn, createRegExp } from 'magic-regexp'
 
 // See: https://github.com/seek-oss/capsize/blob/master/packages/core/src/round.ts
@@ -39,14 +39,22 @@ const genericCSSFamilies = new Set([
   'fangsong',
 ])
 
+const fontProperties = new Set(['font-weight', 'font-style', 'font-stretch'])
+
+interface FontProperties {
+  'font-weight'?: string
+  'font-style'?: string
+  'font-stretch'?: string
+}
+
 /**
  * Extracts font family and source information from a CSS @font-face rule using css-tree.
  *
  * @param {string} css - The CSS containing @font-face rules
  * @returns Array<{ family?: string, source?: string }> - Array of objects with font family and source information
  */
-export function parseFontFace(css: string | CssNode): Array<{ index: number, family: string, source?: string }> {
-  const families: Array<{ index: number, family: string, source?: string }> = []
+export function parseFontFace(css: string | CssNode): Array<{ index: number, family: string, source?: string, properties: FontProperties }> {
+  const families: Array<{ index: number, family: string, source?: string, properties: FontProperties }> = []
   const ast = typeof css === 'string' ? parse(css, { positions: true }) : css
 
   walk(ast, {
@@ -57,6 +65,7 @@ export function parseFontFace(css: string | CssNode): Array<{ index: number, fam
 
       let family: string | undefined
       const sources: string[] = []
+      const properties: FontProperties = {}
 
       if (node.block) {
         walk(node.block, {
@@ -71,6 +80,16 @@ export function parseFontFace(css: string | CssNode): Array<{ index: number, fam
                 if (child.type === 'Identifier' && !genericCSSFamilies.has(child.name)) {
                   family = child.name
                   break
+                }
+              }
+            }
+
+            if (fontProperties.has(declaration.property)) {
+              if (declaration.value.type === 'Value') {
+                for (const child of declaration.value.children) {
+                  const hasValue = !!properties[declaration.property as keyof FontProperties]
+                  properties[declaration.property as keyof FontProperties] ||= ''
+                  properties[declaration.property as keyof FontProperties] += (hasValue ? ' ' : '') + generate(child)
                 }
               }
             }
@@ -92,10 +111,10 @@ export function parseFontFace(css: string | CssNode): Array<{ index: number, fam
 
       if (family) {
         for (const source of sources) {
-          families.push({ index: node.loc!.start.offset, family, source })
+          families.push({ index: node.loc!.start.offset, family, source, properties })
         }
         if (!sources.length) {
-          families.push({ index: node.loc!.start.offset, family })
+          families.push({ index: node.loc!.start.offset, family, properties })
         }
       }
     },

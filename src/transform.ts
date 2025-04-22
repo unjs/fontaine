@@ -101,7 +101,7 @@ export const FontaineTransform = createUnplugin((options: FontaineTransformOptio
 
       const ast = parse(code, { positions: true })
 
-      for (const { family, source, index } of parseFontFace(ast)) {
+      for (const { family, source, index, properties } of parseFontFace(ast)) {
         if (!supportedExtensions.some(e => source?.endsWith(e)))
           continue
         if (skipFontFaceGeneration(fallbackName(family)))
@@ -125,6 +125,7 @@ export const FontaineTransform = createUnplugin((options: FontaineTransformOptio
             name: fallbackName(family),
             font: fallback,
             metrics: fallbackMetrics,
+            ...properties,
           })
           cssContext.value += fontFace
           s.appendLeft(index, fontFace)

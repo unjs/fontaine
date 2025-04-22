@@ -175,6 +175,53 @@ describe('parseFontFace', () => {
       {
         "family": "Roboto",
         "index": 0,
+        "properties": {},
+        "source": "/fonts/OpenSans-Regular-webfont.woff2",
+      }
+    `)
+  })
+
+  it('should extract weight/style/stretch', () => {
+    const [result] = parseFontFace(
+      `@font-face {
+        font-family: Roboto;
+        font-weight: 700;
+        font-style: italic;
+        src: url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
+        font-stretch: condensed;
+      }`,
+    )
+
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "family": "Roboto",
+        "index": 0,
+        "properties": {
+          "font-stretch": "condensed",
+          "font-style": "italic",
+          "font-weight": "700",
+        },
+        "source": "/fonts/OpenSans-Regular-webfont.woff2",
+      }
+    `)
+  })
+
+  it('should handle invalid weight/style/stretch', () => {
+    const [result] = parseFontFace(
+      `@font-face {
+        font-family: Roboto;
+        font-weight;
+        font-style;
+        src: url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
+        font-stretch;
+      }`,
+    )
+
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "family": "Roboto",
+        "index": 0,
+        "properties": {},
         "source": "/fonts/OpenSans-Regular-webfont.woff2",
       }
     `)
@@ -204,6 +251,7 @@ describe('parseFontFace', () => {
         {
           "family": "Inter",
           "index": 0,
+          "properties": {},
           "source": "./node_modules/inter-ui/Inter (web)/Inter-Regular.woff2",
         },
       ]
@@ -224,6 +272,7 @@ describe('parseFontFace', () => {
         {
           "family": "Arial",
           "index": 0,
+          "properties": {},
         },
       ]
     `)
@@ -240,6 +289,7 @@ describe('parseFontFace', () => {
         {
           "family": "Arial",
           "index": 0,
+          "properties": {},
         },
       ]
     `)
