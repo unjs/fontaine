@@ -43,7 +43,7 @@ importers:
         specifier: latest
         version: 12.1.0(eslint-plugin-import-x@4.10.3(eslint@9.25.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.25.1(jiti@2.4.2))(typescript@5.8.3)
       '@types/css-tree':
-        specifier: ^2.3.10
+        specifier: 2.3.10
         version: 2.3.10
       '@types/node':
         specifier: 22.14.1
