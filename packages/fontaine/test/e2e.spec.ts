@@ -7,11 +7,9 @@ import { FontaineTransform } from '../src'
 
 describe('fontaine', () => {
   it('e2e', async () => {
-    const assetsDir = fileURLToPath(
-      new URL('../playground/dist/assets', import.meta.url),
-    )
+    const assetsDir = fileURLToPath(new URL('../playground/dist/assets', import.meta.url))
     await build({
-      root: '../playground',
+      root: fileURLToPath(new URL('../playground', import.meta.url)),
       plugins: [
         FontaineTransform.vite({
           fallbacks: ['Arial', 'Segoe UI'],

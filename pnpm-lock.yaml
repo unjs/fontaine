@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  fontaine: link:.
+  fontaine: workspace:*
 
 importers:
 
@@ -103,8 +103,8 @@ importers:
   packages/fontaine/playground:
     dependencies:
       fontaine:
-        specifier: link:../../..
-        version: link:../../..
+        specifier: workspace:*
+        version: link:..
       vite:
         specifier: ^6.3.2
         version: 6.3.3(@types/node@22.15.3)(jiti@2.4.2)(yaml@2.7.1)

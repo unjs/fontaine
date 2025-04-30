@@ -13,6 +13,7 @@
   "scripts": {
     "build": "pnpm -r build",
     "lint": "eslint .",
+    "test": "pnpm -r test",
     "postinstall": "simple-git-hooks install && pnpm -r build"
   },
   "devDependencies": {
@@ -26,7 +27,7 @@
     "typescript": "5.8.3"
   },
   "resolutions": {
-    "fontaine": "link:."
+    "fontaine": "workspace:*"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
