@@ -14,7 +14,7 @@
     "build": "pnpm -r build",
     "lint": "eslint .",
     "test": "pnpm -r test",
-    "postinstall": "simple-git-hooks install && pnpm -r build"
+    "postinstall": "simple-git-hooks install && pnpm --filter fontaine build"
   },
   "devDependencies": {
     "@antfu/eslint-config": "4.12.0",
