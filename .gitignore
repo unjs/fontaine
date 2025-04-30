@@ -6,3 +6,4 @@ coverage
 .eslintcache
 *.log*
 *.env*
+.husky
