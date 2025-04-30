@@ -1,15 +1,25 @@
 import { readdir, readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import { execaCommand } from 'execa'
 import { join } from 'pathe'
+import { build } from 'vite'
 import { describe, expect, it } from 'vitest'
+import { FontaineTransform } from '../src'
 
 describe('fontaine', () => {
   it('e2e', async () => {
     const assetsDir = fileURLToPath(
       new URL('../playground/dist/assets', import.meta.url),
     )
-    await $`pnpm vite build playground --config test/vite.config.mjs`
+    await build({
+      root: '../playground',
+      plugins: [
+        FontaineTransform.vite({
+          fallbacks: ['Arial', 'Segoe UI'],
+          // resolve absolute URL -> file
+          resolvePath: id => new URL(join('../playground', `.${id}`), import.meta.url),
+        }),
+      ],
+    })
     const cssFile = await readdir(assetsDir).then(files =>
       files.find(f => f.endsWith('.css')),
     )
@@ -21,28 +31,3 @@ describe('fontaine', () => {
     `)
   })
 })
-
-// https://github.com/vitejs/vite-ecosystem-ci/blob/main/utils.ts#L24
-async function $(literals: TemplateStringsArray, ...values: any[]) {
-  const cmd = literals.reduce(
-    (result, current, i) =>
-      result + current + (values?.[i] != null ? `${values[i]}` : ''),
-    '',
-  )
-  // eslint-disable-next-line no-console
-  console.log(`${process.cwd()} $> ${cmd}`)
-  const proc = execaCommand(cmd, {
-    stdio: 'pipe',
-  })
-  if (proc.stdin) {
-    process.stdin.pipe(proc.stdin)
-  }
-  if (proc.stdout) {
-    proc.stdout.pipe(process.stdout)
-  }
-  if (proc.stderr) {
-    proc.stderr.pipe(process.stderr)
-  }
-  const result = await proc
-  return result.stdout
-}
