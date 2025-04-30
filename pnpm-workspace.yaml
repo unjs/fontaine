@@ -1,5 +1,6 @@
 packages:
-  - playground
+  - packages/*
+  - packages/fontaine/playground
 
 ignoredBuiltDependencies:
   - esbuild

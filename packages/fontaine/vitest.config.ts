@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   resolve: {
     alias: {
-      fontaine: fileURLToPath(new URL('./src/index.ts', import.meta.url).href),
+      fontaine: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
     },
   },
   test: {
