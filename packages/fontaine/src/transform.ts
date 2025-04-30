@@ -115,7 +115,7 @@ export const FontaineTransform = createUnplugin((options: FontaineTransformOptio
 
         // Iterate backwards: Browsers will use the last working font-face in the stylesheet
         for (let i = options.fallbacks.length - 1; i >= 0; i--) {
-          const fallback = options.fallbacks[i]
+          const fallback = options.fallbacks[i]!
           const fallbackMetrics = await getMetricsForFamily(fallback)
 
           if (!fallbackMetrics)
