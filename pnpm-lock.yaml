@@ -64,7 +64,7 @@ importers:
         version: 1.6.1
       unplugin:
         specifier: ^2.3.2
-        version: 2.3.2
+        version: 2.3.3
     devDependencies:
       '@types/css-tree':
         specifier: 2.3.10
@@ -185,6 +185,11 @@ packages:
 
   '@babel/parser@7.27.1':
     resolution: {integrity: sha512-I0dZ3ZpCrJ1c04OqlNsQcKiZlsrXf/kkE4FXzID9rIOYICsAbA8mMDzhW/luRNAHdCNt7os/u8wenklZDlUVUQ==}
+    engines: {node: '>=6.0.0'}
+    hasBin: true
+
+  '@babel/parser@7.27.2':
+    resolution: {integrity: sha512-QYLs8299NA7WM/bZAdp+CviYYkVoYXlDW2rzliy3chxd1PQjej7JORuMJDJXJUb9g0TT+B99EwaVLKmX+sPXWw==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -3453,8 +3458,8 @@ packages:
     resolution: {integrity: sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==}
     engines: {node: '>= 0.8'}
 
-  unplugin@2.3.2:
-    resolution: {integrity: sha512-3n7YA46rROb3zSj8fFxtxC/PqoyvYQ0llwz9wtUPUutr9ig09C8gGo5CWCwHrUzlqC1LLR43kxp5vEIyH1ac1w==}
+  unplugin@2.3.3:
+    resolution: {integrity: sha512-DN4DgiS13HFrAapoRmmoa9B35QzmQVRH2k58HelO28htXVNEEFZ8CGlZL0aRHXOXtz9McwY6lqaZjcc15uWMow==}
     engines: {node: '>=18.12.0'}
 
   unrs-resolver@1.7.2:
@@ -3720,6 +3725,10 @@ snapshots:
   '@babel/helper-validator-identifier@7.27.1': {}
 
   '@babel/parser@7.27.1':
+    dependencies:
+      '@babel/types': 7.27.1
+
+  '@babel/parser@7.27.2':
     dependencies:
       '@babel/types': 7.27.1
 
@@ -4522,7 +4531,7 @@ snapshots:
 
   '@vue/compiler-core@3.5.13':
     dependencies:
-      '@babel/parser': 7.27.1
+      '@babel/parser': 7.27.2
       '@vue/shared': 3.5.13
       entities: 4.5.0
       estree-walker: 2.0.2
@@ -4535,7 +4544,7 @@ snapshots:
 
   '@vue/compiler-sfc@3.5.13':
     dependencies:
-      '@babel/parser': 7.27.1
+      '@babel/parser': 7.27.2
       '@vue/compiler-core': 3.5.13
       '@vue/compiler-dom': 3.5.13
       '@vue/compiler-ssr': 3.5.13
@@ -5968,7 +5977,7 @@ snapshots:
       regexp-tree: 0.1.27
       type-level-regexp: 0.1.17
       ufo: 1.6.1
-      unplugin: 2.3.2
+      unplugin: 2.3.3
 
   magic-string@0.30.17:
     dependencies:
@@ -7257,7 +7266,7 @@ snapshots:
 
   unpipe@1.0.0: {}
 
-  unplugin@2.3.2:
+  unplugin@2.3.3:
     dependencies:
       acorn: 8.14.1
       picomatch: 4.0.2
