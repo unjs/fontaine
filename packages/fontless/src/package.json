@@ -1,0 +1,9 @@
+{
+  "name": "fontless",
+  "version": "0.11.3",
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "main": "./index.ts"
+}
