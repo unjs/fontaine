@@ -1,0 +1,32 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    "packages/fontless/examples/analog-app": {
+      "entry": [
+        "src/**/*"
+      ],
+      "ignoreDependencies": [
+        "@angular/forms",
+        "@angular/platform-browser-dynamic",
+        "front-matter",
+        "prismjs",
+        "@analogjs/vite-plugin-angular",
+        "@analogjs/vitest-angular",
+        "@angular-devkit/build-angular",
+        "@angular/build",
+        "@angular/compiler-cli",
+        "vite-tsconfig-paths"
+      ]
+    },
+    "packages/fontless/examples/qwik-app": {
+      "entry": [
+        "src/entry.*",
+        "src/routes/*"
+      ],
+      "ignoreDependencies": [
+        "@qwik-router-config",
+        "@qwik-client-manifest"
+      ]
+    }
+  }
+}

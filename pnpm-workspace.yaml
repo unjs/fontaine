@@ -1,6 +1,7 @@
 packages:
   - packages/*
   - packages/fontaine/playground
+  - packages/fontless/examples/*
 
 ignoredBuiltDependencies:
   - esbuild

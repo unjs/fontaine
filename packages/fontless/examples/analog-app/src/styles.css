@@ -1,0 +1,41 @@
+:root {
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+}
+
+p {
+  font-size: x-large;
+}
+
+.google-poppins {
+  font-family: "Poppins", sans-serif;
+}
+
+.google-press-start {
+  font-family: "Press Start 2P", sans-serif;
+}
+
+.bunny-aclonica {
+  font-family: "Aclonica", sans-serif;
+}
+
+.bunny-allan {
+  font-family: "Allan", sans-serif;
+}
+
+.font-share-panchang {
+  font-family: "Panchang", sans-serif;
+}
+
+.font-source-luckiest {
+  font-family: "Luckiest Guy", sans-serif;
+}
+
+@font-face {
+  font-family: "Black Fox";
+  src: url("./black-fox.ttf");
+}
+
+.local {
+  font-family: "Black Fox", sans-serif;
+}

@@ -1,0 +1,22 @@
+{
+  "name": "fontless-demo-vue-app",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Vue demo app",
+  "scripts": {
+    "dev": "vite --port 5175",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview --port 5175"
+  },
+  "dependencies": {
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "fontless": "latest",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.1",
+    "vue-tsc": "^2.1.10"
+  }
+}

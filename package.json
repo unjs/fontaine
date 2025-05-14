@@ -31,7 +31,8 @@
     "typescript": "5.8.3"
   },
   "resolutions": {
-    "fontaine": "workspace:*"
+    "fontaine": "workspace:*",
+    "fontless": "workspace:*"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
