@@ -1,8 +1,8 @@
-import { hasProtocol } from 'ufo'
-import { extname, relative } from 'pathe'
-import { getMetricsForFamily, generateFontFace as generateFallbackFontFace, readMetrics } from 'fontaine'
-import type { RemoteFontSource, FontFaceData } from 'unifont'
+import type { FontFaceData, RemoteFontSource } from 'unifont'
 import type { FontSource } from '../types'
+import { generateFontFace as generateFallbackFontFace, getMetricsForFamily, readMetrics } from 'fontaine'
+import { extname, relative } from 'pathe'
+import { hasProtocol } from 'ufo'
 
 export function generateFontFace(family: string, font: FontFaceData) {
   return [
@@ -21,12 +21,14 @@ export function generateFontFace(family: string, font: FontFaceData) {
 }
 
 export async function generateFontFallbacks(family: string, data: FontFaceData, fallbacks?: Array<{ name: string, font: string }>) {
-  if (!fallbacks?.length) return []
+  if (!fallbacks?.length)
+    return []
 
   const fontURL = data.src!.find(s => 'url' in s) as RemoteFontSource | undefined
   const metrics = await getMetricsForFamily(family) || (fontURL && await readMetrics(fontURL.originalURL || fontURL.url))
 
-  if (!metrics) return []
+  if (!metrics)
+    return []
 
   const css: string[] = []
   for (const fallback of fallbacks) {
@@ -47,7 +49,7 @@ const formatMap: Record<string, string> = {
   svg: 'svg',
 }
 const extensionMap = Object.fromEntries(Object.entries(formatMap).map(([key, value]) => [value, key]))
-export const formatToExtension = (format?: string) => format && format in extensionMap ? '.' + extensionMap[format] : undefined
+export const formatToExtension = (format?: string) => format && format in extensionMap ? `.${extensionMap[format]}` : undefined
 
 export function parseFont(font: string) {
   // render as `url("url/to/font") format("woff2")`
@@ -84,8 +86,10 @@ export function relativiseFontSources(font: FontFaceData, relativeTo: string) {
   return {
     ...font,
     src: font.src.map((source) => {
-      if ('name' in source) return source
-      if (!source.url.startsWith('/')) return source
+      if ('name' in source)
+        return source
+      if (!source.url.startsWith('/'))
+        return source
       return {
         ...source,
         url: relative(relativeTo, source.url),

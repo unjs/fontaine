@@ -1,20 +1,19 @@
-// temporarily expose as a vite plugin prior to migrating core to `fontaine`
-
-import fsp from 'node:fs/promises'
 import type { Plugin } from 'vite'
+import type { NormalizeFontDataContext } from './assets'
+import type { FontlessOptions } from './types'
+import type { FontFamilyInjectionPluginOptions } from './utils'
+
+import { Buffer } from 'node:buffer'
+import fsp from 'node:fs/promises'
 import { defu } from 'defu'
 import { resolve } from 'pathe'
-
 import { joinRelativeURL, joinURL } from 'ufo'
-import { defaultOptions } from './defaults'
-import type { FontlessOptions } from './types'
-import { resolveMinifyCssEsbuildOptions, transformCSS } from './utils'
-import type { FontFamilyInjectionPluginOptions } from './utils'
-import { createResolver } from './resolve'
 import { normalizeFontData } from './assets'
-import type { NormalizeFontDataContext } from './assets'
-import { storage } from './storage'
+import { defaultOptions } from './defaults'
 import { resolveProviders } from './providers'
+import { createResolver } from './resolve'
+import { storage } from './storage'
+import { resolveMinifyCssEsbuildOptions, transformCSS } from './utils'
 
 export function fontless(_options?: FontlessOptions): Plugin {
   const options = defu(_options, defaultOptions satisfies FontlessOptions) as FontlessOptions
@@ -33,7 +32,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
         assetsBaseURL: options.assets?.prefix || '/fonts',
       }
 
-      publicDir = resolve(config.root, config.build.outDir, '.' + joinURL(config.base, assetContext.assetsBaseURL))
+      publicDir = resolve(config.root, config.build.outDir, `.${joinURL(config.base, assetContext.assetsBaseURL)}`)
 
       const alias = Array.isArray(config.resolve.alias) ? {} : config.resolve.alias
       const providers = await resolveProviders(options.providers, { root: config.root, alias })
@@ -82,7 +81,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
     },
     async writeBundle() {
       for (const [filename, url] of assetContext.renderedFontURLs) {
-        const key = 'data:fonts:' + filename
+        const key = `data:fonts:${filename}`
         // Use storage to cache the font data between builds
         let res = await storage.getItemRaw(key)
         if (!res) {

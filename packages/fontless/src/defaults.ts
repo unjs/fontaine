@@ -1,6 +1,6 @@
-import { providers } from 'unifont'
-
 import type { FontlessOptions } from './types'
+
+import { providers } from 'unifont'
 
 export const defaultValues = {
   weights: [400],

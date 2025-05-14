@@ -1,15 +1,15 @@
-import { parse, walk } from 'css-tree'
 import type { CssNode, StyleSheet } from 'css-tree'
-import MagicString from 'magic-string'
+import type { TransformOptions } from 'esbuild'
+import type { FontFaceData, RemoteFontSource } from 'unifont'
+import type { ESBuildOptions } from 'vite'
+import type { GenericCSSFamily } from './css/parse'
+import type { Awaitable } from './types'
+import { parse, walk } from 'css-tree'
 import { transform } from 'esbuild'
+import MagicString from 'magic-string'
+
 import { dirname } from 'pathe'
 import { withLeadingSlash } from 'ufo'
-import type { FontFaceData, RemoteFontSource } from 'unifont'
-import type { TransformOptions } from 'esbuild'
-import type { ESBuildOptions } from 'vite'
-
-import type { Awaitable } from './types'
-import type { GenericCSSFamily } from './css/parse'
 import { extractEndOfFirstChild, extractFontFamilies, extractGeneric } from './css/parse'
 import { generateFontFace, generateFontFallbacks, relativiseFontSources } from './css/render'
 
@@ -67,7 +67,8 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
       fallbacks: fallbackOptions?.fallbacks || [],
     }) || {}
 
-    if (!result.fonts || result.fonts.length === 0) return
+    if (!result.fonts || result.fonts.length === 0)
+      return
 
     const fallbackMap = result.fallbacks?.map(f => ({ font: f, name: `${fontFamily} Fallback: ${f}` })) || []
     let insertFontFamilies = false
@@ -169,7 +170,8 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
       enter(node) {
         const nestedRaw = parse(node.value, { positions: true }) as StyleSheet
         const isNestedCss = nestedRaw.children.some(child => child.type === 'Rule')
-        if (!isNestedCss) return
+        if (!isNestedCss)
+          return
         parentOffset += node.loc!.start.offset
         processNode(nestedRaw, parentOffset)
       },

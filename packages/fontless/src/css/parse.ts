@@ -53,7 +53,7 @@ const globalCSSValues = new Set([
 ])
 
 export function extractGeneric(node: Declaration) {
-  if (node.value.type == 'Raw') {
+  if (node.value.type === 'Raw') {
     return
   }
 
@@ -65,7 +65,7 @@ export function extractGeneric(node: Declaration) {
 }
 
 export function extractEndOfFirstChild(node: Declaration) {
-  if (node.value.type == 'Raw') {
+  if (node.value.type === 'Raw') {
     return
   }
   for (const child of node.value.children) {
@@ -80,7 +80,7 @@ export function extractEndOfFirstChild(node: Declaration) {
 }
 
 export function extractFontFamilies(node: Declaration) {
-  if (node.value.type == 'Raw') {
+  if (node.value.type === 'Raw') {
     return processRawValue(node.value.value)
   }
 
@@ -96,7 +96,7 @@ export function extractFontFamilies(node: Declaration) {
       buffer = ''
     }
     if (buffer && child.type === 'Dimension') {
-      buffer = (buffer + ' ' + child.value + child.unit).trim()
+      buffer = (`${buffer} ${child.value}${child.unit}`).trim()
     }
     if (child.type === 'String') {
       families.push(child.value)

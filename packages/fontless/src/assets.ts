@@ -1,9 +1,9 @@
+import type { FontFaceData } from 'unifont'
+import type { RawFontFaceData } from './types'
 import { hash } from 'ohash'
 import { extname } from 'pathe'
 import { filename } from 'pathe/utils'
 import { hasProtocol, joinRelativeURL, joinURL } from 'ufo'
-import type { FontFaceData } from 'unifont'
-import type { RawFontFaceData } from './types'
 import { formatToExtension, parseFont } from './css/render'
 
 function toArray<T>(value?: T | T[]): T[] {

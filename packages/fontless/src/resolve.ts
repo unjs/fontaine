@@ -1,12 +1,12 @@
-import { createUnifont } from 'unifont'
-import type { FontFaceData, Provider, UnifontOptions } from 'unifont'
-import { consola } from 'consola'
 import type { ConsolaInstance } from 'consola'
-
-import type { ManualFontDetails, ProviderFontDetails, FontFamilyManualOverride, FontFamilyProviderOverride, FontlessOptions, RawFontFaceData } from './types'
-import type { FontFaceResolution } from './utils'
-import { addLocalFallbacks } from './css/parse'
+import type { FontFaceData, Provider, UnifontOptions } from 'unifont'
 import type { GenericCSSFamily } from './css/parse'
+import type { FontFamilyManualOverride, FontFamilyProviderOverride, FontlessOptions, ManualFontDetails, ProviderFontDetails, RawFontFaceData } from './types'
+
+import type { FontFaceResolution } from './utils'
+import { consola } from 'consola'
+import { createUnifont } from 'unifont'
+import { addLocalFallbacks } from './css/parse'
 import { defaultValues } from './defaults'
 
 interface ResolverContext {
@@ -31,7 +31,6 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
 
   for (const [key, provider] of Object.entries(providers)) {
     if (options.providers?.[key] === false || (options.provider && options.provider !== key)) {
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete providers[key]
     }
     else {
@@ -41,7 +40,8 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
   }
 
   for (const val of options.priority || []) {
-    if (val in providers) prioritisedProviders.add(val)
+    if (val in providers)
+      prioritisedProviders.add(val)
   }
   for (const provider in providers) {
     prioritisedProviders.add(provider)

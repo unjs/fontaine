@@ -4,8 +4,6 @@ import type { GenericCSSFamily } from './css/parse'
 
 export type Awaitable<T> = T | Promise<T>
 
-export type { FontFaceData }
-
 export interface FontFallback {
   family?: string
   as: string
@@ -66,7 +64,6 @@ export interface FontFamilyManualOverride extends FontFamilyOverrides, RawFontFa
   fallbacks?: string[]
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ProviderOption = ((options: any) => Provider) | string | false
 
 export interface FontlessOptions {

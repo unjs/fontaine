@@ -1,7 +1,7 @@
-import { createJiti } from 'jiti'
 import type { ProviderFactory } from 'unifont'
-
 import type { FontlessOptions } from './types'
+
+import { createJiti } from 'jiti'
 
 export async function resolveProviders(_providers: FontlessOptions['providers'] = {}, opts: { root: string, alias: Record<string, string> }) {
   const jiti = createJiti(opts.root, { alias: opts.alias })
@@ -10,7 +10,6 @@ export async function resolveProviders(_providers: FontlessOptions['providers'] 
   for (const key in providers) {
     const value = providers[key]
     if (value === false) {
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete providers[key]
     }
     if (typeof value === 'string') {
