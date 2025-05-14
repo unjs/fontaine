@@ -11,7 +11,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "build": "pnpm -r build",
+    "build": "pnpm --filter fontaine --filter fontless build",
     "lint": "eslint .",
     "test:unit": "pnpm -r test:unit",
     "test:types": "pnpm -r test:types",
