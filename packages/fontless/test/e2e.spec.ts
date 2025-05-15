@@ -11,10 +11,6 @@ const fixtures = await Array.fromAsync(fsp.glob('*', {
 }))
 
 describe.each(fixtures)('e2e %s', (fixture) => {
-  if (fixture === 'qwik-app') {
-    it.todo('should work')
-    return
-  }
   it('should compile', { timeout: 20_000 }, async () => {
     const root = fileURLToPath(new URL(`../examples/${fixture}`, import.meta.url))
     let outputDir: string
@@ -32,8 +28,23 @@ describe.each(fixtures)('e2e %s', (fixture) => {
 
     const files = await Array.fromAsync(fsp.glob('**/*', { cwd: outputDir! }))
 
-    const css = files.find(file => file.endsWith('.css'))!
-    expect(await readFile(join(outputDir!, css), 'utf-8')).toContain('url(/_fonts')
+    if (fixture === 'qwik-app') {
+      let found = false
+      for (const file of files) {
+        if (file.endsWith('.js')) {
+          const content = await readFile(join(outputDir!, file), 'utf-8')
+          if (content.includes('url(/_fonts')) {
+            found = true
+            break
+          }
+        }
+      }
+      expect(found).toBe(true)
+    }
+    else {
+      const css = files.find(file => file.endsWith('.css'))!
+      expect(await readFile(join(outputDir!, css), 'utf-8')).toContain('url(/_fonts')
+    }
 
     const font = files.find(file => file.endsWith('.woff2'))
     expect(font).toBeDefined()
