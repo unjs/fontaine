@@ -52,7 +52,15 @@ import { FontaineTransform } from 'fontaine'
 import { defineConfig } from 'astro/config'
 
 const options = {
+  // You can specify fallbacks as an array (applies to all fonts)
   fallbacks: ['BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'],
+
+  // Or as an object to configure specific fallbacks per font family
+  // fallbacks: {
+  //   Poppins: ['Helvetica Neue'],
+  //   'JetBrains Mono': ['Courier New']
+  // },
+
   // You may need to resolve assets like `/fonts/Roboto.woff2` to a particular directory
   resolvePath: id => `file:///path/to/public/dir${id}`,
   // overrideName: (originalName) => `${name} override`

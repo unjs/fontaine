@@ -23,9 +23,11 @@ export interface FontaineTransformOptions {
   }
 
   /**
-   * An array of fallback font family names to use.
+   * Font family fallbacks to use.
+   * Can be an array of fallback font family names to use for all fonts,
+   * or an object where keys are font family names and values are arrays of fallback font families.
    */
-  fallbacks: string[]
+  fallbacks: string[] | Record<string, string[]>
 
   /**
    * Function to resolve a given path to a valid URL or local path.
@@ -82,6 +84,13 @@ export const FontaineTransform = createUnplugin((options: FontaineTransformOptio
 
   const skipFontFaceGeneration = options.skipFontFaceGeneration || (() => false)
 
+  function getFallbacksForFamily(family: string): string[] {
+    if (Array.isArray(options.fallbacks)) {
+      return options.fallbacks
+    }
+    return options.fallbacks[family] || []
+  }
+
   function readMetricsFromId(path: string, importer: string) {
     const resolvedPath = isAbsolute(importer) && RELATIVE_RE.test(path)
       ? new URL(path, pathToFileURL(importer))
@@ -113,9 +122,11 @@ export const FontaineTransform = createUnplugin((options: FontaineTransformOptio
         if (!metrics)
           continue
 
+        const familyFallbacks = getFallbacksForFamily(family)
+
         // Iterate backwards: Browsers will use the last working font-face in the stylesheet
-        for (let i = options.fallbacks.length - 1; i >= 0; i--) {
-          const fallback = options.fallbacks[i]!
+        for (let i = familyFallbacks.length - 1; i >= 0; i--) {
+          const fallback = familyFallbacks[i]!
           const fallbackMetrics = await getMetricsForFamily(fallback)
 
           if (!fallbackMetrics)
