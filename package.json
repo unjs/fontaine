@@ -17,7 +17,7 @@
     "test:types": "pnpm -r test:types",
     "test:knip": "knip",
     "test:versions": "installed-check -d --workspace-ignore='packages/fontless/examples/*'",
-    "postinstall": "simple-git-hooks install && pnpm --filter fontaine build"
+    "postinstall": "stale-dep -u && simple-git-hooks install && pnpm --filter fontaine build"
   },
   "devDependencies": {
     "@antfu/eslint-config": "4.13.0",
@@ -28,6 +28,7 @@
     "knip": "5.55.1",
     "lint-staged": "16.0.0",
     "simple-git-hooks": "2.13.0",
+    "stale-dep": "^0.8.2",
     "typescript": "5.8.3"
   },
   "resolutions": {
