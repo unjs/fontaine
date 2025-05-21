@@ -159,16 +159,16 @@ importers:
         specifier: 4.41.0
         version: 4.41.0
       typescript:
-        specifier: latest
+        specifier: 5.8.3
         version: 5.8.3
       unbuild:
-        specifier: latest
+        specifier: 3.5.0
         version: 3.5.0(sass@1.89.0)(typescript@5.8.3)(vue-tsc@2.2.10(typescript@5.8.3))(vue@3.5.14(typescript@5.8.3))
       vite:
         specifier: 6.3.5
         version: 6.3.5(@types/node@22.15.19)(jiti@2.4.2)(less@4.2.2)(sass-embedded@1.89.0)(sass@1.89.0)(stylus@0.64.0)(terser@5.39.2)(yaml@2.8.0)
       vitest:
-        specifier: latest
+        specifier: 3.1.4
         version: 3.1.4(@types/debug@4.1.12)(@types/node@22.15.19)(jiti@2.4.2)(jsdom@22.1.0)(less@4.2.2)(sass-embedded@1.89.0)(sass@1.89.0)(stylus@0.64.0)(terser@5.39.2)(yaml@2.8.0)
 
   packages/fontless/examples/analog-app:
@@ -17110,7 +17110,7 @@ snapshots:
 
   '@typescript-eslint/types@8.32.1': {}
 
-  '@typescript-eslint/typescript-estree@5.62.0(typescript@5.8.3)':
+  '@typescript-eslint/typescript-estree@5.62.0(typescript@5.6.3)':
     dependencies:
       '@typescript-eslint/types': 5.62.0
       '@typescript-eslint/visitor-keys': 5.62.0
@@ -17118,9 +17118,9 @@ snapshots:
       globby: 11.1.0
       is-glob: 4.0.3
       semver: 7.7.2
-      tsutils: 3.21.0(typescript@5.8.3)
+      tsutils: 3.21.0(typescript@5.6.3)
     optionalDependencies:
-      typescript: 5.8.3
+      typescript: 5.6.3
     transitivePeerDependencies:
       - supports-color
 
@@ -19251,10 +19251,10 @@ snapshots:
 
   detective-typescript@11.2.0:
     dependencies:
-      '@typescript-eslint/typescript-estree': 5.62.0(typescript@5.8.3)
+      '@typescript-eslint/typescript-estree': 5.62.0(typescript@5.6.3)
       ast-module-types: 5.0.0
       node-source-walk: 6.0.2
-      typescript: 5.8.3
+      typescript: 5.6.3
     transitivePeerDependencies:
       - supports-color
 
@@ -26048,10 +26048,10 @@ snapshots:
 
   tsscmp@1.0.6: {}
 
-  tsutils@3.21.0(typescript@5.8.3):
+  tsutils@3.21.0(typescript@5.6.3):
     dependencies:
       tslib: 1.14.1
-      typescript: 5.8.3
+      typescript: 5.6.3
 
   tuf-js@3.0.1:
     dependencies:
