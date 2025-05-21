@@ -172,6 +172,50 @@ describe('fontaine transform', () => {
     `, { fallbacks: ['Bingle Bob the Unknown Font'] })
     expect(result).toBeUndefined()
   })
+
+  it('should use specific fallbacks for different font families', async () => {
+    expect(await transform(`
+      @font-face {
+        font-family: Poppins;
+        src: url('poppins.ttf');
+      }
+      @font-face {
+        font-family: 'JetBrains Mono';
+        src: url('jetbrains-mono.ttf');
+      }
+    `, {
+      fallbacks: {
+        'Poppins': ['Helvetica Neue'],
+        'JetBrains Mono': ['Courier New'],
+      },
+    }))
+      .toMatchInlineSnapshot(`
+        "@font-face {
+          font-family: "Poppins fallback";
+          src: local("Helvetica Neue");
+          size-adjust: 111.1111%;
+          ascent-override: 94.5%;
+          descent-override: 31.5%;
+          line-gap-override: 9%;
+        }
+        @font-face {
+          font-family: Poppins;
+          src: url('poppins.ttf');
+        }
+        @font-face {
+          font-family: "JetBrains Mono fallback";
+          src: local("Courier New");
+          size-adjust: 99.9837%;
+          ascent-override: 102.0166%;
+          descent-override: 30.0049%;
+          line-gap-override: 0%;
+        }
+        @font-face {
+          font-family: 'JetBrains Mono';
+          src: url('jetbrains-mono.ttf');
+        }"
+      `)
+  })
 })
 
 async function transform(css: string, options: Partial<FontaineTransformOptions> = {}, filename = 'test.css') {
