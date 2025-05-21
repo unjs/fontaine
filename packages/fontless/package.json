@@ -1,7 +1,7 @@
 {
   "name": "fontless",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Magical plug-and-play font optimization for modern web applications",
   "author": {
     "name": "Daniel Roe",
