@@ -16,3 +16,8 @@ export default antfu()
       'ts/no-use-before-define': 'off',
     },
   })
+  .append({
+    ignores: [
+      'packages/fontless/examples/**/*',
+    ],
+  })
