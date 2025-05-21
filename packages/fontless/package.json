@@ -2,7 +2,7 @@
   "name": "fontless",
   "type": "module",
   "version": "0.0.0",
-  "description": "",
+  "description": "Magical plug-and-play font optimization for modern web applications",
   "author": {
     "name": "Daniel Roe",
     "email": "daniel@roe.dev",
@@ -14,6 +14,13 @@
     "url": "git+https://github.com/unjs/fontaine.git",
     "directory": "packages/fontless"
   },
+  "keywords": [
+    "font",
+    "optimization",
+    "vite-plugin",
+    "css",
+    "javascript"
+  ],
   "sideEffects": false,
   "exports": {
     ".": "./dist/index.mjs"
