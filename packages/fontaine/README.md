@@ -8,7 +8,7 @@
 > Automatic font fallback based on font metrics
 
 - [✨ &nbsp;Changelog](https://github.com/unjs/fontaine/blob/main/CHANGELOG.md)
-- [▶️ &nbsp;Online playground](https://stackblitz.com/github/unjs/fontaine/tree/main/playground)
+- [▶️ &nbsp;Online playground](https://stackblitz.com/github/unjs/fontaine/tree/main/packages/fontaine/playground)
 
 ## Features
 
