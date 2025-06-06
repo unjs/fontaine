@@ -7,7 +7,7 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "cd ../../.. && pnpm --filter fontaine build && cd packages/fontless/docs && nuxt prepare"
   },
   "dependencies": {
     "nuxt": "^3.17.5",
