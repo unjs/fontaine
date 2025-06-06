@@ -3,9 +3,8 @@ packages:
   - packages/fontaine/playground
   - packages/fontless/docs
   - packages/fontless/examples/*
-
 ignoredBuiltDependencies:
   - esbuild
-
 onlyBuiltDependencies:
+  - shadcn-docs-nuxt
   - simple-git-hooks
