@@ -20,6 +20,7 @@
     "skipLibCheck": true
   },
   "exclude": [
-    "packages/fontless/examples/*"
+    "packages/fontless/examples/*",
+    "packages/fontless/docs/*"
   ]
 }
