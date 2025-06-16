@@ -27,6 +27,7 @@
     "installed-check": "9.3.0",
     "knip": "5.61.0",
     "lint-staged": "16.1.2",
+    "nuxt": "^3.17.5",
     "simple-git-hooks": "2.13.0",
     "typescript": "5.8.3"
   },

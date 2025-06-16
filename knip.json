@@ -1,6 +1,18 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "workspaces": {
+    "packages/fontless/docs": {
+      "entry": [
+        "app.config.ts",
+        "tailwind.config.js",
+        "nuxt.config.ts"
+      ],
+      "ignoreDependencies": [
+        "shadcn-docs-nuxt",
+        "vue",
+        "vue-router"
+      ]
+    },
     "packages/fontless/examples/analog-app": {
       "entry": [
         "src/**/*"
