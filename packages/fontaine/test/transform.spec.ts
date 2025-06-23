@@ -216,6 +216,34 @@ describe('fontaine transform', () => {
         }"
       `)
   })
+
+  it('should handle font families not specified in fallbacks object', async () => {
+    // Use a mock to ensure fromFile returns metrics for our test font
+    // @ts-expect-error not typed as mock
+    fromFile.mockResolvedValueOnce({
+      familyName: 'UnknownFont',
+      capHeight: 1000,
+      ascent: 1000,
+      descent: 200,
+      lineGap: 0,
+      unitsPerEm: 1000,
+    })
+
+    const result = await transform(`
+      @font-face {
+        font-family: UnknownFont;
+        src: url('unknownfont.ttf');
+      }
+    `, {
+      fallbacks: {
+        'Poppins': ['Helvetica Neue'],
+        'JetBrains Mono': ['Courier New'],
+      },
+      resolvePath: id => new URL(id, import.meta.url),
+    })
+
+    expect(result).toBeUndefined()
+  })
 })
 
 async function transform(css: string, options: Partial<FontaineTransformOptions> = {}, filename = 'test.css') {
