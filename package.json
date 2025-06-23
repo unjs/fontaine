@@ -32,10 +32,9 @@
     "typescript": "5.8.3"
   },
   "resolutions": {
+    "@nuxt/fonts>fontaine": "latest",
     "fontaine": "workspace:*",
-    "fontless": "workspace:*",
-    "shadcn-docs-nuxt>fontaine": "latest",
-    "shadcn-docs-nuxt>fontless": "latest"
+    "fontless": "workspace:*"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
