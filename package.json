@@ -16,7 +16,7 @@
     "test:unit": "pnpm -r test:unit",
     "test:types": "pnpm -r test:types",
     "test:knip": "knip",
-    "test:versions": "installed-check -d --workspace-ignore='packages/fontless/examples/*'",
+    "test:versions": "installed-check -d --workspace-ignore='packages/fontless/examples/*' --workspace-ignore='packages/fontless/docs'",
     "postinstall": "simple-git-hooks install && pnpm --filter fontaine build"
   },
   "devDependencies": {
@@ -31,6 +31,7 @@
     "typescript": "5.8.3"
   },
   "resolutions": {
+    "@nuxt/fonts>fontaine": "latest",
     "fontaine": "workspace:*",
     "fontless": "workspace:*"
   },
