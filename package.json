@@ -33,7 +33,9 @@
   },
   "resolutions": {
     "fontaine": "workspace:*",
-    "fontless": "workspace:*"
+    "fontless": "workspace:*",
+    "fontless-docs>fontaine": "latest",
+    "fontless-docs>fontless": "latest"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
