@@ -26,14 +26,55 @@ Magical Font Optimization for Modern Web Apps <br />
 Effortlessly optimize web fonts with fontless. Zero-runtime CSS solution for Google Fonts, Bunny Fonts, and more. Reduce CLS and boost performance.
 ::
 
-## Features
+::card-group
+  ::card
+  ---
+  title: Optimized font loading
+  icon: lucide:rocket
+  ---
+  Automatically loads and configures fonts with proper fallbacks.
+  ::
 
-*   **🚀 Optimized font loading:** Automatically loads and configures fonts with proper fallbacks.
-*   **🔤 Multiple provider support:** Google Fonts, Bunny Fonts, FontShare, FontSource, and more using unifont.
-*   **📦 Zero runtime overhead:** Pure CSS solution with no JavaScript required at runtime.
-*   **📏 Metric-based fallbacks:** Reduces Cumulative Layout Shift (CLS) by using font metrics from [fontaine](https://github.com/nuxtlabs/fontaine).
-*   **🔄 CSS transformation:** Detects `font-family` usage in your CSS and injects optimized `@font-face` declarations.
-*   **🎯 Framework agnostic:** Works with all modern frameworks (Vue, React, Solid, Svelte, Qwik, etc.).
+  ::card
+  ---
+  title: Multiple provider support
+  icon: lucide:file-stack
+  ---
+  Google Fonts, Bunny Fonts, FontShare, FontSource, and more using unifont.
+  ::
+
+  ::card
+  ---
+  title: Zero runtime overhead
+  icon: lucide:box
+  ---
+  Pure CSS solution with no JavaScript required at runtime.
+  ::
+
+  ::card
+  ---
+  title: Metric-based fallbacks
+  icon: lucide:ruler
+  ---
+  Reduces Cumulative Layout Shift (CLS) by using font metrics from [fontaine](https://github.com/nuxtlabs/fontaine).
+  ::
+
+  ::card
+  ---
+  title: CSS transformation
+  icon: lucide:repeat
+  ---
+  Detects `font-family` usage in your CSS and injects optimized `@font-face` declarations.
+  ::
+
+  ::card
+  ---
+  title: Framework agnostic
+  icon: lucide:target
+  ---
+  Works with all modern frameworks (Vue, React, Solid, Svelte, Qwik, etc.).
+  :: 
+::
 
 ## Installation
 
