@@ -19,5 +19,6 @@ export default antfu()
   .append({
     ignores: [
       'packages/fontless/examples/**/*',
+      'packages/fontless/docs/**/*.md',
     ],
   })
