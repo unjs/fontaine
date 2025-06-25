@@ -1,16 +1,16 @@
 export default defineAppConfig({
   shadcnDocs: {
     site: {
-      name: 'shadcn-docs-nuxt',
-      description: 'Beautifully designed Nuxt Content template built with shadcn-vue. Customizable. Compatible. Open Source.',
+      name: 'Fontless',
+      description: 'Magical plug-and-play font optimization for modern web applications.',
     },
     theme: {
-      customizable: true,
+      customizable: false,
       color: 'zinc',
       radius: 0.5,
     },
     header: {
-      title: 'shadcn-docs-starter',
+      title: 'fontless',
       showTitle: true,
       darkModeToggle: true,
       languageSwitcher: {
@@ -25,7 +25,7 @@ export default defineAppConfig({
       nav: [],
       links: [{
         icon: 'lucide:github',
-        to: 'https://github.com/ZTL-UwU/shadcn-docs-nuxt',
+        to: 'https://github.com/unjs/fontaine/blob/main/packages/fontless',
         target: '_blank',
       }],
     },
@@ -38,29 +38,29 @@ export default defineAppConfig({
       showTitle: true,
     },
     footer: {
-      credits: 'Copyright © 2024',
+      credits: 'Copyright © 2025',
       links: [{
         icon: 'lucide:github',
-        to: 'https://github.com/ZTL-UwU/shadcn-docs-nuxt',
+        to: 'https://github.com/unjs/fontaine/blob/main/packages/fontless',
         target: '_blank',
       }],
     },
     toc: {
-      enable: true,
+      enable: false,
       links: [{
         title: 'Star on GitHub',
         icon: 'lucide:star',
-        to: 'https://github.com/ZTL-UwU/shadcn-docs-nuxt',
+        to: 'https://github.com/unjs/fontaine/blob/main/packages/fontless',
         target: '_blank',
       }, {
         title: 'Create Issues',
         icon: 'lucide:circle-dot',
-        to: 'https://github.com/ZTL-UwU/shadcn-docs-nuxt/issues',
+        to: 'https://github.com/unjs/fontaine/issues',
         target: '_blank',
       }],
     },
     search: {
-      enable: true,
+      enable: false,
       inAside: false,
     },
   },
