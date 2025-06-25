@@ -26,7 +26,7 @@ Magical Font Optimization for Modern Web Apps <br />
 Effortlessly optimize web fonts with fontless. Zero-runtime CSS solution for Google Fonts, Bunny Fonts, and more. Reduce CLS and boost performance.
 ::
 
-::card-group
+::card-group{cols=3}
   ::card
   ---
   title: Optimized font loading
