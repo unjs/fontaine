@@ -61,7 +61,7 @@
     "@types/node": "22.15.34",
     "@types/serve-handler": "6.1.4",
     "@vitest/coverage-v8": "3.2.4",
-    "eslint": "9.29.0",
+    "eslint": "9.30.0",
     "get-port-please": "3.1.2",
     "serve-handler": "6.1.6",
     "typescript": "5.8.3",
