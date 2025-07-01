@@ -7,7 +7,9 @@
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
   },
   "engines-annotation": "Mostly required by sharp which needs a Node-API v9 compatible runtime",
-  "trustedDependencies": ["sharp"],
+  "trustedDependencies": [
+    "sharp"
+  ],
   "trustedDependencies-annotation": "Needed for bun to allow running install scripts",
   "scripts": {
     "build": "qwik build",
