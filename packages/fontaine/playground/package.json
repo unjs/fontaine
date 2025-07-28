@@ -9,6 +9,6 @@
   },
   "dependencies": {
     "fontaine": "latest",
-    "vite": "^6.3.2"
+    "vite": "^7.0.0"
   }
 }
