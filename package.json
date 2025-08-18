@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "5.2.1",
-    "bumpp": "10.2.2",
+    "bumpp": "10.2.3",
     "changelogithub": "13.16.0",
     "eslint": "9.33.0",
     "installed-check": "9.3.0",
