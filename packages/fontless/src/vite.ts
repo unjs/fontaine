@@ -5,6 +5,7 @@ import type { FontFamilyInjectionPluginOptions } from './utils'
 
 import { Buffer } from 'node:buffer'
 import fsp from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
 import { defu } from 'defu'
 import { resolve } from 'pathe'
 import { joinRelativeURL, joinURL } from 'ufo'
@@ -30,6 +31,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
         dev: config.mode === 'development',
         renderedFontURLs: new Map<string, string>(),
         assetsBaseURL: options.assets?.prefix || '/fonts',
+        devFilesystemURL: joinRelativeURL(config.base, '@fs'),
       }
 
       publicDir = resolve(config.root, config.build.outDir, `.${joinURL(config.base, assetContext.assetsBaseURL)}`)
@@ -81,6 +83,12 @@ export function fontless(_options?: FontlessOptions): Plugin {
     },
     async writeBundle() {
       for (const [filename, url] of assetContext.renderedFontURLs) {
+        if (url.startsWith('file://')) {
+          // copy the file to the public directory instead of fetching it
+          await fsp.mkdir(publicDir, { recursive: true })
+          await fsp.copyFile(fileURLToPath(url), joinRelativeURL(publicDir, filename))
+          continue
+        }
         const key = `data:fonts:${filename}`
         // Use storage to cache the font data between builds
         let res = await storage.getItemRaw(key)
