@@ -74,7 +74,6 @@ export function fontless(_options?: FontlessOptions): Plugin {
       filter: {
         id: {
           include: [CSS_EXTENSIONS_RE, CSS_LANG_QUERY_RE, INLINE_STYLE_ID_RE],
-          exclude: [/.vite/],
         },
       },
       async handler(code, id) {
