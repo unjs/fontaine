@@ -15,6 +15,7 @@ import { createResolver } from './resolve'
 import { storage } from './storage'
 import { resolveMinifyCssEsbuildOptions, transformCSS } from './utils'
 
+// Copied from @tailwindcss-vite
 const CSS_LANG_QUERY_RE = /&lang\.css/
 const INLINE_STYLE_ID_RE = /[?&]index=\d+\.css$/
 // Copied from vue-bundle-renderer utils
