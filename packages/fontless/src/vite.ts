@@ -15,6 +15,11 @@ import { createResolver } from './resolve'
 import { storage } from './storage'
 import { resolveMinifyCssEsbuildOptions, transformCSS } from './utils'
 
+const CSS_LANG_QUERY_RE = /&lang\.css/
+const INLINE_STYLE_ID_RE = /[?&]index=\d+\.css$/
+// Copied from vue-bundle-renderer utils
+const CSS_EXTENSIONS_RE = /\.(?:css|scss|sass|postcss|pcss|less|stylus|styl)(?:\?[^.]+)?$/
+
 export function fontless(_options?: FontlessOptions): Plugin {
   const options = defu(_options, defaultOptions satisfies FontlessOptions) as FontlessOptions
 
@@ -64,20 +69,28 @@ export function fontless(_options?: FontlessOptions): Plugin {
         cssTransformOptions.esbuildOptions = defu(cssTransformOptions.esbuildOptions, resolveMinifyCssEsbuildOptions(config.esbuild))
       }
     },
-    async transform(code, id) {
-      // Early return if no font-family is used in this CSS
-      if (!options.processCSSVariables && !code.includes('font-family:')) {
-        return
-      }
-
-      const s = await transformCSS(cssTransformOptions, code, id)
-
-      if (s.hasChanged()) {
-        return {
-          code: s.toString(),
-          map: s.generateMap({ hires: true }),
+    transform: {
+      filter: {
+        id: {
+          include: [CSS_EXTENSIONS_RE, CSS_LANG_QUERY_RE, INLINE_STYLE_ID_RE],
+          exclude: [/.vite/],
+        },
+      },
+      async handler(code, id) {
+        // Early return if no font-family is used in this CSS
+        if (!options.processCSSVariables && !code.includes('font-family:')) {
+          return
         }
-      }
+
+        const s = await transformCSS(cssTransformOptions, code, id)
+
+        if (s.hasChanged()) {
+          return {
+            code: s.toString(),
+            map: s.generateMap({ hires: true }),
+          }
+        }
+      },
     },
     async writeBundle() {
       for (const [filename, url] of assetContext.renderedFontURLs) {
