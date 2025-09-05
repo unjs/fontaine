@@ -251,6 +251,6 @@ async function transform(css: string, options: Partial<FontaineTransformOptions>
     fallbacks: ['Arial', 'Segoe UI'],
     ...options,
   }) as RollupPlugin
-  const result = await (plugin.transform as any)(css, filename)
+  const result = await ((plugin.transform as any).handler)(css, filename)
   return result?.code.replace(/^ {6}/gm, '').trim()
 }

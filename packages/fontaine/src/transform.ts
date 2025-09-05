@@ -1,10 +1,9 @@
 import { pathToFileURL } from 'node:url'
 import { parse, walk } from 'css-tree'
-import { anyOf, createRegExp, exactly } from 'magic-regexp'
+import { anyOf, char, createRegExp, exactly, oneOrMore } from 'magic-regexp'
 import MagicString from 'magic-string'
 import { isAbsolute } from 'pathe'
 
-import { parseURL } from 'ufo'
 import { createUnplugin } from 'unplugin'
 import { generateFallbackName, generateFontFace, parseFontFace, withoutQuotes } from './css'
 import { getMetricsForFamily, readMetrics } from './metrics'
@@ -63,6 +62,8 @@ const supportedExtensions = ['woff2', 'woff', 'ttf']
 const CSS_RE = createRegExp(
   exactly('.')
     .and(anyOf('sass', 'css', 'scss'))
+    // Match query strings
+    .and(exactly('?').and(oneOrMore(char)).optionally())
     .at.lineEnd(),
 )
 
@@ -101,85 +102,86 @@ export const FontaineTransform = createUnplugin((options: FontaineTransformOptio
   return {
     name: 'fontaine-transform',
     enforce: 'pre',
-    transformInclude(id) {
-      const { pathname } = parseURL(id)
-      return CSS_RE.test(pathname) || CSS_RE.test(id)
-    },
-    async transform(code, id) {
-      const s = new MagicString(code)
+    transform: {
+      filter: {
+        id: [CSS_RE],
+      },
+      async handler(code, id) {
+        const s = new MagicString(code)
 
-      const ast = parse(code, { positions: true })
+        const ast = parse(code, { positions: true })
 
-      for (const { family, source, index, properties } of parseFontFace(ast)) {
-        if (!supportedExtensions.some(e => source?.endsWith(e)))
-          continue
-        if (skipFontFaceGeneration(fallbackName(family)))
-          continue
-
-        const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsFromId(source, id).catch(() => null)))
-
-        /* v8 ignore next 2 */
-        if (!metrics)
-          continue
-
-        const familyFallbacks = getFallbacksForFamily(family)
-
-        // Iterate backwards: Browsers will use the last working font-face in the stylesheet
-        for (let i = familyFallbacks.length - 1; i >= 0; i--) {
-          const fallback = familyFallbacks[i]!
-          const fallbackMetrics = await getMetricsForFamily(fallback)
-
-          if (!fallbackMetrics)
+        for (const { family, source, index, properties } of parseFontFace(ast)) {
+          if (!supportedExtensions.some(e => source?.endsWith(e)))
+            continue
+          if (skipFontFaceGeneration(fallbackName(family)))
             continue
 
-          const fontFace = generateFontFace(metrics, {
-            name: fallbackName(family),
-            font: fallback,
-            metrics: fallbackMetrics,
-            ...properties,
-          })
-          cssContext.value += fontFace
-          s.appendLeft(index, fontFace)
-        }
-      }
+          const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsFromId(source, id).catch(() => null)))
 
-      walk(ast, {
-        visit: 'Declaration',
-        enter(node) {
-          if (node.property !== 'font-family')
-            return
-          if (this.atrule && this.atrule.name === 'font-face')
-            return
-          if (node.value.type !== 'Value')
-            /* v8 ignore next */ return
+          /* v8 ignore next 2 */
+          if (!metrics)
+            continue
 
-          for (const child of node.value.children) {
-            let family: string | undefined
-            if (child.type === 'String') {
-              family = withoutQuotes(child.value)
-            }
-            else if (child.type === 'Identifier' && child.name !== 'inherit') {
-              family = child.name
-            }
+          const familyFallbacks = getFallbacksForFamily(family)
 
-            if (!family)
+          // Iterate backwards: Browsers will use the last working font-face in the stylesheet
+          for (let i = familyFallbacks.length - 1; i >= 0; i--) {
+            const fallback = familyFallbacks[i]!
+            const fallbackMetrics = await getMetricsForFamily(fallback)
+
+            if (!fallbackMetrics)
               continue
 
-            s.appendRight(child.loc!.end.offset, `, "${fallbackName(family)}"`)
-            return
+            const fontFace = generateFontFace(metrics, {
+              name: fallbackName(family),
+              font: fallback,
+              metrics: fallbackMetrics,
+              ...properties,
+            })
+            cssContext.value += fontFace
+            s.appendLeft(index, fontFace)
           }
-        },
-      })
-
-      if (s.hasChanged()) {
-        return {
-          code: s.toString(),
-          /* v8 ignore next 3 */
-          map: options.sourcemap
-            ? s.generateMap({ source: id, includeContent: true })
-            : undefined,
         }
-      }
+
+        walk(ast, {
+          visit: 'Declaration',
+          enter(node) {
+            if (node.property !== 'font-family')
+              return
+            if (this.atrule && this.atrule.name === 'font-face')
+              return
+            if (node.value.type !== 'Value')
+            /* v8 ignore next */ return
+
+            for (const child of node.value.children) {
+              let family: string | undefined
+              if (child.type === 'String') {
+                family = withoutQuotes(child.value)
+              }
+              else if (child.type === 'Identifier' && child.name !== 'inherit') {
+                family = child.name
+              }
+
+              if (!family)
+                continue
+
+              s.appendRight(child.loc!.end.offset, `, "${fallbackName(family)}"`)
+              return
+            }
+          },
+        })
+
+        if (s.hasChanged()) {
+          return {
+            code: s.toString(),
+            /* v8 ignore next 3 */
+            map: options.sourcemap
+              ? s.generateMap({ source: id, includeContent: true })
+              : undefined,
+          }
+        }
+      },
     },
   }
 })
