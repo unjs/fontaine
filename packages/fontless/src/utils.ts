@@ -51,12 +51,30 @@ export function resolveMinifyCssEsbuildOptions(options: ESBuildOptions): Transfo
   return { ...base, minify: true }
 }
 
+function findSafeInsertionIndex(ast: CssNode): number {
+  let safeIndex = 0
+
+  walk(ast, {
+    visit: 'Atrule',
+    enter(node) {
+      if (node.name === 'charset' || node.name === 'import' || node.name === 'namespace' || (node.name === 'layer' && node.prelude)) {
+        safeIndex = Math.max(safeIndex, node.loc!.end.offset)
+      }
+    },
+  })
+
+  return safeIndex
+}
+
 export async function transformCSS(options: FontFamilyInjectionPluginOptions, code: string, id: string, opts: { relative?: boolean } = {}) {
   const s = new MagicString(code)
+  const ast = parse(code, { positions: true })
 
   const injectedDeclarations = new Set<string>()
+  const safeInsertionIndex = findSafeInsertionIndex(ast)
 
   const promises = [] as Promise<unknown>[]
+
   async function addFontFaceDeclaration(fontFamily: string, fallbackOptions?: {
     generic?: GenericCSSFamily
     fallbacks: string[]
@@ -112,15 +130,19 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
       }
     }
 
-    s.prepend(prefaces.join(''))
+    if (safeInsertionIndex > 0) {
+      // Add a newline before font-face declarations when inserting after at-rules
+      s.appendLeft(safeInsertionIndex, `\n${prefaces.join('')}`)
+    }
+    else {
+      s.prepend(prefaces.join(''))
+    }
 
     if (fallbackOptions && insertFontFamilies) {
       const insertedFamilies = fallbackMap.map(f => `"${f.name}"`).join(', ')
       s.prependLeft(fallbackOptions.index, `, ${insertedFamilies}`)
     }
   }
-
-  const ast = parse(code, { positions: true })
 
   // Collect existing `@font-face` declarations (to skip adding them)
   const existingFontFamilies = new Set<string>()

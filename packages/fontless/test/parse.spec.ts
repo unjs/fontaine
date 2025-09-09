@@ -17,6 +17,58 @@ describe('parsing', () => {
       `)
   })
 
+  it('should add declarations after any @import', async () => {
+    expect(await transform(`@import url("https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css") layer(bootstrap); body { font-family: "Gabarito", sans-serif; }`))
+      .toMatchInlineSnapshot(`
+        "@import url("https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css") layer(bootstrap);
+        @font-face {
+          font-family: 'Gabarito';
+          src: url("/gabarito.woff2") format(woff2);
+          font-display: swap;
+        }
+        @font-face {
+          font-family: "Gabarito Fallback: Times New Roman";
+          src: local("Times New Roman");
+          size-adjust: 108.8%;
+          ascent-override: 86.3971%;
+          descent-override: 23.8971%;
+          line-gap-override: 0%;
+        }
+
+         body { font-family: "Gabarito", "Gabarito Fallback: Times New Roman", sans-serif; }"
+      `)
+  })
+
+  it('should add declarations after multiple @import and @charset', async () => {
+    expect(await transform(`@charset "UTF-8";
+@import url("reset.css");
+@import url("typography.css");
+@namespace url("http://www.w3.org/1999/xhtml");
+body { font-family: "Inter", sans-serif; }`))
+      .toMatchInlineSnapshot(`
+        "@charset "UTF-8";
+        @import url("reset.css");
+        @import url("typography.css");
+        @namespace url("http://www.w3.org/1999/xhtml");
+        @font-face {
+          font-family: 'Inter';
+          src: url("/inter.woff2") format(woff2);
+          font-display: swap;
+        }
+        @font-face {
+          font-family: "Inter Fallback: Times New Roman";
+          src: local("Times New Roman");
+          size-adjust: 117.5481%;
+          ascent-override: 82.4131%;
+          descent-override: 20.5202%;
+          line-gap-override: 0%;
+        }
+
+
+        body { font-family: "Inter", "Inter Fallback: Times New Roman", sans-serif; }"
+      `)
+  })
+
   it('should add declarations for `font`', async () => {
     expect(await transform(`:root { font: 1.2em 'CustomFont' }`))
       .toMatchInlineSnapshot(`
