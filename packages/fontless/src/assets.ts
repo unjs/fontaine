@@ -1,5 +1,6 @@
 import type { FontFaceData } from 'unifont'
 import type { RawFontFaceData } from './types'
+import { fileURLToPath } from 'node:url'
 import { hash } from 'ohash'
 import { extname } from 'pathe'
 import { filename } from 'pathe/utils'
@@ -14,6 +15,7 @@ export interface NormalizeFontDataContext {
   dev: boolean
   renderedFontURLs: Map<string, string>
   assetsBaseURL: string
+  devFilesystemURL?: string
   callback?: (filename: string, url: string) => void
 }
 
@@ -39,7 +41,10 @@ export function normalizeFontData(context: NormalizeFontDataContext, faces: RawF
           source.originalURL = source.url
 
           source.url = context.dev
-            ? joinRelativeURL(context.assetsBaseURL, file)
+            ? source.url.startsWith('file://') && context.devFilesystemURL
+              // use a direct filesystem URL in dev mode for local files when available
+              ? joinRelativeURL(context.devFilesystemURL, fileURLToPath(source.url))
+              : joinRelativeURL(context.assetsBaseURL, file)
             : joinURL(context.assetsBaseURL, file)
 
           context.callback?.(file, source.url)
