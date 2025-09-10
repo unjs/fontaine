@@ -75,13 +75,12 @@ export function fontless(_options?: FontlessOptions): Plugin {
         id: {
           include: [CSS_EXTENSIONS_RE, CSS_LANG_QUERY_RE, INLINE_STYLE_ID_RE],
         },
+        code: {
+          // Early return if no font-family is used in this CSS
+          exclude: !options.processCSSVariables ? [/^(?!.*font-family\s*:).*$/s] : undefined,
+        },
       },
       async handler(code, id) {
-        // Early return if no font-family is used in this CSS
-        if (!options.processCSSVariables && !code.includes('font-family:')) {
-          return
-        }
-
         const s = await transformCSS(cssTransformOptions, code, id)
 
         if (s.hasChanged()) {
