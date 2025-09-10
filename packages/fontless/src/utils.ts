@@ -1,11 +1,14 @@
 import type { CssNode, StyleSheet } from 'css-tree'
-import type { TransformOptions } from 'esbuild'
+import type { TransformOptions as ESBuildTransformOptions } from 'esbuild'
+import type { TransformOptions as LightningCSSTransformOptions } from 'lightningcss'
 import type { FontFaceData, RemoteFontSource } from 'unifont'
 import type { ESBuildOptions } from 'vite'
 import type { GenericCSSFamily } from './css/parse'
 import type { Awaitable } from './types'
+import { Buffer } from 'node:buffer'
 import { parse, walk } from 'css-tree'
-import { transform } from 'esbuild'
+import { transform as esbuildTransform } from 'esbuild'
+import { transform as lightningCSSTransform } from 'lightningcss'
 import MagicString from 'magic-string'
 
 import { dirname } from 'pathe'
@@ -19,7 +22,8 @@ export interface FontFaceResolution {
 }
 
 export interface FontFamilyInjectionPluginOptions {
-  esbuildOptions?: TransformOptions
+  esbuildOptions?: ESBuildTransformOptions
+  lightningcssOptions?: Partial<LightningCSSTransformOptions<any>>
   resolveFontFace: (fontFamily: string, fallbackOptions?: { fallbacks: string[], generic?: GenericCSSFamily }) => Awaitable<undefined | FontFaceResolution>
   dev: boolean
   processCSSVariables?: boolean | 'font-prefixed-only'
@@ -28,8 +32,8 @@ export interface FontFamilyInjectionPluginOptions {
 }
 
 // Inlined from https://github.com/vitejs/vite/blob/main/packages/vite/src/node/plugins/css.ts#L1824-L1849
-export function resolveMinifyCssEsbuildOptions(options: ESBuildOptions): TransformOptions {
-  const base: TransformOptions = {
+export function resolveMinifyCssEsbuildOptions(options: ESBuildOptions): ESBuildTransformOptions {
+  const base: ESBuildTransformOptions = {
     charset: options.charset ?? 'utf8',
     logLevel: options.logLevel,
     logLimit: options.logLimit,
@@ -110,12 +114,24 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
         if (!injectedDeclarations.has(declaration)) {
           injectedDeclarations.add(declaration)
           if (!options.dev) {
-            declaration = await transform(declaration, {
-              loader: 'css',
-              charset: 'utf8',
-              minify: true,
-              ...options.esbuildOptions,
-            }).then(r => r.code || declaration).catch(() => declaration)
+            if (options.lightningcssOptions) {
+              const result = lightningCSSTransform({
+                filename: id,
+                code: Buffer.from(declaration),
+                minify: true,
+                sourceMap: false,
+                ...options.lightningcssOptions,
+              })
+              declaration = result.code.toString() || declaration
+            }
+            else {
+              declaration = await esbuildTransform(declaration, {
+                loader: 'css',
+                charset: 'utf8',
+                minify: true,
+                ...options.esbuildOptions,
+              }).then(r => r.code || declaration).catch(() => declaration)
+            }
           }
           else {
             declaration += '\n'

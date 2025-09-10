@@ -66,8 +66,13 @@ export function fontless(_options?: FontlessOptions): Plugin {
         },
       }
 
-      if (!cssTransformOptions.dev && config.esbuild) {
-        cssTransformOptions.esbuildOptions = defu(cssTransformOptions.esbuildOptions, resolveMinifyCssEsbuildOptions(config.esbuild))
+      if (!cssTransformOptions.dev) {
+        if (config.css.lightningcss) {
+          cssTransformOptions.lightningcssOptions = config.css.lightningcss
+        }
+        else if (config.esbuild) {
+          cssTransformOptions.esbuildOptions = defu(cssTransformOptions.esbuildOptions, resolveMinifyCssEsbuildOptions(config.esbuild))
+        }
       }
     },
     transform: {
