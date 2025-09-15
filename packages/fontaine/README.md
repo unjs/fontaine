@@ -63,9 +63,9 @@ const options = {
 
   // You may need to resolve assets like `/fonts/Roboto.woff2` to a particular directory
   resolvePath: id => `file:///path/to/public/dir${id}`,
-  // overrideName: (originalName) => `${name} override`
+  // fallbackName: (originalName) => `${name} fallback`
   // sourcemap: false
-  // skipFontFaceGeneration: (fallbackName) => fallbackName === 'Roboto override'
+  // skipFontFaceGeneration: (fallbackName) => fallbackName === 'Roboto fallback'
 }
 
 // Vite
@@ -124,16 +124,16 @@ export default defineConfig({
 > **Note**
 > If you are using Nuxt, check out [nuxt-font-metrics](https://github.com/danielroe/nuxt-font-metrics) which uses `fontaine` under the hood.
 
-If your custom font is used through the mechanism of CSS variables, you'll need to make a tweak to your CSS variables to give fontaine a helping hand. Docusaurus is an example of this, it uses the `--ifm-font-family-base` variable to reference a custom font. In order that fontaine can connect the variable with the font, we need to add a `{Name of Font} override` suffix to that variable. What does this look like? Well imagine we were using the custom font Poppins which is referenced from the `--ifm-font-family-base` variable, we'd make the following adjustment:
+If your custom font is used through the mechanism of CSS variables, you'll need to make a tweak to your CSS variables to give fontaine a helping hand. Docusaurus is an example of this, it uses the `--ifm-font-family-base` variable to reference a custom font. In order that fontaine can connect the variable with the font, we need to add a `{Name of Font} fallback` suffix to that variable. What does this look like? Well imagine we were using the custom font Poppins which is referenced from the `--ifm-font-family-base` variable, we'd make the following adjustment:
 
 ```diff
 :root {
   /* ... */
 -  --ifm-font-family-base: 'Poppins';
-+  --ifm-font-family-base: 'Poppins', 'Poppins override';
++  --ifm-font-family-base: 'Poppins', 'Poppins fallback';
 ```
 
-Behind the scenes, there is a 'Poppins override' `@font-face` rule that has been created by fontaine. By manually adding this override font family to our CSS variable, we make our site use the fallback `@font-face` rule with the correct font metrics that fontaine generates.
+Behind the scenes, there is a 'Poppins fallback' `@font-face` rule that has been created by fontaine. By manually adding this fallback font family to our CSS variable, we make our site use the fallback `@font-face` rule with the correct font metrics that fontaine generates.
 
 ## How it works
 
@@ -149,7 +149,7 @@ Behind the scenes, there is a 'Poppins override' `@font-face` rule that has been
 }
 /* This additional font-face declaration will be added to your CSS. */
 @font-face {
-  font-family: 'Roboto override';
+  font-family: 'Roboto fallback';
   src: local('BlinkMacSystemFont'), local('Segoe UI'), local('Helvetica Neue'),
       local('Arial'), local('Noto Sans');
   ascent-override: 92.7734375%;
@@ -158,13 +158,13 @@ Behind the scenes, there is a 'Poppins override' `@font-face` rule that has been
 }
 ```
 
-Then, whenever you use `font-family: 'Roboto'`, `fontaine` will add the override to the font-family:
+Then, whenever you use `font-family: 'Roboto'`, `fontaine` will add the fallback to the font-family:
 
 ```css
 :root {
   font-family: 'Roboto';
   /* This becomes */
-  font-family: 'Roboto', 'Roboto override';
+  font-family: 'Roboto', 'Roboto fallback';
 }
 ```
 
