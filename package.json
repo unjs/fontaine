@@ -23,7 +23,7 @@
     "@antfu/eslint-config": "5.4.1",
     "bumpp": "10.2.3",
     "changelogithub": "13.16.0",
-    "eslint": "9.35.0",
+    "eslint": "9.36.0",
     "installed-check": "9.3.0",
     "knip": "5.64.0",
     "lint-staged": "16.2.0",
