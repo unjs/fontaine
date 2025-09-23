@@ -30,12 +30,11 @@ export function fontless(_options?: FontlessOptions): Plugin {
 
   return {
     name: 'vite-plugin-fontless',
-    apply: (_command, env) => !env.isPreview,
+
     async configResolved(config) {
       assetContext = {
         dev: config.mode === 'development',
         renderedFontURLs: new Map<string, string>(),
-        // TODO: should nest under build.assetsDir? (e.g. /assets/_fonts/xxx.woff2)
         assetsBaseURL: options.assets?.prefix || '/fonts',
       }
 
