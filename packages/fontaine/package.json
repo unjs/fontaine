@@ -51,10 +51,10 @@
     "@capsizecss/unpack": "^3.0.0",
     "css-tree": "^3.1.0",
     "magic-regexp": "^0.10.0",
-    "magic-string": "^0.30.17",
+    "magic-string": "^0.30.19",
     "pathe": "^2.0.3",
     "ufo": "^1.6.1",
-    "unplugin": "^2.3.2"
+    "unplugin": "^2.3.10"
   },
   "devDependencies": {
     "@types/css-tree": "2.3.10",
@@ -66,7 +66,7 @@
     "serve-handler": "6.1.6",
     "typescript": "5.9.2",
     "unbuild": "latest",
-    "vite": "7.1.4",
+    "vite": "7.1.7",
     "vitest": "3.2.4"
   }
 }
