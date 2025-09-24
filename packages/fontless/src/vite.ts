@@ -30,7 +30,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
 
   return {
     name: 'vite-plugin-fontless',
-
+    apply: (_config, env) => !env.isPreview,
     async configResolved(config) {
       assetContext = {
         dev: config.mode === 'development',
@@ -74,6 +74,30 @@ export function fontless(_options?: FontlessOptions): Plugin {
           cssTransformOptions.esbuildOptions = defu(cssTransformOptions.esbuildOptions, resolveMinifyCssEsbuildOptions(config.esbuild))
         }
       }
+    },
+    configureServer(server) {
+      // serve font assets via middleware during dev
+      // based on https://github.com/nuxt/fonts/blob/e7f537a0357896d34be9c17031b3178fb4e79042/src/assets.ts#L30
+      server.middlewares.use(assetContext.assetsBaseURL, async (req, res, next) => {
+        try {
+          const filename = req.url!.slice(1)
+          const url = assetContext.renderedFontURLs.get(filename)
+          if (!url) {
+            next()
+            return
+          }
+          const key = `data:fonts:${filename}`
+          let data = await storage.getItemRaw<Buffer>(key)
+          if (!data) {
+            data = await fetch(url).then(r => r.arrayBuffer()).then(r => Buffer.from(r))
+            await storage.setItemRaw(key, data)
+          }
+          res.end(data)
+        }
+        catch (e) {
+          next(e)
+        }
+      })
     },
     transform: {
       filter: {
