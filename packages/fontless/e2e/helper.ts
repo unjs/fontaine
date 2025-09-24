@@ -4,6 +4,8 @@ import process from 'node:process'
 import { stripVTControlCharacters, styleText } from 'node:util'
 import { x } from 'tinyexec'
 
+// based on https://github.com/vitejs/vite-plugin-react/blob/80df894c78169d63d9f1f49d35dd548b6aa53601/packages/plugin-rsc/e2e/fixture.ts#L9-L10
+
 export function runCli(options: { command: string, label?: string } & SpawnOptions) {
   const [name, ...args] = options.command.split(' ')
   const child = x(name!, args, { nodeOptions: options }).process!
