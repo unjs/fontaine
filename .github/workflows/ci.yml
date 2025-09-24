@@ -64,6 +64,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: 🧪 Test fontless integration (prepare)
-      - run: pnpm -C packages/fontless exec playwright install chromium
+        run: pnpm -C packages/fontless exec playwright install chromium
+
       - name: 🧪 Test fontless integration
         run: pnpm -C packages/fontless test-e2e
