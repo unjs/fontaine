@@ -4,10 +4,10 @@ import type { FontlessOptions } from './types'
 import type { FontFamilyInjectionPluginOptions } from './utils'
 
 import { Buffer } from 'node:buffer'
-import fsp from 'node:fs/promises'
+// import fsp from 'node:fs/promises'
 import { defu } from 'defu'
-import { resolve } from 'pathe'
-import { joinRelativeURL, joinURL } from 'ufo'
+// import { resolve } from 'pathe'
+import { joinURL } from 'ufo'
 import { normalizeFontData } from './assets'
 import { defaultOptions } from './defaults'
 import { resolveProviders } from './providers'
@@ -26,7 +26,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
 
   let cssTransformOptions: FontFamilyInjectionPluginOptions
   let assetContext: NormalizeFontDataContext
-  let publicDir: string
+  // let publicDir: string
 
   return {
     name: 'vite-plugin-fontless',
@@ -38,7 +38,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
         assetsBaseURL: options.assets?.prefix || '/fonts',
       }
 
-      publicDir = resolve(config.root, config.build.outDir, `.${joinURL(config.base, assetContext.assetsBaseURL)}`)
+      // publicDir = resolve(config.root, config.build.outDir, `.${joinURL(config.base, assetContext.assetsBaseURL)}`)
 
       const alias = Array.isArray(config.resolve.alias) ? {} : config.resolve.alias
       const providers = await resolveProviders(options.providers, { root: config.root, alias })
@@ -120,7 +120,30 @@ export function fontless(_options?: FontlessOptions): Plugin {
         }
       },
     },
-    async writeBundle() {
+    // async buildEnd(error) {
+    //   if (error) return
+    //   for (const [filename, url] of assetContext.renderedFontURLs) {
+    //     const key = `data:fonts:${filename}`
+    //     // Use storage to cache the font data between builds
+    //     let res = await storage.getItemRaw(key)
+    //     if (!res) {
+    //       res = await fetch(url)
+    //         .then(r => r.arrayBuffer())
+    //         .then(r => Buffer.from(r))
+
+    //       await storage.setItemRaw(key, res)
+    //     }
+    //     this.emitFile({
+    //       type: 'asset',
+    //       fileName: filename,
+    //       source: res,
+    //     })
+    //     // // TODO: investigate how we can improve in dev surround
+    //     // await fsp.mkdir(publicDir, { recursive: true })
+    //     // await fsp.writeFile(joinRelativeURL(publicDir, filename), res)
+    //   }
+    // },
+    async renderStart() {
       for (const [filename, url] of assetContext.renderedFontURLs) {
         const key = `data:fonts:${filename}`
         // Use storage to cache the font data between builds
@@ -132,11 +155,33 @@ export function fontless(_options?: FontlessOptions): Plugin {
 
           await storage.setItemRaw(key, res)
         }
-
-        // TODO: investigate how we can improve in dev surround
-        await fsp.mkdir(publicDir, { recursive: true })
-        await fsp.writeFile(joinRelativeURL(publicDir, filename), res)
+        this.emitFile({
+          type: 'asset',
+          fileName: joinURL(assetContext.assetsBaseURL, filename).slice(1),
+          source: res,
+        })
+        // // TODO: investigate how we can improve in dev surround
+        // await fsp.mkdir(publicDir, { recursive: true })
+        // await fsp.writeFile(joinRelativeURL(publicDir, filename), res)
       }
     },
+    // async writeBundle() {
+    //   for (const [filename, url] of assetContext.renderedFontURLs) {
+    //     const key = `data:fonts:${filename}`
+    //     // Use storage to cache the font data between builds
+    //     let res = await storage.getItemRaw(key)
+    //     if (!res) {
+    //       res = await fetch(url)
+    //         .then(r => r.arrayBuffer())
+    //         .then(r => Buffer.from(r))
+
+    //       await storage.setItemRaw(key, res)
+    //     }
+
+    //     // TODO: investigate how we can improve in dev surround
+    //     await fsp.mkdir(publicDir, { recursive: true })
+    //     await fsp.writeFile(joinRelativeURL(publicDir, filename), res)
+    //   }
+    // },
   }
 }
