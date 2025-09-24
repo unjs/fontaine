@@ -76,6 +76,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
       }
     },
     configureServer(server) {
+      // serve font assets via middleware during dev
       server.middlewares.use(assetContext.assetsBaseURL, async (req, res, next) => {
         try {
           const filename = req.url!.slice(1)
