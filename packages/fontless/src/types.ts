@@ -101,7 +101,7 @@ export interface FontlessOptions {
     [key: string]: ProviderOption | undefined
   }
   /** Configure the way font assets are exposed */
-  assets: {
+  assets?: {
     /**
      * The baseURL where font files are served.
      * @default '/_fonts/'
