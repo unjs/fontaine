@@ -30,7 +30,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
 
   return {
     name: 'vite-plugin-fontless',
-
+    apply: (_config, env) => !env.isPreview,
     async configResolved(config) {
       assetContext = {
         dev: config.mode === 'development',
