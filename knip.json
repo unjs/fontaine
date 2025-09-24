@@ -1,11 +1,10 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignoreBinaries": ["playwright", "test-e2e"],
   "workspaces": {
     "packages/fontless/docs": {
       "entry": [
-        "app.config.ts",
-        "tailwind.config.js",
-        "nuxt.config.ts"
+        "app.config.ts"
       ],
       "ignoreDependencies": [
         "shadcn-docs-nuxt",
