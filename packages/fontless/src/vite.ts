@@ -46,7 +46,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
       })
 
       cssTransformOptions = {
-        processCSSVariables: false,
+        processCSSVariables: options.processCSSVariables,
         shouldPreload: () => false,
         fontsToPreload: new Map(),
         dev: config.mode === 'development',
