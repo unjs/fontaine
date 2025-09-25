@@ -93,37 +93,14 @@ body { font-family: "Inter", sans-serif; }`))
       `)
   })
 
-  it.only('inject fallback to css variable', async () => {
-    expect(await transform(`\
-.test1 { --custom-css-variable: 'Open Sans' }
-.test2 { --custom-css-variable: 'Open Sans', sans-serif }
-`))
-      .toMatchInlineSnapshot(`
-        "@font-face {
-          font-family: 'Open Sans';
-          src: url("/open-sans.woff2") format(woff2);
-          font-display: swap;
-        }
-        @font-face {
-          font-family: "Open Sans Fallback: Times New Roman";
-          src: local("Times New Roman");
-          size-adjust: 115.3846%;
-          ascent-override: 92.6335%;
-          descent-override: 25.3906%;
-          line-gap-override: 0%;
-        }
-
-        .test1 { --custom-css-variable: 'Open Sans' , "Open Sans Fallback: Times New Roman"}
-        .test2 { --custom-css-variable: 'Open Sans', "Open Sans Fallback: Times New Roman", sans-serif }
-        "
-      `)
-  })
-
   it('should handle multi word and unquoted font families', async () => {
     expect(await transform(`
     :root { font-family:Open Sans}
     :root { font-family: Open Sans, sans-serif }
-    :root { --test: Open Sans, sans-serif }
+    :root { --test1: Open Sans }
+    :root { --test2: Open Sans, sans-serif }
+    :root { --test3: "Open Sans" }
+    :root { --test4: "Open Sans", sans-serif }
     `))
       .toMatchInlineSnapshot(`
         "@font-face {
@@ -143,7 +120,10 @@ body { font-family: "Inter", sans-serif; }`))
 
             :root { font-family:Open Sans, "Open Sans Fallback: Times New Roman"}
             :root { font-family: Open Sans, "Open Sans Fallback: Times New Roman", sans-serif }
-            :root { --test: Open Sans, sans-serif }
+            :root { --test1: Open Sans , "Open Sans Fallback: Times New Roman"}
+            :root { --test2: Open Sans, "Open Sans Fallback: Times New Roman", sans-serif }
+            :root { --test3: "Open Sans" , "Open Sans Fallback: Times New Roman"}
+            :root { --test4: "Open Sans", "Open Sans Fallback: Times New Roman", sans-serif }
             "
       `)
   })
