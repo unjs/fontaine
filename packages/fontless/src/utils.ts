@@ -190,6 +190,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
 
         // Only add @font-face for the first font-family in the list and treat the rest as fallbacks
         const [fontFamily, ...fallbacks] = extractFontFamilies(node)
+        console.log({ parentOffset, fontFamily, fallbacks, node })
         if (fontFamily && !existingFontFamilies.has(fontFamily)) {
           promises.push(addFontFaceDeclaration(fontFamily, node.value.type !== 'Raw'
             ? {
@@ -197,7 +198,11 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
                 generic: extractGeneric(node),
                 index: extractEndOfFirstChild(node)! + parentOffset,
               }
-            : undefined))
+            : {
+                fallbacks,
+                generic: extractGeneric(node),
+                index: extractEndOfFirstChild(node)! + parentOffset,
+              }))
         }
       },
     })

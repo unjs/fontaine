@@ -23,6 +23,48 @@ function processRawValue(value: string) {
   return value.split(',').map(v => v.trim().replace(/^(?<quote>['"])(.*)\k<quote>$/, '$2'))
 }
 
+// TODO: review AI generated code
+function processRawValueWithLoc(value: string) {
+  const items: { value: string, start: number, end: number }[] = []
+  let buffer = ''
+  let inString = false
+  let stringChar = ''
+  let start = 0
+
+  for (let i = 0; i < value.length; i++) {
+    const char = value[i]
+    if (inString) {
+      buffer += char
+      if (char === stringChar) {
+        inString = false
+      }
+    }
+    else {
+      if (char === '"' || char === '\'') {
+        inString = true
+        stringChar = char
+        buffer += char
+      }
+      else if (char === ',') {
+        if (buffer.trim()) {
+          items.push({ value: buffer.trim().replace(/^(?<quote>['"])(.*)\k<quote>$/, '$2'), start, end: i })
+        }
+        buffer = ''
+        start = i + 1
+      }
+      else {
+        buffer += char
+      }
+    }
+  }
+
+  if (buffer.trim()) {
+    items.push({ value: buffer.trim().replace(/^(?<quote>['"])(.*)\k<quote>$/, '$2'), start, end: value.length })
+  }
+
+  return items
+}
+
 // https://developer.mozilla.org/en-US/docs/Web/CSS/font-family
 /* A generic family name only */
 const _genericCSSFamilies = [
@@ -54,6 +96,12 @@ const globalCSSValues = new Set([
 
 export function extractGeneric(node: Declaration) {
   if (node.value.type === 'Raw') {
+    const children = processRawValue(node.value.value)
+    for (const child of children) {
+      if (genericCSSFamilies.has(child as GenericCSSFamily)) {
+        return child as GenericCSSFamily
+      }
+    }
     return
   }
 
@@ -66,6 +114,10 @@ export function extractGeneric(node: Declaration) {
 
 export function extractEndOfFirstChild(node: Declaration) {
   if (node.value.type === 'Raw') {
+    const children = processRawValueWithLoc(node.value.value)
+    if (children.length > 0) {
+      return node.value.loc?.start.offset! + children[0]?.end!
+    }
     return
   }
   for (const child of node.value.children) {
@@ -81,7 +133,8 @@ export function extractEndOfFirstChild(node: Declaration) {
 
 export function extractFontFamilies(node: Declaration) {
   if (node.value.type === 'Raw') {
-    return processRawValue(node.value.value)
+    const children = processRawValue(node.value.value)
+    return children.filter(child => !genericCSSFamilies.has(child as GenericCSSFamily) && !globalCSSValues.has(child))
   }
 
   const families = [] as string[]
