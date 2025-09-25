@@ -46,6 +46,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
       const resolveFontFaceWithOverride = await createResolver({
         options,
         providers,
+        storage,
         normalizeFontData: normalizeFontData.bind({}, assetContext),
       })
 
