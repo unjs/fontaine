@@ -116,7 +116,7 @@ export function extractEndOfFirstChild(node: Declaration) {
   if (node.value.type === 'Raw') {
     const children = processRawValueWithLoc(node.value.value)
     if (children.length > 0) {
-      return node.value.loc?.start.offset! + children[0]?.end!
+      return node.value.loc!.start.offset! + children[0]!.end!
     }
     return
   }

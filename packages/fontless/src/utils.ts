@@ -191,17 +191,11 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
         // Only add @font-face for the first font-family in the list and treat the rest as fallbacks
         const [fontFamily, ...fallbacks] = extractFontFamilies(node)
         if (fontFamily && !existingFontFamilies.has(fontFamily)) {
-          promises.push(addFontFaceDeclaration(fontFamily, node.value.type !== 'Raw'
-            ? {
-                fallbacks,
-                generic: extractGeneric(node),
-                index: extractEndOfFirstChild(node)! + parentOffset,
-              }
-            : {
-                fallbacks,
-                generic: extractGeneric(node),
-                index: extractEndOfFirstChild(node)! + parentOffset,
-              }))
+          promises.push(addFontFaceDeclaration(fontFamily, {
+            fallbacks,
+            generic: extractGeneric(node),
+            index: extractEndOfFirstChild(node)! + parentOffset,
+          }))
         }
       },
     })
