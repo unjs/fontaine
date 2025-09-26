@@ -23,48 +23,6 @@ function processRawValue(value: string) {
   return value.split(',').map(v => v.trim().replace(/^(?<quote>['"])(.*)\k<quote>$/, '$2'))
 }
 
-// TODO: review AI generated code
-function processRawValueWithLoc(value: string) {
-  const items: { value: string, start: number, end: number }[] = []
-  let buffer = ''
-  let inString = false
-  let stringChar = ''
-  let start = 0
-
-  for (let i = 0; i < value.length; i++) {
-    const char = value[i]
-    if (inString) {
-      buffer += char
-      if (char === stringChar) {
-        inString = false
-      }
-    }
-    else {
-      if (char === '"' || char === '\'') {
-        inString = true
-        stringChar = char
-        buffer += char
-      }
-      else if (char === ',') {
-        if (buffer.trim()) {
-          items.push({ value: buffer.trim().replace(/^(?<quote>['"])(.*)\k<quote>$/, '$2'), start, end: i })
-        }
-        buffer = ''
-        start = i + 1
-      }
-      else {
-        buffer += char
-      }
-    }
-  }
-
-  if (buffer.trim()) {
-    items.push({ value: buffer.trim().replace(/^(?<quote>['"])(.*)\k<quote>$/, '$2'), start, end: value.length })
-  }
-
-  return items
-}
-
 // https://developer.mozilla.org/en-US/docs/Web/CSS/font-family
 /* A generic family name only */
 const _genericCSSFamilies = [
@@ -114,11 +72,9 @@ export function extractGeneric(node: Declaration) {
 
 export function extractEndOfFirstChild(node: Declaration) {
   if (node.value.type === 'Raw') {
-    const children = processRawValueWithLoc(node.value.value)
-    if (children.length > 0) {
-      return node.value.loc!.start.offset! + children[0]!.end!
-    }
-    return
+    const value = node.value.value
+    const index = value.indexOf(',')
+    return node.value.loc!.start.offset! + (index >= 0 ? index : value.length)
   }
   for (const child of node.value.children) {
     if (child.type === 'String') {
