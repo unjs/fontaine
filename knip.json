@@ -12,6 +12,9 @@
         "vue-router"
       ]
     },
+    "packages/fontless/examples/tailwind": {
+      "ignoreDependencies": ["tailwindcss"]
+    },
     "packages/fontless/examples/analog-app": {
       "entry": [
         "src/**/*"

@@ -54,6 +54,12 @@ const globalCSSValues = new Set([
 
 export function extractGeneric(node: Declaration) {
   if (node.value.type === 'Raw') {
+    const children = processRawValue(node.value.value)
+    for (const child of children) {
+      if (genericCSSFamilies.has(child as GenericCSSFamily)) {
+        return child as GenericCSSFamily
+      }
+    }
     return
   }
 
@@ -66,7 +72,9 @@ export function extractGeneric(node: Declaration) {
 
 export function extractEndOfFirstChild(node: Declaration) {
   if (node.value.type === 'Raw') {
-    return
+    const value = node.value.value
+    const index = value.indexOf(',')
+    return node.value.loc!.start.offset! + (index >= 0 ? index : value.length)
   }
   for (const child of node.value.children) {
     if (child.type === 'String') {
@@ -81,7 +89,8 @@ export function extractEndOfFirstChild(node: Declaration) {
 
 export function extractFontFamilies(node: Declaration) {
   if (node.value.type === 'Raw') {
-    return processRawValue(node.value.value)
+    const children = processRawValue(node.value.value)
+    return children.filter(child => !genericCSSFamilies.has(child as GenericCSSFamily) && !globalCSSValues.has(child))
   }
 
   const families = [] as string[]

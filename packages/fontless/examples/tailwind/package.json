@@ -1,0 +1,17 @@
+{
+  "name": "fontless-tailwind-example",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.1.13",
+    "tailwindcss": "4.1.13",
+    "fontless": "latest",
+    "vite": "^7.1.7"
+  }
+}

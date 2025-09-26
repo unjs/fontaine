@@ -43,10 +43,15 @@ describe.each(fixtures)('e2e %s', (fixture) => {
     }
     else {
       const css = files.find(file => file.endsWith('.css'))!
-      expect(await readFile(join(outputDir!, css), 'utf-8')).toContain('url(/_fonts')
+      const content = await readFile(join(outputDir!, css), 'utf-8')
+      expect(content).toContain('url(/_fonts')
       if (fixture === 'vanilla-app') {
+        expect(content).toContain('--font-test-variable: "Press Start 2P", "Press Start 2P Fallback: Arial", sans-serif')
         const html = files.find(file => file.endsWith('.html'))!
         expect(await readFile(join(outputDir!, html), 'utf-8')).toContain('rel="preload"')
+      }
+      if (fixture === 'tailwind') {
+        expect(content).toContain('--font-sans:"Geist", "Geist Fallback: Arial",sans-serif')
       }
     }
 
