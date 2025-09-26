@@ -509,6 +509,21 @@ importers:
         specifier: ^7.1.7
         version: 7.1.7(@types/node@22.18.6)(jiti@2.6.0)(less@4.2.2)(lightningcss@1.30.1)(sass@1.85.0)(terser@5.44.0)(yaml@2.8.1)
 
+  packages/fontless/examples/tailwind:
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: 4.1.13
+        version: 4.1.13(vite@7.1.7(@types/node@22.18.6)(jiti@2.6.0)(less@4.2.2)(lightningcss@1.30.1)(sass@1.85.0)(terser@5.44.0)(yaml@2.8.1))
+      fontless:
+        specifier: workspace:*
+        version: link:../..
+      tailwindcss:
+        specifier: 4.1.13
+        version: 4.1.13
+      vite:
+        specifier: ^7.1.7
+        version: 7.1.7(@types/node@22.18.6)(jiti@2.6.0)(less@4.2.2)(lightningcss@1.30.1)(sass@1.85.0)(terser@5.44.0)(yaml@2.8.1)
+
   packages/fontless/examples/vanilla-app:
     devDependencies:
       fontless:
