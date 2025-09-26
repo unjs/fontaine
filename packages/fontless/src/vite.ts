@@ -49,11 +49,10 @@ export function fontless(_options?: FontlessOptions): Plugin {
         processCSSVariables: options.processCSSVariables,
         shouldPreload(fontFamily, fontFace) {
           const override = options.families?.find(f => f.name === fontFamily)
-          const preload = override?.preload ?? options.defaults?.preload
-          if (typeof preload !== 'undefined') {
-            return preload
+          if (override?.preload ?? options.defaults?.preload ?? false) {
+            console.log("[preload]", { fontFamily, fontFace })
           }
-          return fontFace.src.some(s => 'url' in s) && !fontFace.unicodeRange
+          return override?.preload ?? options.defaults?.preload ?? false;
         },
         fontsToPreload: new Map(),
         dev: config.mode === 'development',
@@ -142,5 +141,19 @@ export function fontless(_options?: FontlessOptions): Plugin {
         })
       }
     },
+    transformIndexHtml: {
+      handler() {
+        const fontUrls = [...cssTransformOptions.fontsToPreload.values()].flatMap(v => [...v]);
+        return fontUrls.map(href => ({
+          tag: 'link',
+          attrs: {
+            rel: 'preload',
+            as: 'font',
+            href,
+            crossorigin: '',
+          },
+        }))
+      }
+    }
   }
 }
