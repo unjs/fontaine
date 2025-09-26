@@ -44,6 +44,10 @@ describe.each(fixtures)('e2e %s', (fixture) => {
     else {
       const css = files.find(file => file.endsWith('.css'))!
       expect(await readFile(join(outputDir!, css), 'utf-8')).toContain('url(/_fonts')
+      if (fixture === 'vanilla-app') {
+        const html = files.find(file => file.endsWith('.html'))!
+        expect(await readFile(join(outputDir!, html), 'utf-8')).toContain('rel="preload"')
+      }
     }
 
     const font = files.find(file => file.endsWith('.woff2'))
