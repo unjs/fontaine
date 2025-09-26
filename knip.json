@@ -1,7 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "ignoreBinaries": ["playwright", "test-e2e"],
-  "ignoreDependencies": ["tailwindcss"],
   "workspaces": {
     "packages/fontless/docs": {
       "entry": [
@@ -12,6 +11,9 @@
         "vue",
         "vue-router"
       ]
+    },
+    "packages/fontless/examples/tailwind": {
+      "ignoreDependencies": ["tailwindcss"]
     },
     "packages/fontless/examples/analog-app": {
       "entry": [
