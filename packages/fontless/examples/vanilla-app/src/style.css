@@ -7,9 +7,9 @@ p {
   font-size: x-large;
 }
 
-.google-poppins {
+/* .google-poppins {
   font-family: "Poppins", sans-serif;
-}
+} */
 
 .google-press-start {
   font-family: var(--font-test-variable);
@@ -19,7 +19,7 @@ p {
   --font-test-variable: "Press Start 2P", sans-serif;
 }
 
-.bunny-aclonica {
+/* .bunny-aclonica {
   font-family: "Aclonica", sans-serif;
 }
 
@@ -42,4 +42,4 @@ p {
 
 .local {
   font-family: "Black Fox", sans-serif;
-}
+} */
