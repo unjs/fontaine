@@ -97,10 +97,14 @@ body { font-family: "Inter", sans-serif; }`))
     expect(await transform(`
     :root { font-family:Open Sans}
     :root { font-family: Open Sans, sans-serif }
-    :root { --test1: Open Sans }
-    :root { --test2: Open Sans, sans-serif }
-    :root { --test3: "Open Sans" }
-    :root { --test4: "Open Sans", sans-serif }
+    :root { --test:Open Sans }
+    :root { --test: Open Sans }
+    :root { --test: Open Sans, sans-serif }
+    :root { --test: Open Sans,sans-serif }
+    :root { --test:"Open Sans" }
+    :root { --test: "Open Sans" }
+    :root { --test: "Open Sans", sans-serif }
+    :root { --test: "Open Sans",sans-serif }
     `))
       .toMatchInlineSnapshot(`
         "@font-face {
@@ -120,10 +124,14 @@ body { font-family: "Inter", sans-serif; }`))
 
             :root { font-family:Open Sans, "Open Sans Fallback: Times New Roman"}
             :root { font-family: Open Sans, "Open Sans Fallback: Times New Roman", sans-serif }
-            :root { --test1: Open Sans , "Open Sans Fallback: Times New Roman"}
-            :root { --test2: Open Sans, "Open Sans Fallback: Times New Roman", sans-serif }
-            :root { --test3: "Open Sans" , "Open Sans Fallback: Times New Roman"}
-            :root { --test4: "Open Sans", "Open Sans Fallback: Times New Roman", sans-serif }
+            :root { --test:Open Sans , "Open Sans Fallback: Times New Roman"}
+            :root { --test: Open Sans , "Open Sans Fallback: Times New Roman"}
+            :root { --test: Open Sans, "Open Sans Fallback: Times New Roman", sans-serif }
+            :root { --test: Open Sans, "Open Sans Fallback: Times New Roman",sans-serif }
+            :root { --test:"Open Sans" , "Open Sans Fallback: Times New Roman"}
+            :root { --test: "Open Sans" , "Open Sans Fallback: Times New Roman"}
+            :root { --test: "Open Sans", "Open Sans Fallback: Times New Roman", sans-serif }
+            :root { --test: "Open Sans", "Open Sans Fallback: Times New Roman",sans-serif }
             "
       `)
   })
