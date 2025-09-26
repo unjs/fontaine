@@ -47,7 +47,14 @@ export function fontless(_options?: FontlessOptions): Plugin {
 
       cssTransformOptions = {
         processCSSVariables: options.processCSSVariables,
-        shouldPreload: () => false,
+        shouldPreload(fontFamily, fontFace) {
+          const override = options.families?.find(f => f.name === fontFamily)
+          const preload = override?.preload ?? options.defaults?.preload
+          if (typeof preload !== 'undefined') {
+            return preload
+          }
+          return fontFace.src.some(s => 'url' in s) && !fontFace.unicodeRange
+        },
         fontsToPreload: new Map(),
         dev: config.mode === 'development',
         async resolveFontFace(fontFamily, fallbackOptions) {
