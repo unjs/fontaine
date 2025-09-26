@@ -140,6 +140,8 @@ export function fontless(_options?: FontlessOptions): Plugin {
     },
     transformIndexHtml: {
       handler() {
+        // Preload doesn't work on initial rendering during dev since `fontsToPreload`
+        // is empty before css is transformed.
         const hrefs = [...cssTransformOptions.fontsToPreload.values()].flatMap(v => [...v])
         return hrefs.map(href => ({
           tag: 'link',
