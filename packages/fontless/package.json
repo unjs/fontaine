@@ -23,7 +23,8 @@
   ],
   "sideEffects": false,
   "exports": {
-    ".": "./dist/index.mjs"
+    ".": "./dist/index.mjs",
+    "./runtime": "./dist/runtime.mjs"
   },
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",

@@ -1,10 +1,11 @@
-import type { Plugin } from 'vite'
+import type { Plugin, ResolvedConfig } from 'vite'
 import type { NormalizeFontDataContext } from './assets'
 import type { FontlessOptions } from './types'
 import type { FontFamilyInjectionPluginOptions } from './utils'
 
 import { Buffer } from 'node:buffer'
 import { defu } from 'defu'
+import MagicString from 'magic-string'
 import { joinURL } from 'ufo'
 import { normalizeFontData } from './assets'
 import { defaultOptions } from './defaults'
@@ -19,16 +20,22 @@ const INLINE_STYLE_ID_RE = /[?&]index=\d+\.css$/
 // Copied from vue-bundle-renderer utils
 const CSS_EXTENSIONS_RE = /\.(?:css|scss|sass|postcss|pcss|less|stylus|styl)(?:\?[^.]+)?$/
 
-export function fontless(_options?: FontlessOptions): Plugin {
+export function fontless(_options?: FontlessOptions): Plugin[] {
   const options = defu(_options, defaultOptions satisfies FontlessOptions) as FontlessOptions
 
   let cssTransformOptions: FontFamilyInjectionPluginOptions
   let assetContext: NormalizeFontDataContext
+  let resolvedConfig: ResolvedConfig
 
-  return {
+  function getPreloads(): string[] {
+    return [...cssTransformOptions.fontsToPreload.values()].flatMap(v => [...v])
+  }
+
+  const mainPlugin: Plugin = {
     name: 'vite-plugin-fontless',
     apply: (_config, env) => !env.isPreview,
     async configResolved(config) {
+      resolvedConfig = config
       assetContext = {
         dev: config.mode === 'development',
         renderedFontURLs: new Map<string, string>(),
@@ -142,8 +149,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
       handler() {
         // Preload doesn't work on initial rendering during dev since `fontsToPreload`
         // is empty before css is transformed.
-        const hrefs = [...cssTransformOptions.fontsToPreload.values()].flatMap(v => [...v])
-        return hrefs.map(href => ({
+        return getPreloads().map(href => ({
           tag: 'link',
           attrs: {
             rel: 'preload',
@@ -155,4 +161,47 @@ export function fontless(_options?: FontlessOptions): Plugin {
       },
     },
   }
+
+  const runtimePlugin: Plugin = {
+    name: 'fontless-runtime',
+    resolveId: {
+      // override Vite's node resolution
+      order: 'pre',
+      handler(source) {
+        if (source === 'fontless/runtime') {
+          return '\0fontless/runtime'
+        }
+      },
+    },
+    load: {
+      handler(id) {
+        if (id === '\0fontless/runtime') {
+          // delay replacement until `renderChunk` to ensure fonts are collected through css transform
+          if (resolvedConfig.command === 'build') {
+            return `export const { preloads } = __FONTLESS_RUNTIME_BUILD_PLACEHOLDER__`
+          }
+          // TODO: invalidate virtual during dev
+          return `export const { preloads } = ${JSON.stringify({ preloads: getPreloads() })}`
+        }
+      },
+    },
+    renderChunk(code, _chunk) {
+      if (code.includes('__FONTLESS_RUNTIME_BUILD_PLACEHOLDER__')) {
+        const s = new MagicString(code)
+        s.replaceAll(
+          '__FONTLESS_RUNTIME_BUILD_PLACEHOLDER__',
+          JSON.stringify({ preloads: getPreloads() }),
+        )
+        return {
+          code: s.toString(),
+          map: s.generateMap({ hires: 'boundary' }),
+        }
+      }
+    },
+  }
+
+  return [
+    mainPlugin,
+    runtimePlugin,
+  ]
 }
