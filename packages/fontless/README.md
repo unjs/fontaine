@@ -105,7 +105,7 @@ fontless({
 
   // Asset configuration
   assets: {
-    prefix: '/_fonts'
+    prefix: '/assets/_fonts'
   },
 
   // Experimental features
