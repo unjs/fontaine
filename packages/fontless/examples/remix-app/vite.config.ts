@@ -21,6 +21,13 @@ export default defineConfig({
       },
     }),
     tsconfigPaths(),
-    fontless(),
+    fontless({
+      families: [
+        {
+          name: 'Poppins',
+          preload: true,
+        },
+      ],
+    }),
   ],
 })
