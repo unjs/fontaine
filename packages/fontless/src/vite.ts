@@ -49,7 +49,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
         processCSSVariables: options.processCSSVariables,
         shouldPreload(fontFamily, _fontFace) {
           const override = options.families?.find(f => f.name === fontFamily)
-          return override?.preload ?? options.defaults.preload ?? false
+          return override?.preload ?? options.defaults?.preload ?? false
         },
         fontsToPreload: new Map(),
         dev: config.mode === 'development',
