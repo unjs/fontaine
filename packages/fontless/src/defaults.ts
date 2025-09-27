@@ -43,9 +43,7 @@ export const defaultOptions: FontlessOptions = {
     disableLocalFallbacks: false,
   },
   defaults: {},
-  assets: {
-    prefix: '/_fonts',
-  },
+  assets: {},
   local: {},
   google: {},
   adobe: {
