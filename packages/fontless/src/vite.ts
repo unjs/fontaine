@@ -1,4 +1,4 @@
-import type { Plugin } from 'vite'
+import type { Plugin, ResolvedConfig } from 'vite'
 import type { NormalizeFontDataContext } from './assets'
 import type { FontlessOptions } from './types'
 import type { FontFamilyInjectionPluginOptions } from './utils'
@@ -24,11 +24,24 @@ export function fontless(_options?: FontlessOptions): Plugin {
 
   let cssTransformOptions: FontFamilyInjectionPluginOptions
   let assetContext: NormalizeFontDataContext
+  let resolvedConfig: ResolvedConfig
+  let callbackPromises: Promise<void>[] = []
+
+  async function getFontDataWithCache(filename: string, url: string) {
+    const key = `data:fonts:${filename}`
+    let data = await storage.getItemRaw<Buffer>(key)
+    if (!data) {
+      data = await fetch(url).then(r => r.arrayBuffer()).then(r => Buffer.from(r))
+      await storage.setItemRaw(key, data)
+    }
+    return data!
+  }
 
   return {
     name: 'vite-plugin-fontless',
     apply: (_config, env) => !env.isPreview,
     async configResolved(config) {
+      resolvedConfig = config
       assetContext = {
         dev: config.mode === 'development',
         renderedFontURLs: new Map<string, string>(),
@@ -82,18 +95,34 @@ export function fontless(_options?: FontlessOptions): Plugin {
             next()
             return
           }
-          const key = `data:fonts:${filename}`
-          let data = await storage.getItemRaw<Buffer>(key)
-          if (!data) {
-            data = await fetch(url).then(r => r.arrayBuffer()).then(r => Buffer.from(r))
-            await storage.setItemRaw(key, data)
-          }
-          res.end(data)
+          res.end(await getFontDataWithCache(filename, url))
         }
         catch (e) {
           next(e)
         }
       })
+    },
+    // during build, emit font assets via callback, which is triggered during `transformCSS`.
+    buildStart() {
+      if (resolvedConfig.command === 'build') {
+        assetContext.callback = (filename, url) => {
+          const promise = (async () => {
+            this.emitFile({
+              type: 'asset',
+              fileName: joinURL(assetContext.assetsBaseURL, filename).slice(1),
+              source: await getFontDataWithCache(filename, url),
+            })
+          })()
+          callbackPromises.push(promise)
+        }
+      }
+    },
+    async buildEnd() {
+      if (resolvedConfig.command === 'build') {
+        delete assetContext.callback
+        await Promise.all(callbackPromises)
+        callbackPromises = []
+      }
     },
     transform: {
       filter: {
@@ -115,25 +144,6 @@ export function fontless(_options?: FontlessOptions): Plugin {
           }
         }
       },
-    },
-    async generateBundle() {
-      for (const [filename, url] of assetContext.renderedFontURLs) {
-        const key = `data:fonts:${filename}`
-        // Use storage to cache the font data between builds
-        let res = await storage.getItemRaw(key)
-        if (!res) {
-          res = await fetch(url)
-            .then(r => r.arrayBuffer())
-            .then(r => Buffer.from(r))
-
-          await storage.setItemRaw(key, res)
-        }
-        this.emitFile({
-          type: 'asset',
-          fileName: joinURL(assetContext.assetsBaseURL, filename).slice(1),
-          source: res,
-        })
-      }
     },
   }
 }
