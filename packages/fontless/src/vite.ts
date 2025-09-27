@@ -47,7 +47,10 @@ export function fontless(_options?: FontlessOptions): Plugin {
 
       cssTransformOptions = {
         processCSSVariables: options.processCSSVariables,
-        shouldPreload: () => false,
+        shouldPreload(fontFamily, _fontFace) {
+          const override = options.families?.find(f => f.name === fontFamily)
+          return override?.preload ?? options.defaults?.preload ?? false
+        },
         fontsToPreload: new Map(),
         dev: config.mode === 'development',
         async resolveFontFace(fontFamily, fallbackOptions) {
@@ -134,6 +137,22 @@ export function fontless(_options?: FontlessOptions): Plugin {
           source: res,
         })
       }
+    },
+    transformIndexHtml: {
+      handler() {
+        // Preload doesn't work on initial rendering during dev since `fontsToPreload`
+        // is empty before css is transformed.
+        const hrefs = [...cssTransformOptions.fontsToPreload.values()].flatMap(v => [...v])
+        return hrefs.map(href => ({
+          tag: 'link',
+          attrs: {
+            rel: 'preload',
+            as: 'font',
+            href,
+            crossorigin: '',
+          },
+        }))
+      },
     },
   }
 }
