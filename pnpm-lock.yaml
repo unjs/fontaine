@@ -8,6 +8,7 @@ overrides:
   '@nuxt/fonts>fontaine': latest
   fontaine: workspace:*
   fontless: workspace:*
+  unifont: 0.6.0
 
 importers:
 
@@ -147,8 +148,8 @@ importers:
         specifier: ^1.6.1
         version: 1.6.1
       unifont:
-        specifier: ^0.5.2
-        version: 0.5.2
+        specifier: 0.6.0
+        version: 0.6.0
       unstorage:
         specifier: ^1.17.1
         version: 1.17.1(db0@0.3.2)(ioredis@5.7.0)
@@ -11534,11 +11535,8 @@ packages:
   unified@11.0.5:
     resolution: {integrity: sha512-xKvGhPWw3k84Qjh8bI3ZeJjqnyadK+GEFtazSfZv/rKeTkTjOJho6mFqh2SM96iIcZokxiOpg78GazTSg8+KHA==}
 
-  unifont@0.4.1:
-    resolution: {integrity: sha512-zKSY9qO8svWYns+FGKjyVdLvpGPwqmsCjeJLN1xndMiqxHWBAhoWDMYMG960MxeV48clBmG+fDP59dHY1VoZvg==}
-
-  unifont@0.5.2:
-    resolution: {integrity: sha512-LzR4WUqzH9ILFvjLAUU7dK3Lnou/qd5kD+IakBtBK4S15/+x2y9VX+DcWQv6s551R6W+vzwgVS6tFg3XggGBgg==}
+  unifont@0.6.0:
+    resolution: {integrity: sha512-5Fx50fFQMQL5aeHyWnZX9122sSLckcDvcfFiBf3QYeHa7a1MKJooUy52b67moi2MJYkrfo/TWY+CoLdr/w0tTA==}
 
   unimport@5.2.0:
     resolution: {integrity: sha512-bTuAMMOOqIAyjV4i4UH7P07pO+EsVxmhOzQ2YJ290J6mkLUdozNhb5I/YoOEheeNADC03ent3Qj07X0fWfUpmw==}
@@ -15141,7 +15139,7 @@ snapshots:
       sirv: 3.0.2
       tinyglobby: 0.2.15
       ufo: 1.6.1
-      unifont: 0.4.1
+      unifont: 0.6.0
       unplugin: 2.3.10
       unstorage: 1.17.1(db0@0.3.2)(ioredis@5.7.0)
     transitivePeerDependencies:
@@ -26115,12 +26113,7 @@ snapshots:
       trough: 2.2.0
       vfile: 6.0.3
 
-  unifont@0.4.1:
-    dependencies:
-      css-tree: 3.1.0
-      ohash: 2.0.11
-
-  unifont@0.5.2:
+  unifont@0.6.0:
     dependencies:
       css-tree: 3.1.0
       ofetch: 1.4.1

@@ -47,9 +47,19 @@ export function fontless(_options?: FontlessOptions): Plugin {
 
       cssTransformOptions = {
         processCSSVariables: options.processCSSVariables,
-        shouldPreload(fontFamily, _fontFace) {
+        shouldPreload: () => false,
+        filterFontsToPreload(fontFamily, fonts) {
           const override = options.families?.find(f => f.name === fontFamily)
-          return override?.preload ?? options.defaults?.preload ?? false
+          const preload = override?.preload ?? options.defaults?.preload;
+          // filter by subset
+          if (Array.isArray(preload)) {
+            return fonts.filter(f => f.meta?.subset && preload.includes(f.meta.subset))
+          }
+          // pick by priority 
+          if (preload === true) {
+            return fonts.sort((a, b) => (a.meta?.priority || 0) - (b.meta?.priority || 0)).slice(0, 1)
+          }
+          return []
         },
         fontsToPreload: new Map(),
         dev: config.mode === 'development',

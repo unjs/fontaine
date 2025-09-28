@@ -42,7 +42,7 @@ export interface FontFamilyOverrides {
    * Enable or disable adding preload links to the initially rendered HTML.
    * This is true by default for the highest priority format unless a font is subsetted (to avoid over-preloading).
    */
-  preload?: boolean
+  preload?: PreloadOption
 
   // TODO:
   // as?: string
@@ -66,6 +66,9 @@ export interface FontFamilyManualOverride extends FontFamilyOverrides, RawFontFa
 
 type ProviderOption = ((options: any) => Provider) | string | false
 
+/** TODO: preload by other criteria? e.g. weights, styles */
+type PreloadOption = boolean | string[];
+
 export interface FontlessOptions {
   /**
    * Specify overrides for individual font families.
@@ -85,7 +88,7 @@ export interface FontlessOptions {
    */
   families?: Array<FontFamilyManualOverride | FontFamilyProviderOverride>
   defaults?: Partial<{
-    preload: boolean
+    preload?: PreloadOption
     weights: Array<string | number>
     styles: ResolveFontOptions['styles']
     subsets: ResolveFontOptions['subsets']

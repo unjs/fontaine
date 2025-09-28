@@ -8,6 +8,12 @@ export default defineConfig({
     tailwindcss(),
     fontless({
       provider: 'google',
+      families: [
+        {
+          name: 'Geist',
+          preload: ['latin'],
+        }
+      ]
     }),
   ],
 })
