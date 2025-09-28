@@ -79,7 +79,7 @@ fontless({
 
   // Default font settings
   defaults: {
-    preload: true,
+    preload: { subsets: ['latin'] }, // select preload fonts by subset
     weights: [400, 700],
     styles: ['normal', 'italic'],
     fallbacks: {
