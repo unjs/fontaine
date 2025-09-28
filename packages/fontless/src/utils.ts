@@ -104,6 +104,10 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
       }
     }
 
+    // reverse order by priority since last rule with overlapping unicode-range wins
+    // https://www.w3.org/TR/css-fonts-4/#composite-fonts
+    result.fonts.sort((a, b) => -((a.meta?.priority || 0) - (b.meta?.priority || 0)))
+
     const prefaces: string[] = []
 
     for (const font of result.fonts) {

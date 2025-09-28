@@ -131,13 +131,6 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
 
     const result = await unifont.resolveFont(fontFamily, defaults, [...prioritisedProviders])
     if (result) {
-      // google provider returns priority=0 for woff2 and priority=1 for woff.
-      // this filters only priority=0 to avoid loading non-optimal fonts.
-      const priorities = new Set(result.fonts.map(f => f.meta?.priority))
-      if (priorities.size > 1 && priorities.has(0)) {
-        result.fonts = result.fonts.filter(f => f.meta?.priority === 0)
-      }
-
       // Rewrite font source URLs to be proxied/local URLs
       const fonts = normalizeFontData(result.fonts)
       if (fonts.length > 0) {
