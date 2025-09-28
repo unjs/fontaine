@@ -1,5 +1,12 @@
 name: release-preview
 
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, labeled]
+
 jobs:
   release-preview:
     runs-on: ubuntu-latest
