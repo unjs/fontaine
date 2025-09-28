@@ -52,6 +52,7 @@ describe.each(fixtures)('e2e %s', (fixture) => {
       }
       if (fixture === 'tailwind') {
         expect(content).toContain('--font-sans:"Geist", "Geist Fallback: Arial",sans-serif')
+        expect(content).not.toContain('format(woff)')
       }
     }
 
