@@ -133,7 +133,6 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
     if (result) {
       // Rewrite font source URLs to be proxied/local URLs
       const fonts = normalizeFontData(result.fonts)
-      console.log({ fontFamily, defaults }, ...fonts);
       if (fonts.length > 0) {
         const fontsWithLocalFallbacks = addFallbacks(fontFamily, fonts)
         // TODO: expose provider name in result

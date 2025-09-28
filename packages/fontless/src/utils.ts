@@ -98,7 +98,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
     let insertFontFamilies = false
 
     const [topPriorityFont] = result.fonts.sort((a, b) => (a.meta?.priority || 0) - (b.meta?.priority || 0))
-    const fontsToPreload: FontFaceData[] = [];
+    const fontsToPreload: FontFaceData[] = []
     if (topPriorityFont && options.shouldPreload(fontFamily, topPriorityFont)) {
       fontsToPreload.push(topPriorityFont)
     }
@@ -112,6 +112,10 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
         options.fontsToPreload.set(id, urls.add(fontToPreload))
       }
     }
+
+    // reverse order by priority since last rule with overlapping unicode-range wins
+    // https://www.w3.org/TR/css-fonts-4/#composite-fonts
+    result.fonts.sort((a, b) => -((a.meta?.priority || 0) - (b.meta?.priority || 0)))
 
     const prefaces: string[] = []
 
