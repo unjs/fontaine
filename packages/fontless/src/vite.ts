@@ -162,6 +162,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
     },
   }
 
+  const RUNTIME_PLACEHOLDER = '__FONTLESS_RUNTIME_BUILD_PLACEHOLDER__'
   const runtimePlugin: Plugin = {
     name: 'fontless-runtime',
     resolveId: {
@@ -178,7 +179,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         if (id === '\0fontless/runtime') {
           // delay replacement until `renderChunk` to ensure fonts are collected through css transform
           if (resolvedConfig.command === 'build') {
-            return `export const { preloads } = __FONTLESS_RUNTIME_BUILD_PLACEHOLDER__`
+            return `export const { preloads } = ${RUNTIME_PLACEHOLDER}`
           }
           // TODO: invalidate virtual during dev
           return `export const { preloads } = ${JSON.stringify({ preloads: getPreloads() })}`
@@ -186,10 +187,10 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       },
     },
     renderChunk(code, _chunk) {
-      if (code.includes('__FONTLESS_RUNTIME_BUILD_PLACEHOLDER__')) {
+      if (code.includes(RUNTIME_PLACEHOLDER)) {
         const s = new MagicString(code)
         s.replaceAll(
-          '__FONTLESS_RUNTIME_BUILD_PLACEHOLDER__',
+          RUNTIME_PLACEHOLDER,
           JSON.stringify({ preloads: getPreloads() }),
         )
         return {
