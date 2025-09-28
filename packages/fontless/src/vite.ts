@@ -39,7 +39,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       assetContext = {
         dev: config.mode === 'development',
         renderedFontURLs: new Map<string, string>(),
-        assetsBaseURL: options.assets?.prefix || '/fonts',
+        assetsBaseURL: options.assets?.prefix || `/${config.build.assetsDir}/_fonts`,
       }
 
       const alias = Array.isArray(config.resolve.alias) ? {} : config.resolve.alias
@@ -55,8 +55,8 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       cssTransformOptions = {
         processCSSVariables: options.processCSSVariables,
         shouldPreload(fontFamily, _fontFace) {
-          const fontOptions = (options.families?.find(f => f.name === fontFamily) ?? options.defaults)
-          return fontOptions?.preload ?? false
+          const override = options.families?.find(f => f.name === fontFamily)
+          return override?.preload ?? options.defaults?.preload ?? false
         },
         fontsToPreload: new Map(),
         dev: config.mode === 'development',
