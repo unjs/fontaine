@@ -52,6 +52,8 @@ describe.each(fixtures)('e2e %s', (fixture) => {
       }
       if (fixture === 'tailwind') {
         expect(content).toContain('--font-sans:"Geist", "Geist Fallback: Arial",sans-serif')
+        const html = files.find(file => file.endsWith('.html'))!
+        expect(await readFile(join(outputDir!, html), 'utf-8')).toContain('rel="preload"')
       }
     }
 
