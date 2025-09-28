@@ -11,7 +11,7 @@ export default defineConfig({
       families: [
         {
           name: 'Geist',
-          preload: ['latin'],
+          preload: { subsets: ['latin'] },
         }
       ]
     }),

@@ -66,8 +66,7 @@ export interface FontFamilyManualOverride extends FontFamilyOverrides, RawFontFa
 
 type ProviderOption = ((options: any) => Provider) | string | false
 
-/** TODO: preload by other criteria? e.g. weights, styles */
-type PreloadOption = boolean | string[];
+type PreloadOption = boolean | { subsets: string[] }
 
 export interface FontlessOptions {
   /**
