@@ -1,5 +1,5 @@
 {
-  "name": "remix-app",
+  "name": "fontless-react-router-app",
   "type": "module",
   "private": true,
   "sideEffects": false,
