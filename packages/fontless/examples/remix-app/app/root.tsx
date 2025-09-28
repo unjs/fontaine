@@ -1,4 +1,4 @@
-import { Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react'
+import { Meta, Outlet, Scripts, ScrollRestoration } from 'react-router'
 
 import './index.css'
 

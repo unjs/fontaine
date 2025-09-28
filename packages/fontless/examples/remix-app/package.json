@@ -7,22 +7,23 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "build": "remix vite:build",
-    "dev": "remix vite:dev",
+    "build": "react-router build",
+    "dev": "react-router dev",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
-    "start": "remix-serve ./build/server/index.js",
+    "start": "react-router-serve ./build/server/index.js",
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@remix-run/node": "^2.17.1",
-    "@remix-run/react": "^2.17.1",
-    "@remix-run/serve": "^2.17.1",
+    "@react-router/node": "^7.0.0",
+    "@react-router/serve": "^7.0.0",
     "isbot": "^4.4.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-router": "^7.0.0",
+    "react-router-dom": "^7.0.0"
   },
   "devDependencies": {
-    "@remix-run/dev": "^2.17.1",
+    "@react-router/dev": "^7.0.0",
     "@types/react": "^18.3.24",
     "@types/react-dom": "^18.3.7",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
