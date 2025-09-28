@@ -106,15 +106,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
     if (override?.provider) {
       if (override.provider in providers) {
         const result = await unifont.resolveFont(fontFamily, defaults, [override.provider])
-
-        // google provider returns priority=0 and priority=1.
-        // this filters only priority=0 to avoid loading non-optimal fonts,
-        // which is for older browser without woff2 and variable font support.
-        const priorities = new Set(result.fonts.map(f => f.meta?.priority))
-        if (priorities.size > 1 && priorities.has(0)) {
-          result.fonts = result.fonts.filter(f => f.meta?.priority === 0)
-        }
-
+        result.fonts = filterNonOptimalFonts(result.fonts)
         // Rewrite font source URLs to be proxied/local URLs
         const fonts = normalizeFontData(result?.fonts || [])
         if (!fonts.length || !result) {
@@ -140,6 +132,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
 
     const result = await unifont.resolveFont(fontFamily, defaults, [...prioritisedProviders])
     if (result) {
+      result.fonts = filterNonOptimalFonts(result.fonts)
       // Rewrite font source URLs to be proxied/local URLs
       const fonts = normalizeFontData(result.fonts)
       if (fonts.length > 0) {
@@ -161,4 +154,15 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
       }
     }
   }
+}
+
+function filterNonOptimalFonts(fonts: FontFaceData[]) {
+  // google provider returns priority=0 and priority=1.
+  // this filters only priority=0 to avoid loading non-optimal fonts,
+  // which is for older browser without woff2 and variable font support.
+  const priorities = new Set(fonts.map(f => f.meta?.priority))
+  if (priorities.size > 1 && priorities.has(0)) {
+    fonts = fonts.filter(f => f.meta?.priority === 0)
+  }
+  return fonts
 }
