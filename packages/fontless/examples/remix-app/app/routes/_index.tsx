@@ -1,7 +1,5 @@
 import type { MetaFunction } from 'react-router'
 
-import './styles/styles.css'
-
 export const meta: MetaFunction = () => {
   return [
     { title: 'New Remix App' },
