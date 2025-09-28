@@ -1,0 +1,26 @@
+name: release-preview
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, labeled]
+
+jobs:
+  release-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - run: corepack enable
+      - uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+          cache: pnpm
+
+      - run: pnpm install
+      - run: pnpm build
+      - run: pnpm dlx pkg-pr-new publish --compact packages/fontless packages/fontaine
