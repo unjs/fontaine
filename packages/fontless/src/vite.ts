@@ -26,6 +26,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   let cssTransformOptions: FontFamilyInjectionPluginOptions
   let assetContext: NormalizeFontDataContext
   let resolvedConfig: ResolvedConfig
+  const RUNTIME_NAME = 'fontless/runtime'
 
   function getPreloads(): string[] {
     return [...cssTransformOptions.fontsToPreload.values()].flatMap(v => [...v])
@@ -119,6 +120,13 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         const s = await transformCSS(cssTransformOptions, code, id)
 
         if (s.hasChanged()) {
+          // invalidate runtime to keep fresh preloads list during dev
+          if (this.environment.mode === 'dev') {
+            const mod = this.environment.moduleGraph.getModuleById(`\0${RUNTIME_NAME}`)
+            if (mod) {
+              this.environment.moduleGraph.invalidateModule(mod)
+            }
+          }
           return {
             code: s.toString(),
             map: s.generateMap({ hires: true }),
@@ -184,19 +192,19 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       // override Vite's node resolution
       order: 'pre',
       handler(source) {
-        if (source === 'fontless/runtime') {
-          return '\0fontless/runtime'
+        if (source === RUNTIME_NAME) {
+          return `\0${RUNTIME_NAME}`
         }
       },
     },
     load: {
       handler(id) {
-        if (id === '\0fontless/runtime') {
-          // delay replacement until `renderChunk` to ensure fonts are collected through css transform
+        if (id === `\0${RUNTIME_NAME}`) {
+          // during build, postpone replacement until `renderChunk`
+          // to ensure fonts are collected through css transform
           if (resolvedConfig.command === 'build') {
             return `export const { preloads } = ${RUNTIME_PLACEHOLDER}`
           }
-          // TODO: invalidate virtual when there's an update, but how?
           return `export const { preloads } = ${JSON.stringify({ preloads: getPreloads() })}`
         }
       },
