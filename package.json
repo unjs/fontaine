@@ -25,8 +25,8 @@
     "changelogithub": "13.16.0",
     "eslint": "9.36.0",
     "installed-check": "9.3.0",
-    "knip": "5.64.0",
-    "lint-staged": "16.2.0",
+    "knip": "5.64.1",
+    "lint-staged": "16.2.3",
     "simple-git-hooks": "2.13.1",
     "typescript": "5.9.2"
   },
