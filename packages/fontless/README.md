@@ -9,7 +9,7 @@
 
 ## Features
 
-- 🚀 **Optimized font loading**: Automatically loads and configures fonts with proper fallbacks
+- 🚀 **Optimized font loading**: Automatically loads and configures fonts with proper fallbacks and preload links.
 - 🔤 **Multiple provider support**: Google Fonts, Bunny Fonts, FontShare, FontSource, and more using [unifont](https://github.com/unjs/unifont)
 - 📦 **Zero runtime overhead**: Pure CSS solution with no JavaScript required at runtime
 - 📏 **Metric-based fallbacks**: Reduces Cumulative Layout Shift (CLS) by using font metrics from [fontaine](https://github.com/unjs/fontaine)
@@ -114,6 +114,20 @@ fontless({
   }
 })
 ```
+
+## Preloading Fonts
+
+<!-- reference: https://fontsource.org/docs/getting-started/preload -->
+
+Fontless provides an option to select fonts to preload. (todo)
+
+For default Vite SPA setup, (todo)
+
+For SSR frameworks, (todo)
+
+Some meta frameworks provide a built-in support for font optimization and they may be preferred for better integration:
+- Nuxt: [`@nuxt/fonts`](https://nuxt.com/modules/fonts)
+- Astro: [Experimental fonts API](https://docs.astro.build/en/reference/experimental-flags/fonts/)
 
 ## How It Works
 
