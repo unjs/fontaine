@@ -25,8 +25,8 @@ export const RouterHead = component$(() => {
         <link key={l.key} {...l} />
       ))}
 
-      {preloads.map((href) => (
-        <link key={href} rel="preload" as="font" href={href} {...{crossorigin: ""}} />
+      {preloads.map((l) => (
+        <link key={l.href} {...l} />
       ))}
 
       {head.styles.map(s => (

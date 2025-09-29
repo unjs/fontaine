@@ -10,13 +10,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {preloads.map((href: string) => (
+        {preloads.map(({crossorigin, ...attrs}) => (
           <link
-            key={href}
-            rel="preload"
-            as="font"
-            href={href}
-            crossOrigin=""
+            key={attrs.href}
+            {...attrs}
+            crossOrigin={crossorigin}
           />
         ))}
         <Meta />

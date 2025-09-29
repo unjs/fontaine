@@ -1,8 +1,9 @@
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 import type { NormalizeFontDataContext } from './assets'
+import type { LinkAttributes } from './runtime'
 import type { FontlessOptions } from './types'
-import type { FontFamilyInjectionPluginOptions } from './utils'
 
+import type { FontFamilyInjectionPluginOptions } from './utils'
 import { Buffer } from 'node:buffer'
 import { defu } from 'defu'
 import MagicString from 'magic-string'
@@ -29,8 +30,14 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   let server: ViteDevServer | undefined
   const RUNTIME_NAME = 'fontless/runtime'
 
-  function getPreloads(): string[] {
-    return [...cssTransformOptions.fontsToPreload.values()].flatMap(v => [...v])
+  function getPreloads(): LinkAttributes[] {
+    const hrefs = [...cssTransformOptions.fontsToPreload.values()].flatMap(v => [...v])
+    return hrefs.map(href => ({
+      rel: 'preload',
+      as: 'font',
+      href,
+      crossorigin: '',
+    }))
   }
 
   const mainPlugin: Plugin = {
@@ -156,14 +163,9 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       handler() {
         // Preload doesn't work on initial rendering during dev since `fontsToPreload`
         // is empty before css is transformed.
-        return getPreloads().map(href => ({
+        return getPreloads().map(attrs => ({
           tag: 'link',
-          attrs: {
-            rel: 'preload',
-            as: 'font',
-            href,
-            crossorigin: '',
-          },
+          attrs,
         }))
       },
     },
