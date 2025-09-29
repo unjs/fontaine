@@ -27,6 +27,7 @@
     "installed-check": "9.3.0",
     "knip": "5.64.1",
     "lint-staged": "16.2.3",
+    "pkg-pr-new": "0.0.60",
     "simple-git-hooks": "2.13.1",
     "typescript": "5.9.2"
   },
