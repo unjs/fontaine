@@ -181,7 +181,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
           if (resolvedConfig.command === 'build') {
             return `export const { preloads } = ${RUNTIME_PLACEHOLDER}`
           }
-          // TODO: invalidate virtual during dev
+          // TODO: invalidate virtual when there's an update, but how?
           return `export const { preloads } = ${JSON.stringify({ preloads: getPreloads() })}`
         }
       },
