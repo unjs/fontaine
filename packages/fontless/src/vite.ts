@@ -32,7 +32,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
       assetContext = {
         dev: config.mode === 'development',
         renderedFontURLs: new Map<string, string>(),
-        assetsBaseURL: options.assets?.prefix || `/${config.build.assetsDir}/_fonts`,
+        assetsBaseURL: options.assets?.prefix || joinURL('/', config.build.assetsDir, '_fonts'),
       }
 
       const alias = Array.isArray(config.resolve.alias) ? {} : config.resolve.alias
