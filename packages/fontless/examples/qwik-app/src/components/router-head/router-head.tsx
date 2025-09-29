@@ -1,5 +1,6 @@
 import { component$ } from '@qwik.dev/core'
 import { useDocumentHead, useLocation } from '@qwik.dev/router'
+import { preloads } from "fontless/runtime"
 
 /**
  * The RouterHead component is placed inside of the document `<head>` element.
@@ -22,6 +23,10 @@ export const RouterHead = component$(() => {
 
       {head.links.map(l => (
         <link key={l.key} {...l} />
+      ))}
+
+      {preloads.map((href) => (
+        <link key={href} rel="preload" as="font" href={href} {...{crossorigin: ""}} />
       ))}
 
       {head.styles.map(s => (
