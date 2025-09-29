@@ -1,4 +1,4 @@
-import type { Plugin, ResolvedConfig } from 'vite'
+import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 import type { NormalizeFontDataContext } from './assets'
 import type { FontlessOptions } from './types'
 import type { FontFamilyInjectionPluginOptions } from './utils'
@@ -26,6 +26,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   let cssTransformOptions: FontFamilyInjectionPluginOptions
   let assetContext: NormalizeFontDataContext
   let resolvedConfig: ResolvedConfig
+  let server: ViteDevServer | undefined
   const RUNTIME_NAME = 'fontless/runtime'
 
   function getPreloads(): string[] {
@@ -82,9 +83,10 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         }
       }
     },
-    configureServer(server) {
+    configureServer(server_) {
       // serve font assets via middleware during dev
       // based on https://github.com/nuxt/fonts/blob/e7f537a0357896d34be9c17031b3178fb4e79042/src/assets.ts#L30
+      server = server_
       server.middlewares.use(assetContext.assetsBaseURL, async (req, res, next) => {
         try {
           const filename = req.url!.slice(1)
@@ -120,12 +122,9 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         const s = await transformCSS(cssTransformOptions, code, id)
 
         if (s.hasChanged()) {
-          // invalidate runtime to keep fresh preloads list during dev
-          if (this.environment.mode === 'dev') {
-            const mod = this.environment.moduleGraph.getModuleById(`\0${RUNTIME_NAME}`)
-            if (mod) {
-              this.environment.moduleGraph.invalidateModule(mod)
-            }
+          // invalidate virtual module to ensure fresh preloads list during dev
+          if (server) {
+            invalidateModuleByid(server, `\0${RUNTIME_NAME}`)
           }
           return {
             code: s.toString(),
@@ -228,4 +227,13 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
     mainPlugin,
     runtimePlugin,
   ]
+}
+
+function invalidateModuleByid(server: ViteDevServer, id: string) {
+  for (const environment of Object.values(server.environments)) {
+    const mod = environment.moduleGraph.getModuleById(id)
+    if (mod) {
+      environment.moduleGraph.invalidateModule(mod)
+    }
+  }
 }
