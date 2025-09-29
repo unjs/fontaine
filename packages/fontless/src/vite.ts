@@ -165,6 +165,21 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   const RUNTIME_PLACEHOLDER = '__FONTLESS_RUNTIME_BUILD_PLACEHOLDER__'
   const runtimePlugin: Plugin = {
     name: 'fontless-runtime',
+    config() {
+      return {
+        ssr: {
+          // ensure 'fontless/runtime' is loaded through vite
+          noExternal: ['fontless'],
+        },
+      }
+    },
+    configEnvironment() {
+      return {
+        resolve: {
+          noExternal: ['fontless'],
+        },
+      }
+    },
     resolveId: {
       // override Vite's node resolution
       order: 'pre',
