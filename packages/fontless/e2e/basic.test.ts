@@ -38,3 +38,32 @@ test.describe('dev vanilla', () => {
     )
   })
 })
+
+test.describe('build react-rotuer', () => {
+  let cli: ReturnType<typeof runCli>
+  let baseURL: string
+
+  test.beforeAll(async () => {
+    cli = runCli({ command: 'pnpm build', cwd: 'examples/react-router-app' })
+    await cli.done
+    cli = runCli({ command: 'pnpm start', cwd: 'examples/react-router-app' })
+    const port = await cli.findPort()
+    baseURL = `http://localhost:${port}`
+  })
+
+  test.afterAll(async () => {
+    if (!cli)
+      return
+    cli.kill()
+    await cli.done
+  })
+
+  test.describe(() => {
+    test.use({ javaScriptEnabled: false })
+
+    test('ssr preload links', async ({ page }) => {
+      await page.goto(baseURL)
+      await expect(page.locator('head > link[rel="preload"][as="font"]').first()).toBeAttached()
+    })
+  })
+})
