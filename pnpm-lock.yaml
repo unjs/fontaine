@@ -43,9 +43,6 @@ importers:
 
   packages/fontaine:
     dependencies:
-      '@capsizecss/metrics':
-        specifier: ^3.5.0
-        version: 3.5.0
       '@capsizecss/unpack':
         specifier: ^3.0.0
         version: 3.0.0
@@ -68,6 +65,9 @@ importers:
         specifier: ^2.3.10
         version: 2.3.10
     devDependencies:
+      '@capsizecss/metrics':
+        specifier: ^3.5.0
+        version: 3.5.0
       '@types/css-tree':
         specifier: 2.3.10
         version: 2.3.10

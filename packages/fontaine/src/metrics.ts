@@ -33,7 +33,7 @@ export async function getMetricsForFamily(family: string) {
 
   try {
     const name = fontFamilyToCamelCase(family)
-    const { entireMetricsCollection } = await import('@capsizecss/metrics/entireMetricsCollection')
+    const { entireMetricsCollection } = await import('#capsize-font-metrics') as any as typeof import('@capsizecss/metrics/entireMetricsCollection')
     const metrics = entireMetricsCollection[name as keyof typeof entireMetricsCollection]
 
     /* v8 ignore next 4 */
