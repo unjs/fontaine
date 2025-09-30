@@ -68,7 +68,10 @@ type ProviderOption = ((options: any) => Provider) | string | false
  * @default false
  * @example { subsets: ['latin'] }
  */
-type PreloadOption = boolean | { subsets: string[] }
+type PreloadOption
+  = | boolean
+    | { subsets: string[] }
+    | ((fontFamily: string, font: FontFaceData) => boolean)
 
 export interface FontlessOptions {
   /**

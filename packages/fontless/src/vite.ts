@@ -51,12 +51,16 @@ export function fontless(_options?: FontlessOptions): Plugin {
         filterFontsToPreload(fontFamily, fonts) {
           const override = options.families?.find(f => f.name === fontFamily)
           const preload = override?.preload ?? options.defaults?.preload
-          // pick by priority
+          // pick by priority (old behavior)
           if (preload === true) {
             return fonts.sort((a, b) => (a.meta?.priority || 0) - (b.meta?.priority || 0)).slice(0, 1)
           }
+          // filter by function
+          if (typeof preload === 'function') {
+            return fonts.filter(f => preload(fontFamily, f))
+          }
           // filter by subset
-          if (preload) {
+          if (preload && 'subsets' in preload) {
             return fonts.filter(f => f.meta?.subset && preload.subsets.includes(f.meta.subset))
           }
           return []
