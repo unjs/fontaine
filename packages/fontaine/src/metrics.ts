@@ -2,7 +2,6 @@ import type { Font } from '@capsizecss/unpack'
 import type { FontFaceMetrics } from './css'
 
 import { fileURLToPath } from 'node:url'
-import { fontFamilyToCamelCase } from '@capsizecss/metrics'
 import { fromFile, fromUrl } from '@capsizecss/unpack'
 import { parseURL } from 'ufo'
 
@@ -34,7 +33,7 @@ export async function getMetricsForFamily(family: string) {
 
   try {
     const name = fontFamilyToCamelCase(family)
-    const { entireMetricsCollection } = await import('@capsizecss/metrics/entireMetricsCollection')
+    const { entireMetricsCollection } = await import('#capsize-font-metrics') as any as typeof import('@capsizecss/metrics/entireMetricsCollection')
     const metrics = entireMetricsCollection[name as keyof typeof entireMetricsCollection]
 
     /* v8 ignore next 4 */
@@ -91,4 +90,17 @@ export async function readMetrics(_source: URL | string) {
   const filteredMetrics = filterRequiredMetrics(metrics)
   metricCache[source] = filteredMetrics
   return filteredMetrics
+}
+
+// inline `@capsizecss/metrics`
+// https://github.com/seek-oss/capsize/blob/66344699ff7759a661a78d0629375714c6f308b0/packages/metrics/src/index.ts
+function fontFamilyToCamelCase(str: string) {
+  return str
+    .split(/[\s|-]/)
+    .filter(Boolean)
+    .map(
+      (s, i) =>
+        `${s.charAt(0)[i > 0 ? 'toUpperCase' : 'toLowerCase']()}${s.slice(1)}`,
+    )
+    .join('')
 }

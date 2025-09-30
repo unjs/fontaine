@@ -108,7 +108,7 @@ export interface FontlessOptions {
   assets?: {
     /**
      * The baseURL where font files are served.
-     * @default '/_fonts/'
+     * @default '/assets/_fonts'
      */
     prefix?: string
     /** Currently font assets are exposed as public assets as part of the build. This will be configurable in future */

@@ -1,0 +1,31 @@
+{
+  "name": "fontless-react-router-app",
+  "type": "module",
+  "private": true,
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "react-router build",
+    "dev": "react-router dev",
+    "start": "react-router-serve ./build/server/index.js",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@react-router/node": "^7.0.0",
+    "@react-router/serve": "^7.0.0",
+    "isbot": "^5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router": "^7.0.0"
+  },
+  "devDependencies": {
+    "@react-router/dev": "^7.0.0",
+    "@types/react": "^18.3.24",
+    "@types/react-dom": "^18.3.7",
+    "fontless": "latest",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.7"
+  }
+}
