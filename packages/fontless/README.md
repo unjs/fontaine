@@ -189,7 +189,7 @@ function Layout() {
 }
 ```
 
-- [SvelteKit](https://github.com/sveltejs/kit/)
+- [SvelteKit]./examples/sveltekit-app)
 
 ```svelte
 <script lang="ts">
@@ -197,8 +197,9 @@ function Layout() {
 </script>
 
 <svelte:head>
+	<link rel="icon" href={favicon} />
 	{#each preloads as attrs}
-		<link rel={attrs.rel} as={attrs.as} href={attrs.href} crossorigin={attrs.crossorigin} />
+		<link {...attrs} />
 	{/each}
 </svelte:head>
 ```
