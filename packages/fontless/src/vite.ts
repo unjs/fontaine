@@ -105,10 +105,11 @@ export function fontless(_options?: FontlessOptions): Plugin {
         }
       })
     },
-    // during build, emit font assets via callback, which is triggered during `transformCSS`.
     buildStart() {
       if (resolvedConfig.command === 'build') {
-        assetContext.callback = async (filename, url) => {
+        // during build, emit font assets via callback, which gets triggered during `transformCSS`.
+        assetContext.callback = async (filename) => {
+          const url = assetContext.renderedFontURLs.get(filename)!
           this.emitFile({
             type: 'asset',
             fileName: joinURL(assetContext.assetsBaseURL, filename).slice(1),
