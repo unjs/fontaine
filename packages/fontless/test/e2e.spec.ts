@@ -6,9 +6,12 @@ import { join, resolve } from 'pathe'
 import { build } from 'vite'
 import { describe, expect, it } from 'vitest'
 
-const fixtures = await Array.fromAsync(fsp.glob('*', {
+let fixtures = await Array.fromAsync(fsp.glob('*', {
   cwd: fileURLToPath(new URL('../examples', import.meta.url)),
 }))
+
+// tested via playwright
+fixtures = fixtures.filter(i => !['react-router-app', 'sveltekit-app'].includes(i))
 
 describe.each(fixtures)('e2e %s', (fixture) => {
   it('should compile', { timeout: 20_000 }, async () => {

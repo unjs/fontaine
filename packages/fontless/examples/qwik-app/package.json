@@ -15,11 +15,11 @@
     "build": "qwik build",
     "build.client": "vite build",
     "build.preview": "vite build --ssr src/entry.preview.tsx",
-    "build.types": "tsc --incremental --noEmit",
+    "x-build.types": "tsc --incremental --noEmit",
     "deploy": "echo 'Run \"npm run qwik add\" to install a server adapter'",
     "dev": "vite --mode ssr --port 5173",
     "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
-    "lint": "eslint \"src/**/*.ts*\"",
+    "x-lint": "eslint \"src/**/*.ts*\"",
     "preview": "qwik build preview && vite preview --open --port 5173",
     "start": "vite --open --mode ssr",
     "qwik": "qwik"
