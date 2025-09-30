@@ -117,23 +117,26 @@ fontless({
 
 ## Preloading Fonts
 
-<!-- reference: https://fontsource.org/docs/getting-started/preload -->
-
 Fontless provides an option to select fonts to preload via `preload` option. For Vite SPA, the selected preload fonts are automatically injected into the HTML.
 
 For SSR meta-frameworks which don't rely on [`transformIndexHtml` plugin hook](https://vite.dev/guide/api-plugin.html#transformindexhtml), you need to manually render preload links on the server. Fontless provides `fontless/runtime` module for server to access the necessary data for preload links generation, for example:
+
+- Vanilla
 
 ```tsx
 import { preloads } from "fontless/runtime";
 
 function renderHtml() {
-  const preloadLinks = preloads.map(attrs => (
-    `<link rel="${attrs.rel}" as="${attrs.as}" href="${attrs.href}" crossorigin="${attrs.crossorigin}">`
-  )).join("\n");
+  const renderedPreloads = preloads
+    .map(
+      (attrs) =>
+        `<link rel="${attrs.rel}" as="${attrs.as}" href="${attrs.href}" crossorigin="${attrs.crossorigin}">`,
+    )
+    .join("\n");
   return `\
 <html>
   <head>
-    ${preloadLinks}
+    ${renderedPreloads}
   </head>
   <body>
     ...
@@ -165,7 +168,7 @@ export const RouterHead = component$(() => {
 ```tsx
 import { preloads } from 'fontless/runtime'
 
-function Layout({ children }: { children: React.ReactNode }) {
+function Layout() {
   return (
     <html lang="en">
       <head>
@@ -188,7 +191,7 @@ function Layout({ children }: { children: React.ReactNode }) {
 
 - [SvelteKit](https://github.com/sveltejs/kit/)
 
-```tsx
+```svelte
 <script lang="ts">
 	import { preloads } from "fontless/runtime";
 </script>
@@ -199,10 +202,6 @@ function Layout({ children }: { children: React.ReactNode }) {
 	{/each}
 </svelte:head>
 ```
-
-Some meta-frameworks provide built-in support for font optimization and they may be preferred for better integration, for example:
-- Nuxt: [`@nuxt/fonts`](https://nuxt.com/modules/fonts)
-- Astro: [Experimental fonts API](https://docs.astro.build/en/reference/experimental-flags/fonts/)
 
 ## How It Works
 
