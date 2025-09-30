@@ -143,6 +143,63 @@ function renderHtml() {
 }
 ```
 
+- [Qwik](./examples/qwik-app)
+
+```tsx
+import { preloads } from "fontless/runtime"
+
+export const RouterHead = component$(() => {
+  return (
+    <>
+      {preloads.map((l) => (
+        <link key={l.href} {...l} />
+      ))}
+      ...
+    </>
+  )
+})
+```
+
+- [React](./examples/react-router-app)
+
+```tsx
+import { preloads } from 'fontless/runtime'
+
+function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        {preloads.map(({crossorigin, ...attrs}) => (
+          <link
+            key={attrs.href}
+            {...attrs}
+            crossOrigin={crossorigin}
+          />
+        ))}
+        ...
+      </head>
+      <body>
+        ...
+      </body>
+    </html>
+  )
+}
+```
+
+- [SvelteKit](https://github.com/sveltejs/kit/)
+
+```tsx
+<script lang="ts">
+	import { preloads } from "fontless/runtime";
+</script>
+
+<svelte:head>
+	{#each preloads as attrs}
+		<link rel={attrs.rel} as={attrs.as} href={attrs.href} crossorigin={attrs.crossorigin} />
+	{/each}
+</svelte:head>
+```
+
 Some meta-frameworks provide built-in support for font optimization and they may be preferred for better integration, for example:
 - Nuxt: [`@nuxt/fonts`](https://nuxt.com/modules/fonts)
 - Astro: [Experimental fonts API](https://docs.astro.build/en/reference/experimental-flags/fonts/)
