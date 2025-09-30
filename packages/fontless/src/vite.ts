@@ -25,7 +25,6 @@ export function fontless(_options?: FontlessOptions): Plugin {
   let cssTransformOptions: FontFamilyInjectionPluginOptions
   let assetContext: NormalizeFontDataContext
   let resolvedConfig: ResolvedConfig
-  let callbackPromises: Promise<void>[] = []
 
   async function getFontDataWithCache(filename: string, url: string) {
     const key = `data:fonts:${filename}`
@@ -109,23 +108,18 @@ export function fontless(_options?: FontlessOptions): Plugin {
     // during build, emit font assets via callback, which is triggered during `transformCSS`.
     buildStart() {
       if (resolvedConfig.command === 'build') {
-        assetContext.callback = (filename, url) => {
-          const promise = (async () => {
-            this.emitFile({
-              type: 'asset',
-              fileName: joinURL(assetContext.assetsBaseURL, filename).slice(1),
-              source: await getFontDataWithCache(filename, url),
-            })
-          })()
-          callbackPromises.push(promise)
+        assetContext.callback = async (filename, url) => {
+          this.emitFile({
+            type: 'asset',
+            fileName: joinURL(assetContext.assetsBaseURL, filename).slice(1),
+            source: await getFontDataWithCache(filename, url),
+          })
         }
       }
     },
     async buildEnd() {
       if (resolvedConfig.command === 'build') {
         delete assetContext.callback
-        await Promise.all(callbackPromises)
-        callbackPromises = []
       }
     },
     transform: {

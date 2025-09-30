@@ -11,7 +11,7 @@ import { defaultValues } from './defaults'
 
 interface ResolverContext {
   exposeFont?: (font: ManualFontDetails | ProviderFontDetails) => void
-  normalizeFontData: (faces: RawFontFaceData | FontFaceData[]) => FontFaceData[]
+  normalizeFontData: (faces: RawFontFaceData | FontFaceData[]) => Promise<FontFaceData[]>
   logger?: ConsolaInstance
   storage?: UnifontOptions['storage']
   options: FontlessOptions
@@ -72,7 +72,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
     const fallbacks = override?.fallbacks || normalizedDefaults.fallbacks[fallbackOptions?.generic || 'sans-serif']
 
     if (override && 'src' in override) {
-      const fonts = addFallbacks(fontFamily, normalizeFontData({
+      const fonts = addFallbacks(fontFamily, await normalizeFontData({
         src: override.src,
         display: override.display,
         weight: override.weight,
@@ -107,7 +107,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
       if (override.provider in providers) {
         const result = await unifont.resolveFont(fontFamily, defaults, [override.provider])
         // Rewrite font source URLs to be proxied/local URLs
-        const fonts = normalizeFontData(result?.fonts || [])
+        const fonts = await normalizeFontData(result?.fonts || [])
         if (!fonts.length || !result) {
           logger.warn(`Could not produce font face declaration from \`${override.provider}\` for font family \`${fontFamily}\`.`)
           return
@@ -132,7 +132,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
     const result = await unifont.resolveFont(fontFamily, defaults, [...prioritisedProviders])
     if (result) {
       // Rewrite font source URLs to be proxied/local URLs
-      const fonts = normalizeFontData(result.fonts)
+      const fonts = await normalizeFontData(result.fonts)
       if (fonts.length > 0) {
         const fontsWithLocalFallbacks = addFallbacks(fontFamily, fonts)
         // TODO: expose provider name in result
