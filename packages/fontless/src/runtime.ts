@@ -2,8 +2,8 @@
 export const preloads: LinkAttributes[] = []
 
 export interface LinkAttributes {
-  rel: string
-  as: string
+  rel: 'preload'
+  as: 'font'
   href: string
   crossorigin: 'anonymous' | 'use-credentials' | '' | undefined
 }
