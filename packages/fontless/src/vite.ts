@@ -45,7 +45,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
       assetContext = {
         dev: config.mode === 'development',
         renderedFontURLs: new Map<string, string>(),
-        assetsBaseURL: options.assets?.prefix || '/fonts',
+        assetsBaseURL: options.assets?.prefix || joinURL('/', config.build.assetsDir, '_fonts'),
       }
 
       const alias = Array.isArray(config.resolve.alias) ? {} : config.resolve.alias
@@ -60,7 +60,10 @@ export function fontless(_options?: FontlessOptions): Plugin {
 
       cssTransformOptions = {
         processCSSVariables: options.processCSSVariables,
-        shouldPreload: () => false,
+        shouldPreload(fontFamily, _fontFace) {
+          const override = options.families?.find(f => f.name === fontFamily)
+          return override?.preload ?? options.defaults?.preload ?? false
+        },
         fontsToPreload: new Map(),
         dev: config.mode === 'development',
         async resolveFontFace(fontFamily, fallbackOptions) {
@@ -95,6 +98,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
             next()
             return
           }
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
           res.end(await getFontDataWithCache(filename, url))
         }
         catch (e) {
@@ -143,6 +147,22 @@ export function fontless(_options?: FontlessOptions): Plugin {
             map: s.generateMap({ hires: true }),
           }
         }
+      },
+    },
+    transformIndexHtml: {
+      handler() {
+        // Preload doesn't work on initial rendering during dev since `fontsToPreload`
+        // is empty before css is transformed.
+        const hrefs = [...cssTransformOptions.fontsToPreload.values()].flatMap(v => [...v])
+        return hrefs.map(href => ({
+          tag: 'link',
+          attrs: {
+            rel: 'preload',
+            as: 'font',
+            href,
+            crossorigin: '',
+          },
+        }))
       },
     },
   }

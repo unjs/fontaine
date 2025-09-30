@@ -33,7 +33,7 @@ describe.each(fixtures)('e2e %s', (fixture) => {
       for (const file of files) {
         if (file.endsWith('.js')) {
           const content = await readFile(join(outputDir!, file), 'utf-8')
-          if (content.includes('url(/_fonts')) {
+          if (content.includes('url(/assets/_fonts')) {
             found = true
             break
           }
@@ -44,12 +44,18 @@ describe.each(fixtures)('e2e %s', (fixture) => {
     else {
       const css = files.find(file => file.endsWith('.css'))!
       const content = await readFile(join(outputDir!, css), 'utf-8')
-      expect(content).toContain('url(/_fonts')
+      expect(content).toContain('url(/assets/_fonts')
       if (fixture === 'vanilla-app') {
         expect(content).toContain('--font-test-variable: "Press Start 2P", "Press Start 2P Fallback: Arial", sans-serif')
+        const html = files.find(file => file.endsWith('.html'))!
+        expect(await readFile(join(outputDir!, html), 'utf-8')).toContain('rel="preload"')
       }
       if (fixture === 'tailwind') {
         expect(content).toContain('--font-sans:"Geist", "Geist Fallback: Arial",sans-serif')
+        const woff = content.indexOf('format(woff)')
+        const woff2 = content.indexOf('format(woff2)')
+        expect(woff >= 0 && woff2 >= 0).toBe(true)
+        expect(woff).lessThan(woff2)
       }
     }
 
