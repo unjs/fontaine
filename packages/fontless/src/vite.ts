@@ -166,7 +166,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         // is empty before css is transformed.
         return getPreloads().map(attrs => ({
           tag: 'link',
-          attrs,
+          attrs: attrs as unknown as Record<string, string>,
         }))
       },
     },
