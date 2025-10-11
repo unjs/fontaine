@@ -9,13 +9,16 @@ import { withoutQuotes } from './css'
 
 const metricCache: Record<string, FontFaceMetrics | null> = {}
 
-function filterRequiredMetrics({ ascent, descent, lineGap, unitsPerEm, xWidthAvg }: Pick<Font, 'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'>) {
+type RequiredFontMetrics = Pick<Font, 'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'> & { category?: string }
+
+function filterRequiredMetrics(font: RequiredFontMetrics): FontFaceMetrics {
   return {
-    ascent,
-    descent,
-    lineGap,
-    unitsPerEm,
-    xWidthAvg,
+    ascent: font.ascent,
+    descent: font.descent,
+    lineGap: font.lineGap,
+    unitsPerEm: font.unitsPerEm,
+    xWidthAvg: font.xWidthAvg,
+    category: font.category,
   }
 }
 
