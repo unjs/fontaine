@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_CATEGORY_FALLBACKS, resolveCategoryFallbacks } from '../src/fallbacks'
 
 describe('fallbacks module', () => {
-  describe('dEFAULT_CATEGORY_FALLBACKS', () => {
+  describe('default category fallbacks', () => {
     it('should export default category fallbacks', () => {
       expect(DEFAULT_CATEGORY_FALLBACKS).toBeDefined()
       expect(DEFAULT_CATEGORY_FALLBACKS['sans-serif']).toEqual(['BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'])
