@@ -1,22 +1,14 @@
+import type { FontCategory } from './fallbacks'
 import { pathToFileURL } from 'node:url'
 import { parse, walk } from 'css-tree'
 import { anyOf, char, createRegExp, exactly, oneOrMore } from 'magic-regexp'
 import MagicString from 'magic-string'
-import { isAbsolute } from 'pathe'
 
+import { isAbsolute } from 'pathe'
 import { createUnplugin } from 'unplugin'
 import { generateFallbackName, generateFontFace, parseFontFace, withoutQuotes } from './css'
+import { resolveCategoryFallbacks } from './fallbacks'
 import { getMetricsForFamily, readMetrics } from './metrics'
-
-export type FontCategory = 'sans-serif' | 'serif' | 'monospace' | 'display' | 'handwriting'
-
-export const DEFAULT_CATEGORY_FALLBACKS: Record<FontCategory, string[]> = {
-  'sans-serif': ['BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'],
-  'serif': ['Times New Roman', 'Georgia', 'Noto Serif'],
-  'monospace': ['Courier New', 'Roboto Mono', 'Noto Sans Mono'],
-  'display': ['BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'],
-  'handwriting': ['BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'],
-}
 
 export interface FontaineTransformOptions {
   /**
@@ -103,42 +95,6 @@ export const FontaineTransform = createUnplugin((options: FontaineTransformOptio
 
   const skipFontFaceGeneration = options.skipFontFaceGeneration || (() => false)
 
-  // Merge user-provided category fallbacks with defaults
-  const mergedCategoryFallbacks = { ...DEFAULT_CATEGORY_FALLBACKS }
-  if (options.categoryFallbacks) {
-    for (const category in options.categoryFallbacks) {
-      const categoryKey = category as FontCategory
-      const fallbacks = options.categoryFallbacks[categoryKey]
-      if (fallbacks) {
-        mergedCategoryFallbacks[categoryKey] = fallbacks
-      }
-    }
-  }
-
-  function getFallbacksForFamily(family: string, metrics?: { category?: string } | null): string[] {
-    // 1. If fallbacks is an array, use it as a global override (legacy behavior)
-    if (Array.isArray(options.fallbacks)) {
-      return options.fallbacks
-    }
-
-    // 2. Return explicit per-family overrides when supplied (object notation)
-    const familyFallback = options.fallbacks[family]
-    if (familyFallback) {
-      return familyFallback
-    }
-
-    // 3. If metrics have a category, return the merged preset for that category
-    if (metrics?.category) {
-      const categoryFallback = mergedCategoryFallbacks[metrics.category as FontCategory]
-      if (categoryFallback) {
-        return categoryFallback
-      }
-    }
-
-    // 4. Fallback to sans-serif preset
-    return mergedCategoryFallbacks['sans-serif']
-  }
-
   function readMetricsFromId(path: string, importer: string) {
     const resolvedPath = isAbsolute(importer) && RELATIVE_RE.test(path)
       ? new URL(path, pathToFileURL(importer))
@@ -170,7 +126,12 @@ export const FontaineTransform = createUnplugin((options: FontaineTransformOptio
           if (!metrics)
             continue
 
-          const familyFallbacks = getFallbacksForFamily(family, metrics)
+          const familyFallbacks = resolveCategoryFallbacks({
+            fontFamily: family,
+            fallbacks: options.fallbacks,
+            metrics,
+            categoryFallbacks: options.categoryFallbacks,
+          })
 
           // Iterate backwards: Browsers will use the last working font-face in the stylesheet
           for (let i = familyFallbacks.length - 1; i >= 0; i--) {

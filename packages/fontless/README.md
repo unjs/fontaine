@@ -82,8 +82,11 @@ fontless({
     preload: true,
     weights: [400, 700],
     styles: ['normal', 'italic'],
+    // Fallbacks use category-aware presets from fontaine
+    // Override specific generic families as needed
     fallbacks: {
-      'sans-serif': ['Arial', 'Helvetica Neue']
+      'sans-serif': ['Arial', 'Helvetica Neue'],
+      // serif, monospace, cursive, fantasy, system-ui, etc. use shared defaults
     }
   },
 
@@ -114,6 +117,19 @@ fontless({
   }
 })
 ```
+
+### Category-Aware Fallbacks
+
+Fontless uses category-aware fallback presets shared with the [fontaine](https://github.com/unjs/fontaine) package. These presets provide optimized system fonts for different generic font families:
+
+- **sans-serif**: `BlinkMacSystemFont`, `Segoe UI`, `Helvetica Neue`, `Arial`, `Noto Sans`
+- **serif**: `Times New Roman`, `Georgia`, `Noto Serif`
+- **monospace**: `Courier New`, `Roboto Mono`, `Noto Sans Mono`
+- **cursive**: Uses handwriting category fallbacks
+- **fantasy**: Uses display category fallbacks
+- **system-ui**, **ui-serif**, **ui-sans-serif**, **ui-monospace**: Mapped to corresponding category presets
+
+You can override fallbacks for specific generic families in the `defaults.fallbacks` configuration while keeping the shared defaults for others. This ensures consistent font fallback behavior across your application and reduces cumulative layout shift (CLS).
 
 ## How It Works
 

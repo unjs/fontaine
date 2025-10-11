@@ -160,6 +160,8 @@ const options = {
 - **monospace**: `Courier New`, `Roboto Mono`, `Noto Sans Mono`
 - **display** & **handwriting**: Same as sans-serif
 
+> **Note:** These presets are available programmatically via `DEFAULT_CATEGORY_FALLBACKS` and can be used with the `resolveCategoryFallbacks` helper function for advanced use cases. Both are exported from the `fontaine` package and shared across related packages (e.g., `fontless`) to ensure consistent fallback behavior.
+
 ### Fallback Priority
 
 1. **Array format** (`fallbacks: ['Arial']`) - Uses specified fonts for all families (legacy behavior)

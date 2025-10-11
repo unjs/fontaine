@@ -1,5 +1,6 @@
 import type { FontlessOptions } from './types'
 
+import { DEFAULT_CATEGORY_FALLBACKS } from 'fontaine'
 import { providers } from 'unifont'
 
 export const defaultValues = {
@@ -15,21 +16,15 @@ export const defaultValues = {
     'latin',
   ],
   fallbacks: {
-    'serif': ['Times New Roman'],
-    'sans-serif': ['Arial'],
-    'monospace': ['Courier New'],
-    'cursive': [],
-    'fantasy': [],
-    'system-ui': [
-      'BlinkMacSystemFont',
-      'Segoe UI',
-      'Roboto',
-      'Helvetica Neue',
-      'Arial',
-    ],
-    'ui-serif': ['Times New Roman'],
-    'ui-sans-serif': ['Arial'],
-    'ui-monospace': ['Courier New'],
+    'serif': DEFAULT_CATEGORY_FALLBACKS.serif,
+    'sans-serif': DEFAULT_CATEGORY_FALLBACKS['sans-serif'],
+    'monospace': DEFAULT_CATEGORY_FALLBACKS.monospace,
+    'cursive': DEFAULT_CATEGORY_FALLBACKS.handwriting,
+    'fantasy': DEFAULT_CATEGORY_FALLBACKS.display,
+    'system-ui': DEFAULT_CATEGORY_FALLBACKS['sans-serif'],
+    'ui-serif': DEFAULT_CATEGORY_FALLBACKS.serif,
+    'ui-sans-serif': DEFAULT_CATEGORY_FALLBACKS['sans-serif'],
+    'ui-monospace': DEFAULT_CATEGORY_FALLBACKS.monospace,
     'ui-rounded': [],
     'emoji': [],
     'math': [],
