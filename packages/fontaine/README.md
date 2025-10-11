@@ -135,6 +135,55 @@ If your custom font is used through the mechanism of CSS variables, you'll need 
 
 Behind the scenes, there is a 'Poppins fallback' `@font-face` rule that has been created by fontaine. By manually adding this fallback font family to our CSS variable, we make our site use the fallback `@font-face` rule with the correct font metrics that fontaine generates.
 
+## Category-Aware Fallbacks
+
+Fontaine automatically selects appropriate fallback fonts based on font categories (serif, sans-serif, monospace, etc.) when using object-based fallback configuration.
+
+```js
+const options = {
+  // Use an empty object to enable automatic category-based fallbacks
+  fallbacks: {},
+
+  // Or customize specific categories while keeping defaults for others
+  categoryFallbacks: {
+    'serif': ['Georgia', 'Times New Roman'],
+    'sans-serif': ['Arial', 'Helvetica'],
+    // monospace, display, and handwriting categories use defaults
+  }
+}
+```
+
+### Default Category Fallbacks
+
+- **sans-serif**: `BlinkMacSystemFont`, `Segoe UI`, `Helvetica Neue`, `Arial`, `Noto Sans`
+- **serif**: `Times New Roman`, `Georgia`, `Noto Serif`
+- **monospace**: `Courier New`, `Roboto Mono`, `Noto Sans Mono`
+- **display** & **handwriting**: Same as sans-serif
+
+### Fallback Priority
+
+1. **Array format** (`fallbacks: ['Arial']`) - Uses specified fonts for all families (legacy behavior)
+2. **Per-family override** (`fallbacks: { Poppins: ['Arial'] }`) - Uses specified fonts for that family
+3. **Category-based** - When a family isn't specified, uses the appropriate category preset
+4. **Global default** - Falls back to sans-serif preset if no category is detected
+
+Example:
+
+```js
+{
+  fallbacks: {
+    // Specific override for Poppins
+    'Poppins': ['Arial'],
+    // Other sans-serif fonts will use the sans-serif preset
+    // Serif fonts will use the serif preset automatically
+  },
+  categoryFallbacks: {
+    // Customize the serif preset
+    'serif': ['Georgia']
+  }
+}
+```
+
 ## How it works
 
 `fontaine` will scan your `@font-face` rules and generate fallback rules with the correct metrics. For example:
