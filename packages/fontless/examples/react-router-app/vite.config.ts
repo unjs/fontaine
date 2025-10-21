@@ -5,6 +5,13 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [
     reactRouter(),
-    fontless(),
+    fontless({
+      families: [
+        {
+          name: 'Poppins',
+          preload: true,
+        },
+      ],
+    }),
   ],
 })

@@ -5,5 +5,9 @@ export default defineBuildConfig({
   rollup: {
     dts: { respectExternal: false },
   },
+  entries: [
+    'src/index.ts',
+    'src/runtime.ts',
+  ],
   externals: ['vite'],
 })
