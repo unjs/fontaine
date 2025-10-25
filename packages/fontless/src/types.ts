@@ -38,11 +38,7 @@ export interface FontFamilyOverrides {
   name: string
   /** Inject `@font-face` regardless of usage in project. */
   global?: boolean
-  /**
-   * Enable or disable adding preload links to the initially rendered HTML.
-   * This is true by default for the highest priority format unless a font is subsetted (to avoid over-preloading).
-   */
-  preload?: boolean
+  preload?: PreloadOption
 
   // TODO:
   // as?: string
@@ -66,6 +62,17 @@ export interface FontFamilyManualOverride extends FontFamilyOverrides, RawFontFa
 
 type ProviderOption = ((options: any) => Provider) | string | false
 
+/**
+ * Enable adding preload links to the initially rendered HTML.
+ * With `subsets`, you can specify which subsets to preload.
+ * @default false
+ * @example { subsets: ['latin'] }
+ */
+type PreloadOption
+  = | boolean
+    | { subsets: string[] }
+    | ((fontFamily: string, font: FontFaceData) => boolean)
+
 export interface FontlessOptions {
   /**
    * Specify overrides for individual font families.
@@ -85,7 +92,7 @@ export interface FontlessOptions {
    */
   families?: Array<FontFamilyManualOverride | FontFamilyProviderOverride>
   defaults?: Partial<{
-    preload: boolean
+    preload?: PreloadOption
     weights: Array<string | number>
     styles: ResolveFontOptions['styles']
     subsets: ResolveFontOptions['subsets']
