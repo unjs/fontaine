@@ -7,7 +7,7 @@ interface DefaultValues {
   weights: [400]
   styles: ['normal', 'italic']
   subsets: string[]
-  fallbacks: Record<string, string[]>
+  fallbacks: typeof DEFAULT_CATEGORY_FALLBACKS
 }
 
 export const defaultValues: DefaultValues = {
