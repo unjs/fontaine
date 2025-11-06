@@ -6,7 +6,8 @@ permissions:
 on:
   push:
     tags:
-      - 'v*'
+      - "fontless@*"
+      - "fontaine@*"
 
 jobs:
   release:
