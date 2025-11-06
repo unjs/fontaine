@@ -60,14 +60,14 @@
   },
   "devDependencies": {
     "@capsizecss/metrics": "3.5.0",
-    "@types/css-tree": "2.3.10",
+    "@types/css-tree": "2.3.11",
     "@types/node": "24.10.0",
     "@types/serve-handler": "6.1.4",
     "@vitest/coverage-v8": "4.0.7",
     "eslint": "9.39.1",
     "get-port-please": "3.2.0",
     "serve-handler": "6.1.6",
-    "typescript": "5.9.2",
+    "typescript": "5.9.3",
     "unbuild": "latest",
     "vite": "7.2.1",
     "vitest": "4.0.7"
