@@ -3,7 +3,7 @@ import type { FontlessOptions } from './types'
 
 import { createJiti } from 'jiti'
 
-export async function resolveProviders(_providers: FontlessOptions['providers'] = {}, opts: { root: string, alias: Record<string, string> }) {
+export async function resolveProviders(_providers: FontlessOptions['providers'] = {}, opts: { root: string, alias: Record<string, string> }): Promise<Record<string, ProviderFactory>> {
   const jiti = createJiti(opts.root, { alias: opts.alias })
 
   const providers = { ..._providers }

@@ -87,7 +87,7 @@ const RELATIVE_RE = createRegExp(
  * @param options - The transformation options. See {@link FontaineTransformOptions}.
  * @returns The unplugin instance.
  */
-export const FontaineTransform = createUnplugin((options: FontaineTransformOptions) => {
+export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransformOptions>> = createUnplugin((options: FontaineTransformOptions) => {
   const cssContext = (options.css = options.css || {})
   cssContext.value = ''
   const resolvePath = options.resolvePath || (id => id)
