@@ -53,14 +53,14 @@
     "@capsizecss/unpack": "^3.0.0",
     "css-tree": "^3.1.0",
     "magic-regexp": "^0.10.0",
-    "magic-string": "^0.30.19",
+    "magic-string": "^0.30.21",
     "pathe": "^2.0.3",
     "ufo": "^1.6.1",
     "unplugin": "^2.3.10"
   },
   "devDependencies": {
     "@capsizecss/metrics": "3.5.0",
-    "@types/css-tree": "2.3.10",
+    "@types/css-tree": "2.3.11",
     "@types/node": "24.10.0",
     "@types/serve-handler": "6.1.4",
     "@vitest/coverage-v8": "4.0.7",
@@ -68,7 +68,7 @@
     "get-port-please": "3.2.0",
     "serve-handler": "6.1.6",
     "tsdown": "0.16.0",
-    "typescript": "5.9.2",
+    "typescript": "5.9.3",
     "vite": "7.2.1",
     "vitest": "4.0.7"
   }

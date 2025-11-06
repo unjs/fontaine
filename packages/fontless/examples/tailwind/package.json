@@ -11,7 +11,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "4.1.17",
     "fontless": "latest",
-    "tailwindcss": "4.1.13",
+    "tailwindcss": "4.1.17",
     "vite": "^7.2.1"
   }
 }
