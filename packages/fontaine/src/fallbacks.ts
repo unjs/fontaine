@@ -1,10 +1,10 @@
-export type FontCategory = 'sans-serif' | 'serif' | 'monospace' | 'display' | 'handwriting'
+export type FontCategory = 'sans-serif' | 'serif' | 'monospace' | 'display' | 'handwriting' | 'cursive' | 'fantasy' | 'system-ui' | 'ui-serif' | 'ui-sans-serif' | 'ui-monospace' | 'ui-rounded' | 'emoji' | 'math' | 'fangsong'
 
 /**
  * Default fallback font stacks for each font category.
  * These are system fonts that work across different platforms.
  */
-export const DEFAULT_CATEGORY_FALLBACKS: Record<FontCategory, string[]> = {
+export const DEFAULT_CATEGORY_FALLBACKS: Partial<Record<FontCategory, string[]>> = {
   'sans-serif': ['BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'],
   'serif': ['Times New Roman', 'Georgia', 'Noto Serif'],
   'monospace': ['Courier New', 'Roboto Mono', 'Noto Sans Mono'],
@@ -70,5 +70,5 @@ export function resolveCategoryFallbacks(options: ResolveCategoryFallbacksOption
   }
 
   // 4. Fallback to sans-serif preset
-  return mergedCategoryFallbacks['sans-serif']
+  return mergedCategoryFallbacks['sans-serif']!
 }
