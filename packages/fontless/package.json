@@ -51,6 +51,14 @@
     "test:unit": "vitest",
     "test:types": "tsc --noEmit"
   },
+  "peerDependencies": {
+    "vite": "*"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
+  },
   "dependencies": {
     "consola": "^3.4.2",
     "css-tree": "^3.1.0",
