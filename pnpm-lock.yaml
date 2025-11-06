@@ -341,9 +341,6 @@ importers:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
     devDependencies:
-      '@eslint/js':
-        specifier: ^9.39.1
-        version: 9.39.1
       '@types/react':
         specifier: ^18.3.26
         version: 18.3.26
@@ -356,9 +353,6 @@ importers:
       fontless:
         specifier: workspace:*
         version: link:../..
-      globals:
-        specifier: ^16.5.0
-        version: 16.5.0
       typescript:
         specifier: ~5.9.3
         version: 5.9.3

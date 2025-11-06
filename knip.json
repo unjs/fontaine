@@ -9,10 +9,10 @@
     },
     "packages/fontless/docs": {
       "entry": [
-        "app.config.ts"
+        "app.config.ts",
+        "assets/css/tailwind.css"
       ],
       "ignoreDependencies": [
-        "shadcn-docs-nuxt",
         "vue",
         "vue-router"
       ]
