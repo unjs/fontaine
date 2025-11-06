@@ -14,7 +14,7 @@
   "devDependencies": {
     "fontless": "latest",
     "typescript": "~5.9.2",
-    "vite": "^7.1.7",
-    "vite-plugin-solid": "^2.11.8"
+    "vite": "^7.2.1",
+    "vite-plugin-solid": "^2.11.10"
   }
 }
