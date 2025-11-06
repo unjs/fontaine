@@ -29,7 +29,6 @@
     "lint-staged": "16.2.3",
     "pkg-pr-new": "0.0.60",
     "simple-git-hooks": "2.13.1",
-    "tsdown": "latest",
     "typescript": "5.9.2"
   },
   "resolutions": {

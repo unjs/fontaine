@@ -40,9 +40,6 @@ importers:
       simple-git-hooks:
         specifier: 2.13.1
         version: 2.13.1
-      tsdown:
-        specifier: latest
-        version: 0.16.0(oxc-resolver@11.8.4)(typescript@5.9.2)
       typescript:
         specifier: 5.9.2
         version: 5.9.2
@@ -95,6 +92,9 @@ importers:
       serve-handler:
         specifier: 6.1.6
         version: 6.1.6
+      tsdown:
+        specifier: 0.16.0
+        version: 0.16.0(oxc-resolver@11.8.4)(typescript@5.9.2)
       typescript:
         specifier: 5.9.2
         version: 5.9.2
@@ -171,6 +171,9 @@ importers:
       tinyexec:
         specifier: 1.0.1
         version: 1.0.1
+      tsdown:
+        specifier: 0.16.0
+        version: 0.16.0(oxc-resolver@11.8.4)(typescript@5.9.2)
       typescript:
         specifier: 5.9.2
         version: 5.9.2
@@ -3667,9 +3670,6 @@ packages:
 
   '@rolldown/pluginutils@1.0.0-beta.29':
     resolution: {integrity: sha512-NIJgOsMjbxAXvoGq/X0gD7VPMQ8j9g0BiDaNjVNVjvl+iKXxL3Jre0v31RmBYeLEmkbj2s02v8vFTbUXi5XS2Q==}
-
-  '@rolldown/pluginutils@1.0.0-beta.44':
-    resolution: {integrity: sha512-g6eW7Zwnr2c5RADIoqziHoVs6b3W5QTQ4+qbpfjbkMJ9x+8Og211VW/oot2dj9dVwaK/UyC6Yo+02gV+wWQVNg==}
 
   '@rolldown/pluginutils@1.0.0-beta.46':
     resolution: {integrity: sha512-xMNwJo/pHkEP/mhNVnW+zUiJDle6/hxrwO0mfSJuEVRbBfgrJFuUSRoZx/nYUw5pCjrysl9OkNXCkAdih8GCnA==}
@@ -15044,8 +15044,6 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.0-beta.29': {}
 
-  '@rolldown/pluginutils@1.0.0-beta.44': {}
-
   '@rolldown/pluginutils@1.0.0-beta.46': {}
 
   '@rollup/plugin-alias@5.1.1(rollup@4.52.5)':
@@ -15971,7 +15969,7 @@ snapshots:
       '@babel/core': 7.28.5
       '@babel/plugin-syntax-typescript': 7.27.1(@babel/core@7.28.5)
       '@babel/plugin-transform-typescript': 7.28.5(@babel/core@7.28.5)
-      '@rolldown/pluginutils': 1.0.0-beta.44
+      '@rolldown/pluginutils': 1.0.0-beta.46
       '@vue/babel-plugin-jsx': 1.5.0(@babel/core@7.28.5)
       vite: 7.2.1(@types/node@24.10.0)(jiti@2.6.1)(less@4.2.2)(lightningcss@1.30.2)(sass@1.85.0)(terser@5.44.0)(yaml@2.8.1)
       vue: 3.5.22(typescript@5.9.2)
