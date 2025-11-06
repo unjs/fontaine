@@ -7,7 +7,6 @@
   "scripts": {
     "dev": "vite --port 5174",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
     "preview": "vite preview --port 5174"
   },
   "dependencies": {
@@ -15,17 +14,11 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.36.0",
     "@types/react": "^18.3.24",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react-swc": "^4.2.1",
-    "eslint": "^9.36.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.21",
     "fontless": "latest",
-    "globals": "^15.15.0",
     "typescript": "~5.9.2",
-    "typescript-eslint": "^8.44.1",
     "vite": "^7.2.1"
   }
 }
