@@ -25,7 +25,7 @@
     "changelogithub": "13.16.1",
     "eslint": "9.39.1",
     "installed-check": "9.3.0",
-    "knip": "5.67.1",
+    "knip": "5.68.0",
     "lint-staged": "16.2.6",
     "pkg-pr-new": "0.0.60",
     "simple-git-hooks": "2.13.1",
