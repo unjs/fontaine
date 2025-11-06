@@ -52,7 +52,7 @@ const globalCSSValues = new Set([
   'unset',
 ])
 
-export function extractGeneric(node: Declaration) {
+export function extractGeneric(node: Declaration): GenericCSSFamily | undefined {
   if (node.value.type === 'Raw') {
     const children = processRawValue(node.value.value)
     for (const child of children) {
@@ -70,7 +70,7 @@ export function extractGeneric(node: Declaration) {
   }
 }
 
-export function extractEndOfFirstChild(node: Declaration) {
+export function extractEndOfFirstChild(node: Declaration): number | undefined {
   if (node.value.type === 'Raw') {
     const value = node.value.value
     const index = value.indexOf(',')
@@ -87,7 +87,7 @@ export function extractEndOfFirstChild(node: Declaration) {
   return node.value.children.last!.loc!.end.offset!
 }
 
-export function extractFontFamilies(node: Declaration) {
+export function extractFontFamilies(node: Declaration): string[] {
   if (node.value.type === 'Raw') {
     const children = processRawValue(node.value.value)
     return children.filter(child => !genericCSSFamilies.has(child as GenericCSSFamily) && !globalCSSValues.has(child))
@@ -119,7 +119,7 @@ export function extractFontFamilies(node: Declaration) {
   return families
 }
 
-export function addLocalFallbacks(fontFamily: string, data: FontFaceData[]) {
+export function addLocalFallbacks(fontFamily: string, data: FontFaceData[]): FontFaceData[] {
   for (const face of data) {
     const style = (face.style ? styleMap[face.style] : '') ?? ''
 

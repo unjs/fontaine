@@ -8,3 +8,4 @@ ignoredBuiltDependencies:
 onlyBuiltDependencies:
   - shadcn-docs-nuxt
   - simple-git-hooks
+verifyDepsBeforeRun: install

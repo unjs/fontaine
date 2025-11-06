@@ -28,11 +28,11 @@ function filterRequiredMetrics(font: RequiredFontMetrics): FontFaceMetrics {
  * @returns {Promise<FontFaceMetrics | null>} - A promise that resolves with the filtered font metrics or null if not found. See {@link FontFaceMetrics}.
  * @async
  */
-export async function getMetricsForFamily(family: string) {
+export async function getMetricsForFamily(family: string): Promise<FontFaceMetrics | null> {
   family = withoutQuotes(family)
 
   if (family in metricCache)
-    return metricCache[family]
+    return metricCache[family] ?? null
 
   try {
     const name = fontFamilyToCamelCase(family)
@@ -64,11 +64,11 @@ const urlRequestCache = new Map<string, Promise<Font>>()
  * @returns {Promise<FontFaceMetrics | null>} - A promise that resolves to the filtered font metrics or null if the source cannot be processed.
  * @async
  */
-export async function readMetrics(_source: URL | string) {
+export async function readMetrics(_source: URL | string): Promise<FontFaceMetrics | null> {
   const source = typeof _source !== 'string' && 'href' in _source ? _source.href : _source
 
   if (source in metricCache)
-    return metricCache[source]
+    return metricCache[source] ?? null
 
   const { protocol } = parseURL(source)
   if (!protocol)

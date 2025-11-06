@@ -70,7 +70,7 @@ function findSafeInsertionIndex(ast: CssNode): number {
   return safeIndex
 }
 
-export async function transformCSS(options: FontFamilyInjectionPluginOptions, code: string, id: string, opts: { relative?: boolean } = {}) {
+export async function transformCSS(options: FontFamilyInjectionPluginOptions, code: string, id: string, opts: { relative?: boolean } = {}): Promise<MagicString> {
   const s = new MagicString(code)
   const ast = parse(code, { positions: true })
 
