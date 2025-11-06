@@ -82,7 +82,7 @@
     "tinyexec": "1.0.1",
     "typescript": "5.9.2",
     "unbuild": "3.6.1",
-    "vite": "7.1.7",
+    "vite": "7.2.1",
     "vitest": "4.0.7"
   }
 }
