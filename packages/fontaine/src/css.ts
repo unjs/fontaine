@@ -159,7 +159,9 @@ interface FallbackOptions {
 export type FontFaceMetrics = Pick<
   Font,
   'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'
->
+> & {
+  category?: string
+}
 
 /**
  * Generates a CSS `@font-face' declaration for a font, taking fallback and resizing into account.

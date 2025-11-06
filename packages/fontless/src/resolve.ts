@@ -51,6 +51,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
 
   // Custom merging for defaults - providing a value for any default will override module
   // defaults entirely (to prevent array merging)
+  // Note: defaultValues.fallbacks uses shared category-aware presets from fontaine package
   const normalizedDefaults = {
     weights: [...new Set((options.defaults?.weights || defaultValues.weights).map(v => String(v)))],
     styles: [...new Set(options.defaults?.styles || defaultValues.styles)],
