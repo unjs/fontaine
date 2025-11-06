@@ -35,6 +35,7 @@
     "@nuxt/fonts>fontaine": "latest",
     "fontaine": "workspace:*",
     "fontless": "workspace:*",
+    "unstorage": "1.17.1",
     "vue": "3.5.21"
   },
   "simple-git-hooks": {

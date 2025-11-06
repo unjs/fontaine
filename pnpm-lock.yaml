@@ -8,6 +8,7 @@ overrides:
   '@nuxt/fonts>fontaine': latest
   fontaine: workspace:*
   fontless: workspace:*
+  unstorage: 1.17.1
   vue: 3.5.21
 
 importers:
@@ -154,8 +155,8 @@ importers:
         specifier: ^0.6.0
         version: 0.6.0
       unstorage:
-        specifier: ^1.17.2
-        version: 1.17.2(db0@0.3.4)(ioredis@5.8.2)
+        specifier: 1.17.1
+        version: 1.17.1(db0@0.3.4)(ioredis@5.8.2)
     devDependencies:
       '@playwright/test':
         specifier: 1.56.1
@@ -9117,7 +9118,7 @@ packages:
     engines: {node: '>=18.0.0'}
     peerDependencies:
       '@unhead/vue': ^2.0.5
-      unstorage: ^1.15.0
+      unstorage: 1.17.1
 
   nuxt-site-config-kit@3.2.11:
     resolution: {integrity: sha512-Um9/JiJpskAC8H18pHs3D/c7ikKj37/OsM1rvTqDgdzShSzOAxGGN+8qBVtGaqp1V+9BuPFSXhr1+TV7+RRsRA==}
@@ -11233,6 +11234,68 @@ packages:
   unplugin@2.3.10:
     resolution: {integrity: sha512-6NCPkv1ClwH+/BGE9QeoTIl09nuiAt0gS28nn1PvYXsGKRwM2TCbFA2QiilmehPDTXIe684k4rZI1yl3A1PCUw==}
     engines: {node: '>=18.12.0'}
+
+  unstorage@1.17.1:
+    resolution: {integrity: sha512-KKGwRTT0iVBCErKemkJCLs7JdxNVfqTPc/85ae1XES0+bsHbc/sFBfVi5kJp156cc51BHinIH2l3k0EZ24vOBQ==}
+    peerDependencies:
+      '@azure/app-configuration': ^1.8.0
+      '@azure/cosmos': ^4.2.0
+      '@azure/data-tables': ^13.3.0
+      '@azure/identity': ^4.6.0
+      '@azure/keyvault-secrets': ^4.9.0
+      '@azure/storage-blob': ^12.26.0
+      '@capacitor/preferences': ^6.0.3 || ^7.0.0
+      '@deno/kv': '>=0.9.0'
+      '@netlify/blobs': ^6.5.0 || ^7.0.0 || ^8.1.0 || ^9.0.0 || ^10.0.0
+      '@planetscale/database': ^1.19.0
+      '@upstash/redis': ^1.34.3
+      '@vercel/blob': '>=0.27.1'
+      '@vercel/functions': ^2.2.12 || ^3.0.0
+      '@vercel/kv': ^1.0.1
+      aws4fetch: ^1.0.20
+      db0: '>=0.2.1'
+      idb-keyval: ^6.2.1
+      ioredis: ^5.4.2
+      uploadthing: ^7.4.4
+    peerDependenciesMeta:
+      '@azure/app-configuration':
+        optional: true
+      '@azure/cosmos':
+        optional: true
+      '@azure/data-tables':
+        optional: true
+      '@azure/identity':
+        optional: true
+      '@azure/keyvault-secrets':
+        optional: true
+      '@azure/storage-blob':
+        optional: true
+      '@capacitor/preferences':
+        optional: true
+      '@deno/kv':
+        optional: true
+      '@netlify/blobs':
+        optional: true
+      '@planetscale/database':
+        optional: true
+      '@upstash/redis':
+        optional: true
+      '@vercel/blob':
+        optional: true
+      '@vercel/functions':
+        optional: true
+      '@vercel/kv':
+        optional: true
+      aws4fetch:
+        optional: true
+      db0:
+        optional: true
+      idb-keyval:
+        optional: true
+      ioredis:
+        optional: true
+      uploadthing:
+        optional: true
 
   unstorage@1.17.2:
     resolution: {integrity: sha512-cKEsD6iBWJgOMJ6vW1ID/SYuqNf8oN4yqRk8OYqaVQ3nnkJXOT1PSpaMh2QfzLs78UN5kSNRD2c/mgjT8tX7+w==}
@@ -14845,7 +14908,7 @@ snapshots:
       ufo: 1.6.1
       unifont: 0.4.1
       unplugin: 2.3.10
-      unstorage: 1.17.2(db0@0.3.4)(ioredis@5.8.2)
+      unstorage: 1.17.1(db0@0.3.4)(ioredis@5.8.2)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -15007,7 +15070,7 @@ snapshots:
       std-env: 3.10.0
       ufo: 1.6.1
       unctx: 2.4.1
-      unstorage: 1.17.2(db0@0.3.4)(ioredis@5.8.2)
+      unstorage: 1.17.1(db0@0.3.4)(ioredis@5.8.2)
       vue: 3.5.21(typescript@5.9.3)
       vue-bundle-renderer: 2.2.0
       vue-devtools-stub: 0.1.0
@@ -15071,7 +15134,7 @@ snapshots:
       std-env: 3.10.0
       ufo: 1.6.1
       unplugin: 2.3.10
-      unstorage: 1.17.2(db0@0.3.4)(ioredis@5.8.2)
+      unstorage: 1.17.1(db0@0.3.4)(ioredis@5.8.2)
       valibot: 1.1.0(typescript@5.9.3)
     transitivePeerDependencies:
       - '@azure/app-configuration'
@@ -15211,7 +15274,7 @@ snapshots:
       ufo: 1.6.1
       unplugin: 2.3.10
       unplugin-vue-router: 0.16.1(@vue/compiler-sfc@3.5.23)(typescript@5.9.3)(vue-router@4.6.3(vue@3.5.21(typescript@5.9.3)))(vue@3.5.21(typescript@5.9.3))
-      unstorage: 1.17.2(db0@0.3.4)(ioredis@5.8.2)
+      unstorage: 1.17.1(db0@0.3.4)(ioredis@5.8.2)
       vue-i18n: 11.1.12(vue@3.5.21(typescript@5.9.3))
       vue-router: 4.6.3(vue@3.5.21(typescript@5.9.3))
     transitivePeerDependencies:
@@ -17504,7 +17567,7 @@ snapshots:
       socket.io-client: 4.8.1
       ufo: 1.6.1
       unist-util-stringify-position: 4.0.0
-      unstorage: 1.17.2(db0@0.3.4)(ioredis@5.8.2)
+      unstorage: 1.17.1(db0@0.3.4)(ioredis@5.8.2)
       ws: 8.18.3
     transitivePeerDependencies:
       - '@azure/app-configuration'
@@ -20618,7 +20681,7 @@ snapshots:
       sharp: 0.32.6
       svgo: 3.3.2
       ufo: 1.6.1
-      unstorage: 1.17.2(db0@0.3.4)(ioredis@5.8.2)
+      unstorage: 1.17.1(db0@0.3.4)(ioredis@5.8.2)
       xss: 1.0.15
     transitivePeerDependencies:
       - '@azure/app-configuration'
@@ -22208,7 +22271,7 @@ snapshots:
       unenv: 2.0.0-rc.21
       unimport: 5.5.0
       unplugin-utils: 0.3.1
-      unstorage: 1.17.2(db0@0.3.4)(ioredis@5.8.2)
+      unstorage: 1.17.1(db0@0.3.4)(ioredis@5.8.2)
       untyped: 2.0.0
       unwasm: 0.3.11
       youch: 4.1.0-beta.11
@@ -25335,6 +25398,20 @@ snapshots:
       acorn: 8.15.0
       picomatch: 4.0.3
       webpack-virtual-modules: 0.6.2
+
+  unstorage@1.17.1(db0@0.3.4)(ioredis@5.8.2):
+    dependencies:
+      anymatch: 3.1.3
+      chokidar: 4.0.3
+      destr: 2.0.5
+      h3: 1.15.4
+      lru-cache: 10.4.3
+      node-fetch-native: 1.6.7
+      ofetch: 1.5.1
+      ufo: 1.6.1
+    optionalDependencies:
+      db0: 0.3.4
+      ioredis: 5.8.2
 
   unstorage@1.17.2(db0@0.3.4)(ioredis@5.8.2):
     dependencies:
