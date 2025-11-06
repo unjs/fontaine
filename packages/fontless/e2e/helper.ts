@@ -6,7 +6,16 @@ import { x } from 'tinyexec'
 
 // based on https://github.com/vitejs/vite-plugin-react/blob/80df894c78169d63d9f1f49d35dd548b6aa53601/packages/plugin-rsc/e2e/fixture.ts#L9-L10
 
-export function runCli(options: { command: string, label?: string } & SpawnOptions) {
+interface RunCliReturn {
+  proc: import('child_process').ChildProcess
+  done: Promise<void>
+  findPort: () => Promise<number>
+  kill: () => void
+  stdout: () => string
+  stderr: () => string
+}
+
+export function runCli(options: { command: string, label?: string } & SpawnOptions): RunCliReturn {
   const [name, ...args] = options.command.split(' ')
   const child = x(name!, args, { nodeOptions: options }).process!
   const label = `[${options.label ?? 'cli'}]`
@@ -47,7 +56,7 @@ export function runCli(options: { command: string, label?: string } & SpawnOptio
     })
   }
 
-  function kill() {
+  function kill(): void {
     if (process.platform === 'win32') {
       spawn('taskkill', ['/pid', String(child.pid), '/t', '/f'])
     }

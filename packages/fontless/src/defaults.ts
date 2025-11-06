@@ -3,8 +3,15 @@ import type { FontlessOptions } from './types'
 import { DEFAULT_CATEGORY_FALLBACKS } from 'fontaine'
 import { providers } from 'unifont'
 
-export const defaultValues = {
-  weights: [400],
+interface DefaultValues {
+  weights: [400]
+  styles: ['normal', 'italic']
+  subsets: string[]
+  fallbacks: Record<string, string[]>
+}
+
+export const defaultValues: DefaultValues = {
+  weights: [400] as const,
   styles: ['normal', 'italic'] as const,
   subsets: [
     'cyrillic-ext',

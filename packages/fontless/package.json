@@ -41,7 +41,7 @@
     "node": ">=18.12.0"
   },
   "scripts": {
-    "build": "unbuild",
+    "build": "tsdown",
     "dev": "vitest dev",
     "lint": "eslint . --fix",
     "prepack": "pnpm build",
@@ -80,8 +80,8 @@
     "@vitest/coverage-v8": "4.0.7",
     "rollup": "4.52.3",
     "tinyexec": "1.0.1",
+    "tsdown": "0.16.0",
     "typescript": "5.9.2",
-    "unbuild": "3.6.1",
     "vite": "7.2.1",
     "vitest": "4.0.7"
   }

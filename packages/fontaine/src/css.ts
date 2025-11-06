@@ -20,7 +20,7 @@ const QUOTES_RE = createRegExp(
   ['g'],
 )
 
-export const withoutQuotes = (str: string) => str.trim().replace(QUOTES_RE, '')
+export const withoutQuotes = (str: string): string => str.trim().replace(QUOTES_RE, '')
 
 // https://developer.mozilla.org/en-US/docs/Web/CSS/font-family
 const genericCSSFamilies = new Set([
