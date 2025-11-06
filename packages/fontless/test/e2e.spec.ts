@@ -56,6 +56,11 @@ describe.each(fixtures)('e2e %s', (fixture) => {
         const woff2 = content.indexOf('format(woff2)')
         expect(woff >= 0 && woff2 >= 0).toBe(true)
         expect(woff).lessThan(woff2)
+        const html = files.find(file => file.endsWith('.html'))!
+        const htmlContent = await readFile(join(outputDir!, html), 'utf-8')
+        expect(htmlContent).toContain('rel="preload" as="font"')
+        expect(htmlContent).toContain('.woff2"') // woff2 is preloaded
+        expect(htmlContent).not.toContain('.woff"') // woff is not preloaded
       }
     }
 
