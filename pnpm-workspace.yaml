@@ -8,3 +8,5 @@ ignoredBuiltDependencies:
 onlyBuiltDependencies:
   - shadcn-docs-nuxt
   - simple-git-hooks
+trustPolicy: no-downgrade
+
