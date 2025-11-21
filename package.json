@@ -13,6 +13,7 @@
   "scripts": {
     "build": "pnpm --filter fontaine --filter fontless build",
     "lint": "eslint .",
+    "lint:fix": "eslint . --cache --fix",
     "test:unit": "pnpm -r test:unit",
     "test:types": "pnpm -r test:types",
     "test:knip": "knip",
