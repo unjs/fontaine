@@ -63,13 +63,13 @@
     "@types/css-tree": "2.3.11",
     "@types/node": "24.10.1",
     "@types/serve-handler": "6.1.4",
-    "@vitest/coverage-v8": "4.0.13",
+    "@vitest/coverage-v8": "4.0.14",
     "eslint": "9.39.1",
     "get-port-please": "3.2.0",
     "serve-handler": "6.1.6",
     "tsdown": "0.16.6",
     "typescript": "5.9.3",
     "vite": "7.2.4",
-    "vitest": "4.0.13"
+    "vitest": "4.0.14"
   }
 }
