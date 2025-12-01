@@ -75,12 +75,12 @@
     "unstorage": "^1.17.1"
   },
   "devDependencies": {
-    "@playwright/test": "1.56.1",
+    "@playwright/test": "1.57.0",
     "@types/css-tree": "2.3.11",
     "@vitest/coverage-v8": "4.0.13",
     "rollup": "4.53.3",
     "tinyexec": "1.0.2",
-    "tsdown": "0.16.6",
+    "tsdown": "0.16.8",
     "typescript": "5.9.3",
     "vite": "7.2.4",
     "vitest": "4.0.13"
