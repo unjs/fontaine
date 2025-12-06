@@ -2,7 +2,7 @@ import antfu from '@antfu/eslint-config'
 
 export default antfu()
   .append({
-    ignores: ['README.md', 'packages/*/README.md'],
+    ignores: ['*.md'],
   })
   .append({
     files: ['packages/fontless/examples/**'],
