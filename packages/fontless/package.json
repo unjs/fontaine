@@ -80,7 +80,7 @@
     "@vitest/coverage-v8": "4.0.15",
     "rollup": "4.53.3",
     "tinyexec": "1.0.2",
-    "tsdown": "0.16.8",
+    "tsdown": "0.17.3",
     "typescript": "5.9.3",
     "vite": "7.2.7",
     "vitest": "4.0.15"
