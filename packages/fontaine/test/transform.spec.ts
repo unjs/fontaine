@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { FontaineTransform } from '../src'
 
 vi.mock('@capsizecss/unpack', { spy: true })
+vi.mock('@capsizecss/unpack/fs', { spy: true })
 
 describe('fontaine transform', () => {
   it('should not process non-CSS files', async () => {
