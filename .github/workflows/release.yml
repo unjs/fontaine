@@ -1,8 +1,5 @@
 name: release
 
-permissions:
-  contents: write
-
 on:
   push:
     tags:
@@ -12,6 +9,9 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@v6
         with:
@@ -22,9 +22,23 @@ jobs:
         with:
           node-version: lts/*
           cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
 
       - name: 📦 Install dependencies
         run: pnpm install
+
+      - name: 🛠 Build project
+        run: pnpm build
+
+      - name: 📦 Release fontaine
+        if: startsWith(github.ref, 'refs/tags/fontaine@')
+        run: pnpm publish --no-git-checks
+        working-directory: packages/fontaine
+
+      - name: 📦 Release fontless
+        if: startsWith(github.ref, 'refs/tags/fontless@')
+        run: pnpm publish --no-git-checks
+        working-directory: packages/fontless
 
       - run: pnpm changelogithub
         env:

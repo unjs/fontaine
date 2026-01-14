@@ -46,7 +46,6 @@
     "demo:dev": "pnpm demo --config test/vite.config.mjs",
     "lint": "eslint .",
     "prepublishOnly": "pnpm lint && pnpm test",
-    "release": "pnpm test && bumpp && npm publish",
     "test": "pnpm test:unit && pnpm test:types",
     "test:types": "tsc --noEmit",
     "test:unit": "vitest run"
