@@ -13,7 +13,7 @@
   "scripts": {
     "build": "pnpm --filter fontaine --filter fontless build",
     "lint": "eslint .",
-    "release": "bumpp packages/fontaine/package.json --tag fontaine@ && bumpp packages/fontless/package.json --tag fontless@",
+    "release": "bumpp packages/fontaine/package.json --tag fontaine@ --sign && bumpp packages/fontless/package.json --tag fontless@ --sign",
     "test:unit": "pnpm -r test:unit",
     "test:types": "pnpm -r test:types",
     "test:knip": "knip",
