@@ -39,6 +39,10 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
     }
   }
 
+  if (resolvedProviders.length === 0) {
+    throw new Error('At least one font provider must be configured')
+  }
+
   for (const val of options.priority || []) {
     if (val in providers)
       prioritisedProviders.add(val)
@@ -46,8 +50,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
   for (const provider in providers) {
     prioritisedProviders.add(provider)
   }
-
-  const unifont = await createUnifont(resolvedProviders, { storage: context.storage })
+  const unifont = await createUnifont(resolvedProviders as [Provider, ...Provider[]], { storage: context.storage })
 
   // Custom merging for defaults - providing a value for any default will override module
   // defaults entirely (to prevent array merging)
@@ -70,7 +73,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
   }
 
   return async function resolveFontFaceWithOverride(fontFamily: string, override?: FontFamilyManualOverride | FontFamilyProviderOverride, fallbackOptions?: { fallbacks: string[], generic?: GenericCSSFamily }): Promise<FontFaceResolution | undefined> {
-    const fallbacks = override?.fallbacks || normalizedDefaults.fallbacks[fallbackOptions?.generic || 'sans-serif']
+    const fallbacks = (override && 'fallbacks' in override ? override.fallbacks : undefined) || normalizedDefaults.fallbacks[fallbackOptions?.generic || 'sans-serif']
 
     if (override && 'src' in override) {
       const fonts = addFallbacks(fontFamily, normalizeFontData({
@@ -121,7 +124,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
           fonts: fontsWithLocalFallbacks,
         })
         return {
-          fallbacks: result.fallbacks || defaults.fallbacks,
+          fallbacks: defaults.fallbacks,
           fonts: fontsWithLocalFallbacks,
         }
       }
@@ -144,7 +147,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
           fonts: fontsWithLocalFallbacks,
         })
         return {
-          fallbacks: result.fallbacks || defaults.fallbacks,
+          fallbacks: defaults.fallbacks,
           fonts: fontsWithLocalFallbacks,
         }
       }

@@ -1,4 +1,4 @@
-import type { SpawnOptions } from 'node:child_process'
+import type { ChildProcess, SpawnOptions } from 'node:child_process'
 import { spawn } from 'node:child_process'
 import process from 'node:process'
 import { stripVTControlCharacters, styleText } from 'node:util'
@@ -6,8 +6,13 @@ import { x } from 'tinyexec'
 
 // based on https://github.com/vitejs/vite-plugin-react/blob/80df894c78169d63d9f1f49d35dd548b6aa53601/packages/plugin-rsc/e2e/fixture.ts#L9-L10
 
+// workaround for module resolution issue with node:events
+type ChildProcessWithEvents = ChildProcess & {
+  on: (event: string, listener: (...args: any[]) => void) => ChildProcessWithEvents
+}
+
 interface RunCliReturn {
-  proc: import('node:child_process').ChildProcess
+  proc: ChildProcess
   done: Promise<void>
   findPort: () => Promise<number>
   kill: () => void
@@ -17,7 +22,7 @@ interface RunCliReturn {
 
 export function runCli(options: { command: string, label?: string } & SpawnOptions): RunCliReturn {
   const [name, ...args] = options.command.split(' ')
-  const child = x(name!, args, { nodeOptions: options }).process!
+  const child = x(name!, args, { nodeOptions: options }).process! as ChildProcessWithEvents
   const label = `[${options.label ?? 'cli'}]`
   let stdout = ''
   let stderr = ''

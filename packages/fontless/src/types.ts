@@ -113,17 +113,17 @@ export interface FontlessOptions {
   /** Options passed directly to `local` font provider (none currently) */
   local?: Record<string, never>
   /** Options passed directly to `adobe` font provider */
-  adobe?: typeof providers.adobe extends ProviderFactory<infer O> ? O : Record<string, never>
+  adobe?: typeof providers.adobe extends ProviderFactory<any, infer O> ? O : Record<string, never>
   /** Options passed directly to `bunny` font provider */
-  bunny?: typeof providers.bunny extends ProviderFactory<infer O> ? O : Record<string, never>
+  bunny?: typeof providers.bunny extends ProviderFactory<any, infer O> ? O : Record<string, never>
   /** Options passed directly to `fontshare` font provider */
-  fontshare?: typeof providers.fontshare extends ProviderFactory<infer O> ? O : Record<string, never>
+  fontshare?: typeof providers.fontshare extends ProviderFactory<any, infer O> ? O : Record<string, never>
   /** Options passed directly to `fontsource` font provider */
-  fontsource?: typeof providers.fontsource extends ProviderFactory<infer O> ? O : Record<string, never>
+  fontsource?: typeof providers.fontsource extends ProviderFactory<any, infer O> ? O : Record<string, never>
   /** Options passed directly to `google` font provider */
-  google?: typeof providers.google extends ProviderFactory<infer O> ? O : Record<string, never>
+  google?: typeof providers.google extends ProviderFactory<any, infer O> ? O : Record<string, never>
   /** Options passed directly to `googleicons` font provider */
-  googleicons?: typeof providers.googleicons extends ProviderFactory<infer O> ? O : Record<string, never>
+  googleicons?: typeof providers.googleicons extends ProviderFactory<any, infer O> ? O : Record<string, never>
   /**
    * An ordered list of providers to check when resolving font families.
    *
