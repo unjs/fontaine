@@ -124,7 +124,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
           fonts: fontsWithLocalFallbacks,
         })
         return {
-          fallbacks: defaults.fallbacks,
+          fallbacks: result.fallbacks || defaults.fallbacks,
           fonts: fontsWithLocalFallbacks,
         }
       }

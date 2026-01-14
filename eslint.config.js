@@ -22,3 +22,8 @@ export default antfu()
       'packages/fontless/docs/**/*.md',
     ],
   })
+  .append({
+    rules: {
+      'pnpm/yaml-enforce-settings': 'off',
+    },
+  })
