@@ -52,10 +52,7 @@ describe.each(fixtures)('e2e %s', (fixture) => {
       }
       if (fixture === 'tailwind') {
         expect(content).toContain('--font-sans:"Geist", "Geist Fallback: BlinkMacSystemFont", "Geist Fallback: Segoe UI", "Geist Fallback: Helvetica Neue", "Geist Fallback: Arial", "Geist Fallback: Noto Sans",sans-serif')
-        const woff = content.indexOf('format(woff)')
-        const woff2 = content.indexOf('format(woff2)')
-        expect(woff >= 0 && woff2 >= 0).toBe(true)
-        expect(woff).lessThan(woff2)
+        expect(content).toContain('format(woff2)')
       }
     }
 

@@ -3,7 +3,9 @@ import type { FontlessOptions } from './types'
 
 import { createJiti } from 'jiti'
 
-export async function resolveProviders(_providers: FontlessOptions['providers'] = {}, opts: { root: string, alias: Record<string, string> }): Promise<Record<string, ProviderFactory>> {
+type AnyProviderFactory = ProviderFactory<string, any, any>
+
+export async function resolveProviders(_providers: FontlessOptions['providers'] = {}, opts: { root: string, alias: Record<string, string> }): Promise<Record<string, AnyProviderFactory>> {
   const jiti = createJiti(opts.root, { alias: opts.alias })
 
   const providers = { ..._providers }
@@ -13,8 +15,8 @@ export async function resolveProviders(_providers: FontlessOptions['providers'] 
       delete providers[key]
     }
     if (typeof value === 'string') {
-      providers[key] = await jiti.import<ProviderFactory>(value, { default: true })
+      providers[key] = await jiti.import<AnyProviderFactory>(value, { default: true })
     }
   }
-  return providers as Record<string, ProviderFactory>
+  return providers as Record<string, AnyProviderFactory>
 }
