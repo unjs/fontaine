@@ -50,7 +50,10 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
   for (const provider in providers) {
     prioritisedProviders.add(provider)
   }
-  const unifont = await createUnifont(resolvedProviders as [Provider, ...Provider[]], { storage: context.storage })
+  const unifont = await createUnifont(resolvedProviders as [Provider, ...Provider[]], {
+    ...options,
+    storage: context.storage,
+  })
 
   // Custom merging for defaults - providing a value for any default will override module
   // defaults entirely (to prevent array merging)
@@ -59,6 +62,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
     weights: [...new Set((options.defaults?.weights || defaultValues.weights).map(v => String(v)))],
     styles: [...new Set(options.defaults?.styles || defaultValues.styles)],
     subsets: [...new Set(options.defaults?.subsets || defaultValues.subsets)],
+    formats: [...new Set(options.defaults?.formats || defaultValues.formats)],
     fallbacks: Object.fromEntries(Object.entries(defaultValues.fallbacks).map(([key, value]) => [
       key,
       Array.isArray(options.defaults?.fallbacks) ? options.defaults.fallbacks : options.defaults?.fallbacks?.[key as GenericCSSFamily] || value,
@@ -98,18 +102,27 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
       return
     }
 
-    // Respect custom weights, styles and subsets options
+    // Respect custom weights, styles, subsets and formats options
     const defaults = { ...normalizedDefaults, fallbacks }
     for (const key of ['weights', 'styles', 'subsets'] as const) {
       if (override?.[key]) {
         defaults[key as 'weights'] = override[key]!.map(v => String(v))
       }
     }
+    if (override?.formats) {
+      defaults.formats = override.formats
+    }
+
+    // provider-specific options if available
+    const providerOptions = override && 'providerOptions' in override ? override.providerOptions : undefined
 
     // Handle explicit provider
     if (override?.provider) {
       if (override.provider in providers) {
-        const result = await unifont.resolveFont(fontFamily, defaults, [override.provider])
+        const resolveOptions = providerOptions?.[override.provider]
+          ? { ...defaults, options: { [override.provider]: providerOptions[override.provider] } }
+          : defaults
+        const result = await unifont.resolveFont(fontFamily, resolveOptions as typeof defaults, [override.provider])
         // Rewrite font source URLs to be proxied/local URLs
         const fonts = normalizeFontData(result?.fonts || [])
         if (!fonts.length || !result) {
@@ -133,7 +146,12 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
       logger.warn(`Unknown provider \`${override.provider}\` for font family \`${fontFamily}\`. Falling back to default providers.`)
     }
 
-    const result = await unifont.resolveFont(fontFamily, defaults, [...prioritisedProviders])
+    // Build options with provider-specific family options merged
+    const resolveOptions = providerOptions
+      ? { ...defaults, options: providerOptions }
+      : defaults
+
+    const result = await unifont.resolveFont(fontFamily, resolveOptions as typeof defaults, [...prioritisedProviders])
     if (result) {
       // Rewrite font source URLs to be proxied/local URLs
       const fonts = normalizeFontData(result.fonts)

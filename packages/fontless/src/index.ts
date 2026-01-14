@@ -15,10 +15,12 @@ export type {
   FontFamilyManualOverride,
   FontFamilyOverrides,
   FontFamilyProviderOverride,
+  FontFormat,
   FontlessOptions,
   FontProviderName,
   FontSource,
   ManualFontDetails,
+  ProviderFamilyOptions,
   ProviderFontDetails,
 } from './types'
 

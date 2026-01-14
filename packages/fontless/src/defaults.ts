@@ -1,4 +1,4 @@
-import type { FontlessOptions } from './types'
+import type { FontFormat, FontlessOptions } from './types'
 
 import { DEFAULT_CATEGORY_FALLBACKS } from 'fontaine'
 import { providers } from 'unifont'
@@ -7,6 +7,7 @@ interface DefaultValues {
   weights: [400]
   styles: ['normal', 'italic']
   subsets: string[]
+  formats: FontFormat[]
   fallbacks: typeof DEFAULT_CATEGORY_FALLBACKS
 }
 
@@ -22,6 +23,7 @@ export const defaultValues: DefaultValues = {
     'latin-ext',
     'latin',
   ],
+  formats: ['woff2'],
   fallbacks: {
     'serif': DEFAULT_CATEGORY_FALLBACKS.serif,
     'sans-serif': DEFAULT_CATEGORY_FALLBACKS['sans-serif'],

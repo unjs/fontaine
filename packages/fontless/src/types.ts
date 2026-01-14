@@ -1,6 +1,8 @@
-import type { FontFaceData, LocalFontSource, Provider, ProviderFactory, providers, RemoteFontSource, ResolveFontOptions } from 'unifont'
+import type { FontFaceData, GoogleFamilyOptions, GoogleiconsFamilyOptions, LocalFontSource, Provider, ProviderFactory, providers, RemoteFontSource, ResolveFontOptions } from 'unifont'
 
 import type { GenericCSSFamily } from './css/parse'
+
+export type FontFormat = ResolveFontOptions['formats'][number]
 
 export type Awaitable<T> = T | Promise<T>
 
@@ -47,9 +49,20 @@ export interface FontFamilyOverrides {
   // TODO:
   // as?: string
 }
-export interface FontFamilyProviderOverride extends FontFamilyOverrides, Partial<Omit<ResolveFontOptions, 'weights'> & { weights: Array<string | number> }> {
+/** Provider-specific family options that can be passed when resolving a font */
+export type ProviderFamilyOptions = {
+  google?: GoogleFamilyOptions
+  googleicons?: GoogleiconsFamilyOptions
+} & Record<string, Record<string, unknown> | undefined>
+
+export interface FontFamilyProviderOverride extends FontFamilyOverrides, Partial<Omit<ResolveFontOptions, 'weights' | 'options'> & { weights: Array<string | number> }> {
   /** The provider to use when resolving this font. */
   provider?: FontProviderName
+  /**
+   * Provider-specific options for this font family.
+   * These options are passed to the provider when resolving this specific font.
+   */
+  providerOptions?: ProviderFamilyOptions
 }
 
 export type FontSource = string | LocalFontSource | RemoteFontSource
@@ -89,6 +102,11 @@ export interface FontlessOptions {
     weights: Array<string | number>
     styles: ResolveFontOptions['styles']
     subsets: ResolveFontOptions['subsets']
+    /**
+     * Font formats to resolve. Defaults to `['woff2']`.
+     * @default ['woff2']
+     */
+    formats: FontFormat[]
     fallbacks?: Partial<Record<GenericCSSFamily, string[]>>
   }>
   providers?: {
@@ -141,6 +159,12 @@ export interface FontlessOptions {
    * @default 'font-prefixed-only'
    */
   processCSSVariables?: boolean | 'font-prefixed-only'
+  /**
+   * Whether to throw an error when font resolution fails.
+   * When false (default), font resolution failures are logged as warnings.
+   * @default false
+   */
+  throwOnError?: boolean
   experimental?: {
     /**
      * You can disable adding local fallbacks for generated font faces, like `local('Font Face')`.
