@@ -1,11 +1,13 @@
 import type { RollupPlugin } from 'unplugin'
 import type { FontaineTransformOptions } from '../src/transform'
 import { fileURLToPath } from 'node:url'
-import { fromFile, fromUrl } from '@capsizecss/unpack'
+import { fromUrl } from '@capsizecss/unpack'
+import { fromFile } from '@capsizecss/unpack/fs'
 import { describe, expect, it, vi } from 'vitest'
 import { FontaineTransform } from '../src'
 
 vi.mock('@capsizecss/unpack', { spy: true })
+vi.mock('@capsizecss/unpack/fs', { spy: true })
 
 describe('fontaine transform', () => {
   it('should not process non-CSS files', async () => {

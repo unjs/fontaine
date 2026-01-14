@@ -47,7 +47,9 @@
     "lint": "eslint .",
     "prepublishOnly": "pnpm lint && pnpm test",
     "release": "pnpm test && bumpp && npm publish",
-    "test": "vitest run"
+    "test": "pnpm test:unit && pnpm test:types",
+    "test:types": "tsc --noEmit",
+    "test:unit": "vitest run"
   },
   "dependencies": {
     "@capsizecss/unpack": "^4.0.0",

@@ -2,7 +2,8 @@ import type { Font } from '@capsizecss/unpack'
 import type { FontFaceMetrics } from './css'
 
 import { fileURLToPath } from 'node:url'
-import { fromFile, fromUrl } from '@capsizecss/unpack'
+import { fromUrl } from '@capsizecss/unpack'
+import { fromFile } from '@capsizecss/unpack/fs'
 import { parseURL } from 'ufo'
 
 import { withoutQuotes } from './css'
