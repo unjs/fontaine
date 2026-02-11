@@ -2,7 +2,7 @@
   "name": "fontaine-monorepo",
   "preview": true,
   "type": "module",
-  "packageManager": "pnpm@10.28.0",
+  "packageManager": "pnpm@10.29.2",
   "description": "Automatic font fallback based on font metrics",
   "author": {
     "name": "Daniel Roe",
@@ -22,13 +22,13 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "6.7.3",
-    "bumpp": "10.4.0",
+    "bumpp": "10.4.1",
     "changelogithub": "14.0.0",
     "eslint": "9.39.2",
     "installed-check": "9.3.0",
-    "knip": "5.81.0",
+    "knip": "5.83.1",
     "lint-staged": "16.2.7",
-    "pkg-pr-new": "0.0.62",
+    "pkg-pr-new": "0.0.63",
     "simple-git-hooks": "2.13.1",
     "typescript": "5.9.3"
   },
@@ -36,7 +36,7 @@
     "@nuxt/fonts>fontaine": "latest",
     "fontaine": "workspace:*",
     "fontless": "workspace:*",
-    "unstorage": "1.17.3",
+    "unstorage": "1.17.4",
     "vue": "3.5.26"
   },
   "simple-git-hooks": {
