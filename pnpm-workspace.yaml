@@ -1,5 +1,3 @@
-shellEmulator: true
-
 packages:
   - packages/*
   - packages/fontaine/playground
@@ -7,8 +5,13 @@ packages:
   - packages/fontless/examples/*
 
 ignoredBuiltDependencies:
+  - '@parcel/watcher'
+  - '@swc/core'
   - esbuild
+  - vue-demi
 
 onlyBuiltDependencies:
   - shadcn-docs-nuxt
   - simple-git-hooks
+
+shellEmulator: true
