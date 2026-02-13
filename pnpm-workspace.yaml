@@ -1,3 +1,5 @@
+shellEmulator: true
+
 packages:
   - packages/*
   - packages/fontaine/playground
@@ -13,5 +15,3 @@ ignoredBuiltDependencies:
 onlyBuiltDependencies:
   - shadcn-docs-nuxt
   - simple-git-hooks
-
-shellEmulator: true
