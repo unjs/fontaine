@@ -34,7 +34,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
       delete providers[key]
     }
     else {
-      const providerOptions = (options[key as 'google' | 'local' | 'adobe'] || {}) as Record<string, unknown>
+      const providerOptions = (options[key as 'google' | 'local' | 'adobe' | 'npm'] || {}) as Record<string, unknown>
       resolvedProviders.push(provider(providerOptions))
     }
   }

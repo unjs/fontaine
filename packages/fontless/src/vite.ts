@@ -4,6 +4,7 @@ import type { FontlessOptions } from './types'
 import type { FontFamilyInjectionPluginOptions } from './utils'
 
 import { Buffer } from 'node:buffer'
+import { readFile } from 'node:fs/promises'
 import { defu } from 'defu'
 import { joinURL } from 'ufo'
 import { normalizeFontData } from './assets'
@@ -37,6 +38,12 @@ export function fontless(_options?: FontlessOptions): Plugin {
 
       const alias = Array.isArray(config.resolve.alias) ? {} : config.resolve.alias
       const providers = await resolveProviders(options.providers, { root: config.root, alias })
+
+      // Auto-inject readFile and root for the npm provider
+      options.npm = defu(options.npm, {
+        readFile: (path: string) => readFile(path, 'utf-8').catch(() => null),
+        root: config.root,
+      })
 
       const resolveFontFaceWithOverride = await createResolver({
         options,

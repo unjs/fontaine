@@ -116,6 +116,7 @@ export interface FontlessOptions {
     fontsource?: ProviderOption
     google?: ProviderOption
     googleicons?: ProviderOption
+    npm?: ProviderOption
     [key: string]: ProviderOption | undefined
   }
   /** Configure the way font assets are exposed */
@@ -142,6 +143,8 @@ export interface FontlessOptions {
   google?: typeof providers.google extends ProviderFactory<any, infer O> ? O : Record<string, never>
   /** Options passed directly to `googleicons` font provider */
   googleicons?: typeof providers.googleicons extends ProviderFactory<any, infer O> ? O : Record<string, never>
+  /** Options passed directly to `npm` font provider */
+  npm?: typeof providers.npm extends ProviderFactory<any, infer O> ? O : Record<string, never>
   /**
    * An ordered list of providers to check when resolving font families.
    *

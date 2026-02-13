@@ -1,6 +1,6 @@
 import { DEFAULT_CATEGORY_FALLBACKS } from 'fontaine'
 import { describe, expect, it } from 'vitest'
-import { defaultValues } from '../src/defaults'
+import { defaultOptions, defaultValues } from '../src/defaults'
 
 describe('fontless defaults', () => {
   describe('fallbacks', () => {
@@ -61,6 +61,19 @@ describe('fontless defaults', () => {
       expect(defaultValues.subsets).toContain('latin-ext')
       expect(defaultValues.subsets).toContain('cyrillic')
       expect(defaultValues.subsets).toContain('greek')
+    })
+  })
+
+  describe('providers', () => {
+    it('should include npm provider in default providers', () => {
+      expect(defaultOptions.providers).toHaveProperty('npm')
+      expect(defaultOptions.providers!.npm).toBeDefined()
+      expect(defaultOptions.providers!.npm).not.toBe(false)
+    })
+
+    it('should set npm remote to false by default', () => {
+      expect(defaultOptions.npm).toBeDefined()
+      expect(defaultOptions.npm).toHaveProperty('remote', false)
     })
   })
 })

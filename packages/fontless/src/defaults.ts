@@ -53,6 +53,9 @@ export const defaultOptions: FontlessOptions = {
   adobe: {
     id: '',
   },
+  npm: {
+    remote: false,
+  },
   providers: {
     adobe: providers.adobe,
     google: providers.google,
@@ -60,5 +63,6 @@ export const defaultOptions: FontlessOptions = {
     bunny: providers.bunny,
     fontshare: providers.fontshare,
     fontsource: providers.fontsource,
+    npm: providers.npm,
   },
 }

@@ -259,4 +259,116 @@ describe('createResolver', () => {
       expect(result).toBeUndefined()
     })
   })
+
+  describe('npm provider', () => {
+    it('should resolve fonts through npm provider', async () => {
+      const { provider, calls } = createTrackingProvider('npm')
+
+      const options: FontlessOptions = {
+        providers: { npm: provider },
+        npm: { remote: false },
+      }
+
+      const resolver = await createResolver({
+        options,
+        providers: { npm: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      await resolver('Inter')
+
+      expect(calls).toHaveLength(1)
+      expect(calls[0]?.family).toBe('Inter')
+    })
+
+    it('should pass npm options to provider', async () => {
+      const { provider, calls } = createTrackingProvider('npm')
+
+      const options: FontlessOptions = {
+        providers: { npm: provider },
+        npm: {
+          remote: false,
+          root: '/project',
+        },
+      }
+
+      const resolver = await createResolver({
+        options,
+        providers: { npm: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      await resolver('Inter')
+
+      expect(calls).toHaveLength(1)
+    })
+
+    it('should resolve npm provider alongside other providers', async () => {
+      const { provider: npmProvider, calls: npmCalls } = createTrackingProvider('npm')
+      const { provider: googleProvider, calls: googleCalls } = createTrackingProvider('google')
+
+      const options: FontlessOptions = {
+        providers: { google: googleProvider, npm: npmProvider },
+        npm: { remote: false },
+      }
+
+      const resolver = await createResolver({
+        options,
+        providers: { google: googleProvider, npm: npmProvider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      await resolver('Inter')
+
+      // google provider resolves first since it's listed first
+      expect(googleCalls).toHaveLength(1)
+      // npm provider is not called since google already resolved
+      expect(npmCalls).toHaveLength(0)
+    })
+
+    it('should resolve with explicit npm provider override', async () => {
+      const { provider: npmProvider, calls: npmCalls } = createTrackingProvider('npm')
+      const { provider: googleProvider, calls: googleCalls } = createTrackingProvider('google')
+
+      const options: FontlessOptions = {
+        providers: { google: googleProvider, npm: npmProvider },
+        npm: { remote: false },
+      }
+
+      const resolver = await createResolver({
+        options,
+        providers: { google: googleProvider, npm: npmProvider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      const override: FontFamilyProviderOverride = {
+        name: 'Inter',
+        provider: 'npm',
+      }
+
+      await resolver('Inter', override)
+
+      // Only npm provider should be called
+      expect(npmCalls).toHaveLength(1)
+      expect(googleCalls).toHaveLength(0)
+    })
+
+    it('should allow disabling npm provider', async () => {
+      const { provider: googleProvider, calls: googleCalls } = createTrackingProvider('google')
+
+      const options: FontlessOptions = {
+        providers: { google: googleProvider, npm: false },
+      }
+
+      const resolver = await createResolver({
+        options,
+        providers: { google: googleProvider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      await resolver('Inter')
+
+      expect(googleCalls).toHaveLength(1)
+    })
+  })
 })

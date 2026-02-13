@@ -40,7 +40,7 @@ Effortlessly optimize web fonts with fontless. Zero-runtime CSS solution for Goo
   title: Multiple provider support
   icon: lucide:file-stack
   ---
-  Google Fonts, Bunny Fonts, FontShare, FontSource, and more using unifont.
+  Google Fonts, Bunny Fonts, FontShare, FontSource, npm packages, and more using unifont.
   ::
 
   ::card
@@ -130,6 +130,7 @@ fontless({
     bunny: true,           // Bunny Fonts
     fontshare: true,       // FontShare
     fontsource: true,      // FontSource
+    npm: true,             // npm packages (@fontsource/*, etc.)
     // Disable a provider
     adobe: false
   },
@@ -172,6 +173,59 @@ fontless({
   experimental: {
     disableLocalFallbacks: false
   }
+})
+```
+
+## npm Provider
+
+The `npm` provider resolves fonts from locally installed npm packages such as [`@fontsource/*`](https://fontsource.org/), [`@fontsource-variable/*`](https://fontsource.org/), and [`cal-sans`](https://github.com/calcom/font). It is enabled by default with `remote: false`, meaning it only reads from your local `node_modules` without making any network requests.
+
+### Basic usage
+
+Install a font package and use it in your CSS:
+
+```bash
+pnpm install @fontsource/inter
+```
+
+```css
+.my-text {
+  font-family: "Inter", sans-serif;
+}
+```
+
+The npm provider will automatically detect the installed `@fontsource/inter` package and resolve the font from `node_modules`.
+
+### Configuration
+
+```js
+fontless({
+  // npm provider options
+  npm: {
+    // Only resolve from local node_modules (default: false)
+    remote: false,
+    // Enable CDN fallback when local resolution fails
+    // remote: true,
+  },
+})
+```
+
+You can also specify npm-specific options per font family:
+
+```js
+fontless({
+  families: [
+    {
+      name: 'Inter',
+      provider: 'npm',
+      providerOptions: {
+        npm: {
+          package: '@fontsource/inter',
+          file: 'index.css',
+        },
+      },
+    },
+  ],
 })
 ```
 
