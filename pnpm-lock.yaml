@@ -152,8 +152,8 @@ importers:
         specifier: ^1.6.1
         version: 1.6.3
       unifont:
-        specifier: ^0.7.3
-        version: 0.7.3
+        specifier: ^0.7.4
+        version: 0.7.4
       unstorage:
         specifier: 1.17.4
         version: 1.17.4(db0@0.3.4)(ioredis@5.9.2)
@@ -11990,8 +11990,8 @@ packages:
   unifont@0.4.1:
     resolution: {integrity: sha512-zKSY9qO8svWYns+FGKjyVdLvpGPwqmsCjeJLN1xndMiqxHWBAhoWDMYMG960MxeV48clBmG+fDP59dHY1VoZvg==}
 
-  unifont@0.7.3:
-    resolution: {integrity: sha512-b0GtQzKCyuSHGsfj5vyN8st7muZ6VCI4XD4vFlr7Uy1rlWVYxC3npnfk8MyreHxJYrz1ooLDqDzFe9XqQTlAhA==}
+  unifont@0.7.4:
+    resolution: {integrity: sha512-oHeis4/xl42HUIeHuNZRGEvxj5AaIKR+bHPNegRq5LV1gdc3jundpONbjglKpihmJf+dswygdMJn3eftGIMemg==}
 
   unimport@5.6.0:
     resolution: {integrity: sha512-8rqAmtJV8o60x46kBAJKtHpJDJWkA2xcBqWKPI14MgUb05o1pnpnCnXSxedUXyeq7p8fR5g3pTo2BaswZ9lD9A==}
@@ -26533,7 +26533,7 @@ snapshots:
       css-tree: 3.1.0
       ohash: 2.0.11
 
-  unifont@0.7.3:
+  unifont@0.7.4:
     dependencies:
       css-tree: 3.1.0
       ofetch: 1.5.1
