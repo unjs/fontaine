@@ -2,6 +2,9 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "ignoreBinaries": ["playwright", "test-e2e"],
   "workspaces": {
+    ".": {
+      "ignoreDependencies": ["changelogen"]
+    },
     "packages/fontless": {
       "ignoreDependencies": [
         "vite"
