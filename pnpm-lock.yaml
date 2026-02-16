@@ -22,7 +22,7 @@ importers:
         specifier: 10.4.1
         version: 10.4.1(magicast@0.3.5)
       changelogen:
-        specifier: ^0.6.2
+        specifier: 0.6.2
         version: 0.6.2(magicast@0.3.5)
       changelogithub:
         specifier: 14.0.0
