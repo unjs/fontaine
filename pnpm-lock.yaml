@@ -70,8 +70,8 @@ importers:
         specifier: ^1.6.1
         version: 1.6.3
       unplugin:
-        specifier: ^2.3.10
-        version: 2.3.11
+        specifier: ^3.0.0
+        version: 3.0.0
     devDependencies:
       '@capsizecss/metrics':
         specifier: 3.6.2
