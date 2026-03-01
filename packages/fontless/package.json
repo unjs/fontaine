@@ -78,7 +78,7 @@
     "@playwright/test": "1.58.2",
     "@types/css-tree": "2.3.11",
     "@vitest/coverage-v8": "4.0.18",
-    "rollup": "4.57.1",
+    "rollup": "4.59.0",
     "tinyexec": "1.0.2",
     "tsdown": "0.20.3",
     "typescript": "5.9.3",

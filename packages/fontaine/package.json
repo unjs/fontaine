@@ -62,7 +62,7 @@
   "devDependencies": {
     "@capsizecss/metrics": "3.6.2",
     "@types/css-tree": "2.3.11",
-    "@types/node": "24.10.13",
+    "@types/node": "24.11.0",
     "@types/serve-handler": "6.1.4",
     "@vitest/coverage-v8": "4.0.18",
     "eslint": "10.0.2",
