@@ -242,10 +242,10 @@ Published under [MIT License](./LICENCE).
 
 <!-- Badges -->
 
-[npm-version-src]: https://img.shields.io/npm/v/fontaine?style=flat-square
-[npm-version-href]: https://npmjs.com/package/fontaine
-[npm-downloads-src]: https://img.shields.io/npm/dm/fontaine?style=flat-square
-[npm-downloads-href]: https://npmjs.com/package/fontaine
+[npm-version-src]: https://npmx.dev/api/registry/badge/version/fontaine
+[npm-version-href]: https://npmx.dev/package/fontaine
+[npm-downloads-src]: https://npmx.dev/api/registry/badge/downloads/fontaine
+[npm-downloads-href]: https://npmx.dev/package/fontaine
 [github-actions-src]: https://img.shields.io/github/actions/workflow/status/unjs/fontaine/ci.yml?branch=main&style=flat-square
 [github-actions-href]: https://github.com/unjs/fontaine/actions/workflows/ci.yml
 [codecov-src]: https://img.shields.io/codecov/c/gh/unjs/fontaine/main?style=flat-square
