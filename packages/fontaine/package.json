@@ -57,7 +57,7 @@
     "magic-string": "^0.30.21",
     "pathe": "^2.0.3",
     "ufo": "^1.6.1",
-    "unplugin": "^2.3.10"
+    "unplugin": "^3.0.0"
   },
   "devDependencies": {
     "@capsizecss/metrics": "3.6.2",
