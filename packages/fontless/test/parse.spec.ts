@@ -301,9 +301,19 @@ describe('custom prefix for processCSSVariables', () => {
     expect(result).not.toContain(`src: url("/otherfont.woff2")`)
   })
 
+  it('should process --font-* variables only when prefix is "font-prefixed-only"', async () => {
+    const result = await transformWithPrefix(`:root { --font-heading: 'CustomFont'; --other-var: 'OtherFont' }`, 'font-prefixed-only')
+    expect(result).toContain('@font-face')
+    expect(result).toContain(`src: url("/customfont.woff2")`)
+    expect(result).not.toContain(`src: url("/otherfont.woff2")`)
+  })
+
   it('should treat empty string prefix as disabled (no CSS variable processing)', async () => {
-    const result = await transformWithPrefix(`:root { --heading: 'CustomFont' }`, '')
-    expect(result).not.toContain('@font-face')
+    const cssVarOnly = await transformWithPrefix(`:root { --heading: 'CustomFont' }`, '')
+    expect(cssVarOnly).not.toContain('@font-face')
+
+    const withFontFamily = await transformWithPrefix(`:root { font-family: 'CustomFont' }`, '')
+    expect(withFontFamily).toContain('@font-face')
   })
 
   it('should match prefix case-sensitively', async () => {
