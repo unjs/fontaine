@@ -79,7 +79,7 @@ function shouldSkipDeclaration(
     return true
   if (property === 'font-family' || property === 'font')
     return false
-  if (processCSSVariables === false || processCSSVariables === '')
+  if (!processCSSVariables)
     return true
   if (processCSSVariables === 'font-prefixed-only')
     return !property.startsWith('--font')
