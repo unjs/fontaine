@@ -252,6 +252,85 @@ describe('parsing css', () => {
   })
 })
 
+describe('custom prefix for processCSSVariables', () => {
+  const transformWithPrefix = async (css: string, prefix: string) => {
+    const result = await transformCSS({
+      dev: true,
+      processCSSVariables: prefix,
+      shouldPreload: () => true,
+      fontsToPreload: new Map(),
+      resolveFontFace: (family, options) => ({
+        fonts: [{ src: [{ url: `/${family.toLowerCase().replace(/\W/g, '-')}.woff2`, format: 'woff2' }] }],
+        fallbacks: options?.fallbacks ? ['Times New Roman', ...options.fallbacks] : undefined,
+      }),
+    }, css, 'some-id')
+    return result?.toString()
+  }
+
+  it('should process CSS variables matching the custom prefix', async () => {
+    expect(await transformWithPrefix(`:root { --my-app-heading: 'CustomFont' }`, 'my-app'))
+      .toMatchInlineSnapshot(`
+        "@font-face {
+          font-family: 'CustomFont';
+          src: url("/customfont.woff2") format(woff2);
+          font-display: swap;
+        }
+        :root { --my-app-heading: 'CustomFont' }"
+      `)
+  })
+
+  it('should skip CSS variables not matching the custom prefix', async () => {
+    const result = await transformWithPrefix(`:root { --other-var: 'CustomFont' }`, 'my-app')
+    expect(result).not.toContain('@font-face')
+  })
+
+  it('should still process font-family properties regardless of prefix', async () => {
+    expect(await transformWithPrefix(`:root { font-family: 'CustomFont' }`, 'my-app'))
+      .toContain('@font-face')
+  })
+
+  it('should still process font shorthand properties regardless of prefix', async () => {
+    expect(await transformWithPrefix(`:root { font: 1.2em 'CustomFont' }`, 'my-app'))
+      .toContain('@font-face')
+  })
+
+  it('should process --font-* variables only when prefix is "font"', async () => {
+    const result = await transformWithPrefix(`:root { --font-heading: 'CustomFont'; --other-var: 'OtherFont' }`, 'font')
+    expect(result).toContain('@font-face')
+    expect(result).toContain(`src: url("/customfont.woff2")`)
+    expect(result).not.toContain(`src: url("/otherfont.woff2")`)
+  })
+
+  it('should treat empty string prefix as disabled (no CSS variable processing)', async () => {
+    const result = await transformWithPrefix(`:root { --heading: 'CustomFont' }`, '')
+    expect(result).not.toContain('@font-face')
+  })
+
+  it('should match prefix case-sensitively', async () => {
+    const upper = await transformWithPrefix(`:root { --My-App-heading: 'CustomFont' }`, 'My-App')
+    expect(upper).toContain('@font-face')
+
+    const lower = await transformWithPrefix(`:root { --my-app-heading: 'CustomFont' }`, 'My-App')
+    expect(lower).not.toContain('@font-face')
+  })
+
+  it('should not match prefix as substring of a longer segment', async () => {
+    const exact = await transformWithPrefix(`:root { --app-font: 'CustomFont' }`, 'app')
+    expect(exact).toContain('@font-face')
+
+    const substring = await transformWithPrefix(`:root { --my-app-font: 'CustomFont' }`, 'app')
+    expect(substring).not.toContain('@font-face')
+  })
+
+  it('should require a dash delimiter after the prefix', async () => {
+    const delimited = await transformWithPrefix(`:root { --my-app-heading: 'CustomFont' }`, 'my-app')
+    expect(delimited).toContain('@font-face')
+
+    const noDelimiter = await transformWithPrefix(`:root { --my-appbar: 'CustomFont' }`, 'my-app')
+    expect(noDelimiter).not.toContain('@font-face')
+  })
+})
+
 const slugify = (str: string) => str.toLowerCase().replace(/\W/g, '-')
 
 describe('lightningcss integration', () => {

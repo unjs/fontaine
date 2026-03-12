@@ -159,9 +159,15 @@ export interface FontlessOptions {
   provider?: FontProviderName
   /**
    * You can enable support for processing CSS variables for font family names.
+   *
+   * - `false` — disable CSS variable processing
+   * - `'font-prefixed-only'` — process only `--font-*` CSS variables
+   * - `true` — process all CSS variables (may have performance impact)
+   * - Any custom string — process only CSS variables matching `--<prefix>*` (e.g., `'my-app'` processes `--my-app-*` variables)
+   *
    * @default 'font-prefixed-only'
    */
-  processCSSVariables?: boolean | 'font-prefixed-only'
+  processCSSVariables?: boolean | 'font-prefixed-only' | (string & {})
   /**
    * Whether to throw an error when font resolution fails.
    * When false (default), font resolution failures are logged as warnings.
@@ -179,6 +185,6 @@ export interface FontlessOptions {
      * @default 'font-prefixed-only'
      * @deprecated This feature is no longer experimental. Use `processCSSVariables` instead. For Tailwind v4 users, setting this option to `true` is no longer needed or recommended.
      */
-    processCSSVariables?: boolean | 'font-prefixed-only'
+    processCSSVariables?: boolean | 'font-prefixed-only' | (string & {})
   }
 }

@@ -26,7 +26,7 @@ export interface FontFamilyInjectionPluginOptions {
   lightningcssOptions?: Partial<LightningCSSTransformOptions<any>>
   resolveFontFace: (fontFamily: string, fallbackOptions?: { fallbacks: string[], generic?: GenericCSSFamily }) => Awaitable<undefined | FontFaceResolution>
   dev: boolean
-  processCSSVariables?: boolean | 'font-prefixed-only'
+  processCSSVariables?: boolean | 'font-prefixed-only' | (string & {})
   shouldPreload: (fontFamily: string, font: FontFaceData) => boolean
   fontsToPreload: Map<string, Set<string>>
 }
@@ -186,9 +186,13 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
         if ((
           (node.property !== 'font-family' && node.property !== 'font')
           && (options.processCSSVariables === false
+            || options.processCSSVariables === ''
             || (options.processCSSVariables === 'font-prefixed-only' && !node.property.startsWith('--font'))
-            || (options.processCSSVariables === true && !node.property.startsWith('--'))))
-          || this.atrule?.name === 'font-face') {
+            || (options.processCSSVariables === true && !node.property.startsWith('--'))
+            || (typeof options.processCSSVariables === 'string'
+              && options.processCSSVariables !== 'font-prefixed-only'
+              && !node.property.startsWith(`--${options.processCSSVariables}-`))))
+            || this.atrule?.name === 'font-face') {
           return
         }
 
