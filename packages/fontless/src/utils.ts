@@ -70,6 +70,24 @@ function findSafeInsertionIndex(ast: CssNode): number {
   return safeIndex
 }
 
+function shouldSkipDeclaration(
+  property: string,
+  processCSSVariables: FontFamilyInjectionPluginOptions['processCSSVariables'],
+  atRuleName?: string,
+): boolean {
+  if (atRuleName === 'font-face')
+    return true
+  if (property === 'font-family' || property === 'font')
+    return false
+  if (processCSSVariables === false || processCSSVariables === '')
+    return true
+  if (processCSSVariables === 'font-prefixed-only')
+    return !property.startsWith('--font')
+  if (processCSSVariables === true)
+    return !property.startsWith('--')
+  return !property.startsWith(`--${processCSSVariables}-`)
+}
+
 export async function transformCSS(options: FontFamilyInjectionPluginOptions, code: string, id: string, opts: { relative?: boolean } = {}): Promise<MagicString> {
   const s = new MagicString(code)
   const ast = parse(code, { positions: true })
@@ -183,16 +201,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
     walk(node, {
       visit: 'Declaration',
       enter(node) {
-        if ((
-          (node.property !== 'font-family' && node.property !== 'font')
-          && (options.processCSSVariables === false
-            || options.processCSSVariables === ''
-            || (options.processCSSVariables === 'font-prefixed-only' && !node.property.startsWith('--font'))
-            || (options.processCSSVariables === true && !node.property.startsWith('--'))
-            || (typeof options.processCSSVariables === 'string'
-              && options.processCSSVariables !== 'font-prefixed-only'
-              && !node.property.startsWith(`--${options.processCSSVariables}-`))))
-            || this.atrule?.name === 'font-face') {
+        if (shouldSkipDeclaration(node.property, options.processCSSVariables, this.atrule?.name)) {
           return
         }
 
