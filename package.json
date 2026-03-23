@@ -31,7 +31,7 @@
     "lint-staged": "16.2.7",
     "pkg-pr-new": "0.0.63",
     "simple-git-hooks": "2.13.1",
-    "typescript": "5.9.3"
+    "typescript": "6.0.2"
   },
   "resolutions": {
     "@nuxt/fonts>fontaine": "latest",
