@@ -38,7 +38,7 @@
     "fontaine": "workspace:*",
     "fontless": "workspace:*",
     "unstorage": "1.17.4",
-    "vue": "3.5.30"
+    "vue": "3.5.31"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
