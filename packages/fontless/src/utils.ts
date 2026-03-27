@@ -26,7 +26,7 @@ export interface FontFamilyInjectionPluginOptions {
   lightningcssOptions?: Partial<LightningCSSTransformOptions<any>>
   resolveFontFace: (fontFamily: string, fallbackOptions?: { fallbacks: string[], generic?: GenericCSSFamily }) => Awaitable<undefined | FontFaceResolution>
   dev: boolean
-  processCSSVariables?: boolean | 'font-prefixed-only'
+  processCSSVariables?: boolean | 'font-prefixed-only' | (string & {})
   shouldPreload: (fontFamily: string, font: FontFaceData) => boolean
   fontsToPreload: Map<string, Set<string>>
 }
@@ -68,6 +68,24 @@ function findSafeInsertionIndex(ast: CssNode): number {
   })
 
   return safeIndex
+}
+
+function shouldSkipDeclaration(
+  property: string,
+  processCSSVariables: FontFamilyInjectionPluginOptions['processCSSVariables'],
+  atRuleName?: string,
+): boolean {
+  if (atRuleName === 'font-face')
+    return true
+  if (property === 'font-family' || property === 'font')
+    return false
+  if (!processCSSVariables)
+    return true
+  if (processCSSVariables === 'font-prefixed-only')
+    return !property.startsWith('--font')
+  if (processCSSVariables === true)
+    return !property.startsWith('--')
+  return !property.startsWith(`--${processCSSVariables}-`)
 }
 
 export async function transformCSS(options: FontFamilyInjectionPluginOptions, code: string, id: string, opts: { relative?: boolean } = {}): Promise<MagicString> {
@@ -183,12 +201,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
     walk(node, {
       visit: 'Declaration',
       enter(node) {
-        if ((
-          (node.property !== 'font-family' && node.property !== 'font')
-          && (options.processCSSVariables === false
-            || (options.processCSSVariables === 'font-prefixed-only' && !node.property.startsWith('--font'))
-            || (options.processCSSVariables === true && !node.property.startsWith('--'))))
-          || this.atrule?.name === 'font-face') {
+        if (shouldSkipDeclaration(node.property, options.processCSSVariables, this.atrule?.name)) {
           return
         }
 
