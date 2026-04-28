@@ -6,6 +6,12 @@ packages:
   - packages/fontless/docs
   - packages/fontless/examples/*
 
+overrides:
+  '@nuxt/fonts>fontaine': latest
+  fontaine: 'workspace:*'
+  fontless: 'workspace:*'
+  unstorage: 1.17.4
+  vue: 3.5.30
 ignoredBuiltDependencies:
   - '@parcel/watcher'
   - '@swc/core'
@@ -15,10 +21,3 @@ ignoredBuiltDependencies:
 onlyBuiltDependencies:
   - shadcn-docs-nuxt
   - simple-git-hooks
-
-overrides:
-  "@nuxt/fonts>fontaine": "latest"
-  fontaine: "workspace:*"
-  fontless: "workspace:*"
-  unstorage: "1.17.4"
-  vue: "3.5.30"
