@@ -33,13 +33,6 @@
     "simple-git-hooks": "2.13.1",
     "typescript": "6.0.2"
   },
-  "resolutions": {
-    "@nuxt/fonts>fontaine": "latest",
-    "fontaine": "workspace:*",
-    "fontless": "workspace:*",
-    "unstorage": "1.17.4",
-    "vue": "3.5.30"
-  },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
   },
