@@ -4,11 +4,19 @@ import { basename, dirname, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { FontaineTransform, type FontaineTransformOptions } from './transform'
 
+/** Options for transforming a CSS file from the fontaine CLI or API. */
 export interface FontaineCliOptions extends Partial<FontaineTransformOptions> {
+  /** CSS file to transform. */
   input: string
+  /** Output file path. Defaults to `<input>.fontaine.css`. */
   output?: string
 }
 
+/**
+ * Transform a CSS file with Fontaine and write the generated output.
+ *
+ * @returns The resolved output path.
+ */
 export async function transformCssFile({ input, output, ...options }: FontaineCliOptions): Promise<string> {
   const inputPath = resolve(input)
   const source = readFileSync(inputPath, 'utf8')
@@ -31,6 +39,7 @@ export async function transformCssFile({ input, output, ...options }: FontaineCl
   return outputPath
 }
 
+/** Print command-line usage information. */
 function printHelp() {
   console.log(`Usage: fontaine <input.css> [output.css]
 
@@ -42,6 +51,7 @@ Arguments:
 `)
 }
 
+/** Run the Fontaine command-line interface. */
 async function main() {
   const [, , ...args] = process.argv
 
