@@ -1,8 +1,10 @@
 #!/usr/bin/env node
+import type { FontaineTransformOptions } from './transform'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { basename, dirname, resolve } from 'node:path'
+import { basename, dirname, extname, resolve } from 'node:path'
+import process from 'node:process'
 import { pathToFileURL } from 'node:url'
-import { FontaineTransform, type FontaineTransformOptions } from './transform'
+import { FontaineTransform } from './transform'
 
 /** Options for transforming a CSS file from the fontaine CLI or API. */
 export interface FontaineCliOptions extends Partial<FontaineTransformOptions> {
@@ -32,7 +34,9 @@ export async function transformCssFile({ input, output, ...options }: FontaineCl
 
   const transformed = await transform.handler.call({} as any, source, inputPath)
   const code = typeof transformed === 'string' ? transformed : transformed?.code || source
-  const outputPath = output ? resolve(output) : inputPath.replace(/\.css$/, '.fontaine.css')
+  const outputPath = output
+    ? resolve(output)
+    : `${inputPath.slice(0, Math.max(0, inputPath.length - extname(inputPath).length))}.fontaine.css`
 
   mkdirSync(dirname(outputPath), { recursive: true })
   writeFileSync(outputPath, code)
