@@ -33,7 +33,7 @@ export async function transformCssFile({ input, output, ...options }: FontaineCl
     throw new Error('Fontaine transform hook is unavailable')
 
   const transformed = await transform.handler.call({} as any, source, inputPath)
-  const code = typeof transformed === 'string' ? transformed : transformed?.code || source
+  const code = typeof transformed === 'string' ? transformed : (transformed?.code ?? source)
   const outputPath = output
     ? resolve(output)
     : `${inputPath.slice(0, Math.max(0, inputPath.length - extname(inputPath).length))}.fontaine.css`
@@ -65,6 +65,12 @@ async function main() {
   }
 
   const [input, output] = args
+
+  if (args.length > 2) {
+    console.error('Too many positional arguments. Expected: fontaine <input.css> [output.css]')
+    process.exitCode = 1
+    return
+  }
 
   if (!input) {
     printHelp()
