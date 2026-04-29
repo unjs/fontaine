@@ -77,12 +77,12 @@
   "devDependencies": {
     "@playwright/test": "1.58.2",
     "@types/css-tree": "2.3.11",
-    "@vitest/coverage-v8": "4.1.4",
+    "@vitest/coverage-v8": "4.1.5",
     "rollup": "4.57.1",
     "tinyexec": "1.0.2",
     "tsdown": "0.20.3",
     "typescript": "6.0.2",
     "vite": "7.3.2",
-    "vitest": "4.1.4"
+    "vitest": "4.1.5"
   }
 }
