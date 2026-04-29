@@ -22,10 +22,11 @@ export interface FontaineCliOptions extends Partial<FontaineTransformOptions> {
 export async function transformCssFile({ input, output, ...options }: FontaineCliOptions): Promise<string> {
   const inputPath = resolve(input)
   const source = readFileSync(inputPath, 'utf8')
+  const { fallbacks = ['Arial'], resolvePath, ...transformOptions } = options
   const plugin = FontaineTransform.rollup({
-    fallbacks: ['Arial'],
-    ...options,
-    resolvePath: options.resolvePath || (id => pathToFileURL(resolve(dirname(inputPath), id)).toString()),
+    ...transformOptions,
+    fallbacks,
+    resolvePath: resolvePath || (id => pathToFileURL(resolve(dirname(inputPath), id)).toString()),
   })
   const transformPlugin = Array.isArray(plugin) ? plugin[0]! : plugin
   const transform = transformPlugin.transform
