@@ -10,7 +10,7 @@ overrides:
   '@nuxt/fonts>fontaine': latest
   fontaine: 'workspace:*'
   fontless: 'workspace:*'
-  unstorage: 1.17.4
+  unstorage: 1.17.5
   vue: 3.5.30
 ignoredBuiltDependencies:
   - '@parcel/watcher'
