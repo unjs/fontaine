@@ -21,17 +21,17 @@
     "postinstall": "simple-git-hooks install && pnpm --filter fontaine build"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "8.2.0",
-    "bumpp": "11.0.1",
+    "@antfu/eslint-config": "8.3.0",
+    "bumpp": "11.1.0",
     "changelogen": "0.6.2",
     "changelogithub": "14.0.0",
     "eslint": "10.2.1",
     "installed-check": "10.0.1",
-    "knip": "6.0.3",
-    "lint-staged": "16.2.7",
-    "pkg-pr-new": "0.0.63",
+    "knip": "6.14.1",
+    "lint-staged": "16.4.0",
+    "pkg-pr-new": "0.0.73",
     "simple-git-hooks": "2.13.1",
-    "typescript": "6.0.2"
+    "typescript": "6.0.3"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
