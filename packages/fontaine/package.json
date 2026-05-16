@@ -70,7 +70,7 @@
     "serve-handler": "6.1.6",
     "tsdown": "0.20.3",
     "typescript": "6.0.2",
-    "vite": "7.3.2",
+    "vite": "8.0.13",
     "vitest": "4.1.4"
   }
 }
