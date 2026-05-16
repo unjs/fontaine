@@ -21,7 +21,7 @@
     "postinstall": "simple-git-hooks install && pnpm --filter fontaine build"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "8.2.0",
+    "@antfu/eslint-config": "9.0.0",
     "bumpp": "11.0.1",
     "changelogen": "0.6.2",
     "changelogithub": "14.0.0",
