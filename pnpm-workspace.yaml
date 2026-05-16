@@ -12,12 +12,14 @@ overrides:
   fontless: 'workspace:*'
   unstorage: 1.17.4
   vue: 3.5.30
-ignoredBuiltDependencies:
-  - '@parcel/watcher'
-  - '@swc/core'
-  - esbuild
-  - vue-demi
 
-onlyBuiltDependencies:
-  - shadcn-docs-nuxt
-  - simple-git-hooks
+allowBuilds:
+  '@parcel/watcher': false
+  '@swc/core': false
+  esbuild: false
+  lmdb: false
+  msgpackr-extract: false
+  shadcn-docs-nuxt: true
+  sharp: false
+  simple-git-hooks: true
+  vue-demi: false
