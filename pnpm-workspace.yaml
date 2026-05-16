@@ -11,7 +11,7 @@ overrides:
   fontaine: 'workspace:*'
   fontless: 'workspace:*'
   unstorage: 1.17.4
-  vue: 3.5.30
+  vue: 3.5.34
 
 allowBuilds:
   '@parcel/watcher': false
