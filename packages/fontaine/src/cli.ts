@@ -10,13 +10,16 @@ const { values } = parseArgs({
 });
 
 if (!values.input || !values.output) {
-  console.error('Usage: fontaine --input <file> --output <file>');
+  console.error('Usage: fontaine --input <file|url> --output <file>');
   process.exit(1);
 }
 
+console.log(`[*] Transforming: ${values.input} -> ${values.output}`);
+
 try {
   await transformCssFile(values.input as string, values.output as string);
+  console.log('[+] Transformation successful.');
 } catch (error) {
-  console.error(`Transformation failed: ${error instanceof Error ? error.message : error}`);
+  console.error(`[!] Transformation failed: ${error instanceof Error ? error.message : error}`);
   process.exit(1);
 }
