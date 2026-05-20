@@ -1,31 +1,39 @@
 /**
- * Base error for all Fontaine operations.
+ * Base error class for all fontaine-related failures.
  */
 export class FontaineError extends Error {
-  constructor(message: string) {
+  constructor(message: string, public readonly code: string) {
     super(message);
     this.name = 'FontaineError';
   }
 }
 
 /**
- * Error thrown when font resource acquisition fails.
+ * Thrown when resource resolution fails (network or filesystem).
  */
-export class FontaineFetchError extends FontaineError {
-  constructor(url: string, cause?: unknown) {
-    super(`Failed to fetch font resource at ${url}`);
-    this.name = 'FontaineFetchError';
-    if (cause) this.cause = cause;
+export class FetchError extends FontaineError {
+  constructor(message: string, public readonly statusCode?: number) {
+    super(message, 'FETCH_ERROR');
+    this.name = 'FetchError';
   }
 }
 
 /**
- * Error thrown when font analysis fails.
+ * Thrown when the font buffer is malformed or unsupported.
  */
-export class FontaineAnalysisError extends FontaineError {
-  constructor(fontName: string, cause?: unknown) {
-    super(`Failed to analyze font: ${fontName}`);
-    this.name = 'FontaineAnalysisError';
-    if (cause) this.cause = cause;
+export class AnalysisError extends FontaineError {
+  constructor(message: string) {
+    super(message, 'ANALYSIS_ERROR');
+    this.name = 'AnalysisError';
+  }
+}
+
+/**
+ * Thrown when the provided input parameters fail validation.
+ */
+export class ValidationError extends FontaineError {
+  constructor(message: string) {
+    super(message, 'VALIDATION_ERROR');
+    this.name = 'ValidationError';
   }
 }

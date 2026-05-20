@@ -1,36 +1,28 @@
-import { FontSourceResolver } from './resolver.js';
-import { analyzeFontBuffer } from './metrics.js';
-import { AnalysisResult } from './formatter.js';
+import { Resolver } from './resolver.js';
+import { OutputFormatter, JsonFormatter } from './formatter.js';
+import { analyzeFont } from './url-analyzer.js';
+import { AnalysisError } from './errors.js';
 
-/**
- * Programmatic API for analyzing fonts without the CLI wrapper.
- * 
- * @param sources - Array of local paths or URLs.
- * @param options - Resolver configuration.
- */
-export async function analyzeFonts(
-  sources: string[], 
-  options: { timeout?: number } = {}
-): Promise<AnalysisResult[]> {
-  const resolver = new FontSourceResolver();
-  
-  const results = await Promise.all(
-    sources.map(async (source) => {
-      const buffer = await resolver.resolve(source, options);
-      const fontName = source.split('/').pop()?.split('.')[0] ?? 'Unknown';
-      const metrics = await analyzeFontBuffer(buffer, fontName);
-      
-      return {
-        fontName,
-        metrics,
-        timestamp: new Date().toISOString(),
-      };
-    })
-  );
-
-  return results;
+export interface PipelineOptions {
+  formatter?: OutputFormatter;
 }
 
-export * from './errors.js';
-export * from './resolver.js';
-export * from './formatter.js';
+/**
+ * Core pipeline coordinating resource resolution, analysis, and formatting.
+ */
+export async function runPipeline(
+  source: string,
+  options: PipelineOptions = {}
+): Promise<string> {
+  const resolver = new Resolver();
+  const formatter = options.formatter ?? new JsonFormatter();
+
+  const buffer = await resolver.resolve(source);
+  
+  try {
+    const metrics = await analyzeFont(buffer);
+    return formatter.format(metrics);
+  } catch (error: any) {
+    throw new AnalysisError(`Analysis phase failed: ${error.message}`);
+  }
+}

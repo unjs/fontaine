@@ -1,34 +1,32 @@
 #!/usr/bin/env node
-import { analyzeFonts } from './index.js';
-import { JSONFormatter, CSSFormatter } from './formatter.js';
+import { runPipeline } from './index.js';
+import { CssFormatter, JsonFormatter } from './formatter.js';
 import { FontaineError } from './errors.js';
 
-async function run() {
-  const args = process.argv.slice(2);
-  const mode = args[0]; // 'analyze' | 'transform'
-  const sources = args.slice(1);
+async function main() {
+  const [,, source, format = 'json'] = process.argv;
 
-  if (!mode || sources.length === 0) {
-    console.error('Usage: fontaine <analyze|transform> <files...>');
+  if (!source) {
+    console.error('Usage: fontaine <source> [json|css]');
     process.exit(1);
   }
 
+  const formatter = format === 'css' ? new CssFormatter() : new JsonFormatter();
+
   try {
-    const results = await analyzeFonts(sources);
-    
-    const formatter = mode === 'transform' 
-      ? new CSSFormatter() 
-      : new JSONFormatter();
-      
-    console.log(formatter.format(results));
+    const output = await runPipeline(source, { formatter });
+    process.stdout.write(output + '\n');
   } catch (error) {
     if (error instanceof FontaineError) {
-      console.error(`[Fontaine Error] ${error.message}`);
+      console.error(`[${error.code}] ${error.message}`);
     } else {
-      console.error('An unexpected error occurred:', error);
+      console.error('Unexpected system failure:', error);
     }
     process.exit(1);
   }
 }
 
-run();
+main().catch((err) => {
+  console.error('Fatal CLI Error:', err);
+  process.exit(1);
+});

@@ -1,54 +1,45 @@
-import { readFile } from 'node:fs/promises';
-import { FontaineFetchError } from './errors.js';
-
-export interface ResolverOptions {
-  timeout?: number;
-  signal?: AbortSignal;
-}
+import { readFileSync } from 'node:fs';
+import { ofetch } from 'ofetch';
+import { FetchError } from './errors.js';
 
 /**
- * Resolves a font resource from either a local filesystem path or a remote URL
- * into a unified Uint8Array.
+ * Handles resource resolution from local paths or remote URLs.
  */
-export class FontSourceResolver {
+export class Resolver {
   /**
-   * Resolves the provided source to a binary buffer.
-   * @param source - The local path or HTTPS URL of the font.
-   * @param options - Configuration for timeouts and cancellation.
+   * Resolves a source string into a font buffer.
+   * @throws {FetchError} If the resource cannot be retrieved or content-type is invalid.
    */
-  async resolve(source: string, options: ResolverOptions = {}): Promise<Uint8Array> {
-    const { timeout = 10000, signal } = options;
+  async resolve(source: string): Promise<Uint8Array> {
+    if (source.startsWith('http')) {
+      return this.resolveRemote(source);
+    }
+    return this.resolveLocal(source);
+  }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-
+  private async resolveRemote(url: string): Promise<Uint8Array> {
     try {
-      const combinedSignal = signal 
-        ? AbortSignal.any([signal, controller.signal]) 
-        : controller.signal;
+      const response = await ofetch.raw(url, {
+        responseType: 'arrayBuffer',
+      });
 
-      if (source.startsWith('http')) {
-        return await this.fetchRemote(source, combinedSignal);
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('font')) {
+        throw new FetchError(`Invalid Content-Type: ${contentType}. Expected font mime-type.`);
       }
 
-      return await this.readLocal(source);
-    } catch (error) {
-      throw new FontaineFetchError(source, error);
-    } finally {
-      clearTimeout(timeoutId);
+      return new Uint8Array(response._data);
+    } catch (error: any) {
+      if (error instanceof FetchError) throw error;
+      throw new FetchError(error.message || 'Failed to fetch remote font', error.status);
     }
   }
 
-  async fetchRemote(url: string, signal: AbortSignal): Promise<Uint8Array> {
-    const response = await fetch(url, { signal });
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  private resolveLocal(path: string): Uint8Array {
+    try {
+      return new Uint8Array(readFileSync(path));
+    } catch (error: any) {
+      throw new FetchError(`Filesystem access denied or file not found: ${path}`);
     }
-    const buffer = await response.arrayBuffer();
-    return new Uint8Array(buffer);
-  }
-
-  async readLocal(path: string): Promise<Uint8Array> {
-    return new Uint8Array(await readFile(path));
   }
 }
