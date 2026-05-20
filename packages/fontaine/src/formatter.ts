@@ -1,21 +1,32 @@
-import type { FontMetrics } from './metrics.js';
+export interface AnalysisResult {
+  fontName: string;
+  metrics: Record<string, number>;
+  timestamp: string;
+}
 
-/**
- * Formats font metrics into a CSS @font-face override string.
- * 
- * @param metrics - The analyzed font metrics.
- * @returns A CSS string for size-adjust and ascent-override.
- */
-export function formatToCss(metrics: FontMetrics): string {
-  return `size-adjust: ${metrics.sizeAdjust}%; ascent-override: ${metrics.ascentOverride}%; descent-override: ${metrics.descentOverride}%;`;
+export interface OutputFormatter {
+  format(results: AnalysisResult[]): string;
 }
 
 /**
- * Formats font metrics into a structured JSON object.
- * 
- * @param metrics - The analyzed font metrics.
- * @returns A JSON string representation of the metrics.
+ * Formats analysis results as a JSON string.
  */
-export function formatToJson(metrics: FontMetrics): string {
-  return JSON.stringify(metrics, null, 2);
+export class JSONFormatter implements OutputFormatter {
+  format(results: AnalysisResult[]): string {
+    return JSON.stringify(results, null, 2);
+  }
+}
+
+/**
+ * Formats analysis results as CSS overrides.
+ */
+export class CSSFormatter implements OutputFormatter {
+  format(results: AnalysisResult[]): string {
+    return results
+      .map(({ fontName, metrics }) => {
+        const sizeAdjust = metrics.sizeAdjust ?? 100;
+        return `@font-face {\n  font-family: '${fontName}';\n  size-adjust: ${sizeAdjust}%;\n}`;
+      })
+      .join('\n\n');
+  }
 }

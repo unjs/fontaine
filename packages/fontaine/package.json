@@ -1,23 +1,18 @@
 {
-  "name": "@fontaine/core",
-  "version": "0.0.1",
-  "type": "module", "bin": { "fontaine": "dist/cli.mjs" },
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
+  "name": "@unjs/fontaine",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "bin": {
-    "fontaine": "./dist/cli.js"
+    "fontaine": "./dist/cli.mjs"
   },
   "scripts": {
-    "build": "tsdown build",
-    "dev": "tsdown dev"
+    "build": "tsdown",
+    "postbuild": "chmod +x dist/cli.mjs"
   },
   "dependencies": {
-    "cac": "^6.7.0",
-    "ofetch": "^1.7.0"
-  },
-  "devDependencies": {
-    "tsdown": "latest",
-    "vitest": "latest"
+    "tsdown": "latest"
   }
 }

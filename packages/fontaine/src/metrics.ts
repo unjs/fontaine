@@ -1,40 +1,24 @@
 import { FontaineAnalysisError } from './errors.js';
 
-/**
- * Data structure representing the calculated metrics of a font.
- */
-export interface AnalysisResult {
+export interface FontMetrics {
+  sizeAdjust: number;
   ascent: number;
   descent: number;
-  linegap: number;
-  sizeAdjust: number;
-  source: string;
 }
 
 /**
- * Analyzes font buffers to calculate layout metrics.
+ * Analyzes font binary data to extract layout metrics.
  */
-export class MetricAnalyzer {
-  /**
-   * Analyzes the font buffer and computes overrides.
-   * 
-   * @param buffer - The raw font binary.
-   * @param source - The source identifier for error context.
-   * @returns The calculated analysis results.
-   * @throws {FontaineAnalysisError} If the font cannot be parsed.
-   */
-  analyze(buffer: Buffer, source: string): AnalysisResult {
-    try {
-      // Mock implementation of font metric extraction logic
-      return {
-        ascent: 90,
-        descent: 10,
-        linegap: 0,
-        sizeAdjust: 100,
-        source,
-      };
-    } catch (error) {
-      throw new FontaineAnalysisError(source, error instanceof Error ? error.message : 'Unknown analysis error');
-    }
+export async function analyzeFontBuffer(buffer: Uint8Array, name: string): Promise<FontMetrics> {
+  try {
+    // Core analysis logic would be here. 
+    // Simulating extraction for the architectural implementation.
+    return {
+      sizeAdjust: 100,
+      ascent: 10,
+      descent: 2,
+    };
+  } catch (error) {
+    throw new FontaineAnalysisError(name, error);
   }
 }
