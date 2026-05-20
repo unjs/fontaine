@@ -1,34 +1,33 @@
-import { FontaineFormatterError } from './errors.js';
+import { AnalysisResult } from './metrics.js';
 
-export interface AnalysisResult {
-  ascent: number;
-  descent: number;
-  unitsPerEm: number;
-  metrics: Record<string, number>;
-}
-
+/**
+ * Strategy interface for formatting font analysis results.
+ */
 export interface OutputFormatter {
+  /**
+   * Formats the analysis result into the target string representation.
+   * 
+   * @param result - The metrics produced by the analyzer.
+   * @returns The formatted output string.
+   */
   format(result: AnalysisResult): string;
 }
 
+/**
+ * Formats results as a JSON string for programmatic consumption.
+ */
 export class JsonFormatter implements OutputFormatter {
   format(result: AnalysisResult): string {
-    try {
-      return JSON.stringify(result, null, 2);
-    } catch (error) {
-      throw new FontaineFormatterError(`JSON formatting failed: ${error instanceof Error ? error.message : String(error)}`);
-    }
+    return JSON.stringify(result, null, 2);
   }
 }
 
+/**
+ * Formats results as CSS @font-face override properties.
+ */
 export class CssFormatter implements OutputFormatter {
   format(result: AnalysisResult): string {
-    try {
-      const { ascent, descent } = result;
-      const size = ascent - descent;
-      return `/* Fontaine Analysis */\n:root {\n  --font-ascent: ${ascent}px;\n  --font-descent: ${descent}px;\n  --font-size: ${size}px;\n}`;
-    } catch (error) {
-      throw new FontaineFormatterError(`CSS formatting failed: ${error instanceof Error ? error.message : String(error)}`);
-    }
+    const { ascent, descent, linegap } = result;
+    return `size-adjust: ${result.sizeAdjust}%;\nascent-override: ${ascent}%;\n\ndescent-override: ${descent}%;`;
   }
 }

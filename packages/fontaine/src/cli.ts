@@ -1,31 +1,25 @@
 #!/usr/bin/env node
-import cac from 'cac';
-import { runAnalysis, CssFormatter, JsonFormatter } from './index.js';
-import { FontaineError } from './errors.js';
+import { analyzeFonts } from './index.js';
+import { CssFormatter, JsonFormatter } from './formatter.js';
 
-const cli = cac('fontaine');
+async function run() {
+  const args = process.argv.slice(2);
+  if (args.length === 0) {
+    console.error('Usage: fontaine <source1> <source2> ... [--css]');
+    process.exit(1);
+  }
 
-cli
-  .command('<source>', 'Analyze a font file')
-  .option('--format <type>', 'Output format (css|json)', { default: 'json' })
-  .action(async (source, options) => {
-    try {
-      const formatter = options.format === 'css' 
-        ? new CssFormatter() 
-        : new JsonFormatter();
+  const isCss = args.includes('--css');
+  const sources = args.filter(arg => arg !== '--css');
+  const formatter = isCss ? new CssFormatter() : new JsonFormatter();
 
-      const output = await runAnalysis(source, { formatter });
-      process.stdout.write(output + '\n');
-      process.exit(0);
-    } catch (error) {
-      if (error instanceof FontaineError) {
-        process.stderr.write(`Error [${error.name}]: ${error.message}\n`);
-        process.exit(error.code);
-      }
-      process.stderr.write(`Unexpected Error: ${error instanceof Error ? error.message : String(error)}\n`);
-      process.exit(1);
-    }
-  });
+  try {
+    const outputs = await analyzeFonts(sources, { formatter });
+    outputs.forEach(out => console.log(out));
+  } catch (error) {
+    console.error(`Fatal pipeline error: ${error instanceof Error ? error.message : 'Unknown'}`);
+    process.exit(1);
+  }
+}
 
-cli.help();
-cli.parse();
+run();
