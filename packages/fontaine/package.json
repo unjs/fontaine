@@ -40,6 +40,8 @@
     "node": ">=18.12.0"
   },
   "scripts": {
+    "build": "tsdown src/index.ts src/cli.ts",
+    "postbuild": "chmod +x dist/cli.mjs",
      "build": "tsdown "build": "tsdown""build": "tsdown" chmod +x dist/cli.js",
     "dev": "vitest",
     "demo": "vite dev playground",

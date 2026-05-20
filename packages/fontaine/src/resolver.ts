@@ -1,47 +1,51 @@
-import { readFileSync } from 'node:fs';
-import { ofetch } from 'ofetch';
-import { FontaineFetchError, FontaineInvalidContentTypeError } from './errors.js';
-
-const ALLOWED_MIME_TYPES = [
-  'font/ttf',
-  'font/otf',
-  'font/woff',
-  'font/woff2',
-  'application/x-font-ttf',
-  'application/x-font-otf',
-  'application/font-sfnt',
-];
+import { readFile } from 'node:fs/promises';
+import ofetch from 'ofetch';
+import { FontaineFetchError } from './errors.js';
 
 /**
- * Resolves a font asset from either a local file system path or a remote HTTPS URL.
- * 
- * @param source - The path or URL to the font asset.
- * @returns A Buffer containing the font binary data.
- * @throws {FontaineFetchError} If the asset cannot be retrieved.
- * @throws {FontaineInvalidContentTypeError} If the asset is not a recognized font type.
+ * Defines a strategy for resolving a source string into a binary buffer.
  */
-export async function resolveFontSource(source: string): Promise<Buffer> {
-  if (source.startsWith('http://') || source.startsWith('https://')) {
+export interface ResourceResolver {
+  /**
+   * Resolves the given source into a Uint8Array.
+   * @throws {FontaineFetchError} If the resource cannot be retrieved.
+   */
+  resolve(source: string): Promise<Uint8Array>;
+}
+
+/**
+ * Resolves resources from the local filesystem.
+ */
+export class FileResolver implements ResourceResolver {
+  async resolve(source: string): Promise<Uint8Array> {
     try {
-      const response = await ofetch.raw(source);
-      const contentType = response.headers.get('content-type');
-
-      if (!contentType || !ALLOWED_MIME_TYPES.some(type => contentType.includes(type))) {
-        throw new FontaineInvalidContentTypeError(contentType || 'unknown');
-      }
-
-      const blob = await response.blob();
-      const arrayBuffer = await blob.arrayBuffer();
-      return Buffer.from(arrayBuffer);
+      const buffer = await readFile(source);
+      return new Uint8Array(buffer);
     } catch (error) {
-      if (error instanceof FontaineInvalidContentTypeError) throw error;
       throw new FontaineFetchError(source, error);
     }
   }
+}
 
-  try {
-    return readFileSync(source);
-  } catch (error) {
-    throw new FontaineFetchError(source, error);
+/**
+ * Resolves resources from remote HTTP/HTTPS endpoints.
+ */
+export class UrlResolver implements ResourceResolver {
+  async resolve(source: string): Promise<Uint8Array> {
+    try {
+      return await ofetch(source, { responseType: 'arrayBuffer' }) as unknown as Uint8Array;
+    } catch (error) {
+      throw new FontaineFetchError(source, error);
+    }
   }
+}
+
+/**
+ * Factory to determine the appropriate resolver based on the source URI.
+ */
+export function createResolver(source: string): ResourceResolver {
+  if (source.startsWith('http://') || source.startsWith('https://')) {
+    return new UrlResolver();
+  }
+  return new FileResolver();
 }

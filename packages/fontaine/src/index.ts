@@ -1,40 +1,53 @@
-import { resolveFontSource } from './resolver.js';
-import { analyzeFont } from './metrics.js';
-import { JsonFormatter, CssFormatter, type OutputFormatter } from './formatter.js';
+import { createResolver } from './resolver.js';
+import { validateFontBinary } from './validator.js';
 import { FontaineError } from './errors.js';
+import { analyzeFontMetrics } from './metrics.js';
 
 export * from './errors.js';
+export * from './resolver.js';
 
 /**
- * Configuration options for the Fontaine analysis pipeline.
+ * Result of a font analysis operation.
  */
-export interface FontaineOptions {
-  /** Format of the output. Defaults to 'json'. */
-  format?: 'json' | 'css';
+export interface AnalysisResult {
+  source: string;
+  metrics: any;
+  success: boolean;
+  error?: FontaineError;
 }
 
 /**
- * Analyzes a font asset and returns the formatted metrics.
+ * Core pipeline for font analysis.
+ * Source -> Resolver -> Validator -> Analyzer.
  * 
- * @param source - Local path or remote URL to the font.
- * @param options - Pipeline configuration.
- * @returns Formatted metrics as a string.
- * @throws {FontaineError} If any stage of the pipeline fails.
+ * @param source - Path to local file or HTTPS URL.
+ * @returns The analysis result.
+ * @throws {FontaineError} If the pipeline fails at any stage.
  */
-export async function analyzeFonts(source: string, options: FontaineOptions = {}): Promise<string> {
-  const resolver = resolveFontSource;
-  const analyzer = analyzeFont;
-  
-  const formatter: OutputFormatter = options.format === 'css' 
-    ? new CssFormatter() 
-    : new JsonFormatter();
-
+export async function processFont(source: string): Promise<AnalysisResult> {
   try {
-    const buffer = await resolver(source);
-    const metrics = analyzer(buffer);
-    return formatter.format(metrics);
+    const resolver = createResolver(source);
+    const buffer = await resolver.resolve(source);
+    
+    validateFontBinary(buffer, source);
+    
+    const metrics = await analyzeFontMetrics(buffer);
+    
+    return {
+      source,
+      metrics,
+      success: true,
+    };
   } catch (error) {
-    if (error instanceof FontaineError) throw error;
-    throw new FontaineError(`Unexpected error during analysis: ${String(error)}`, 'UNKNOWN_ERROR');
+    const fontaineError = error instanceof FontaineError 
+      ? error 
+      : new FontaineError((error as Error).message);
+      
+    return {
+      source,
+      metrics: null,
+      success: false,
+      error: fontaineError,
+    };
   }
 }

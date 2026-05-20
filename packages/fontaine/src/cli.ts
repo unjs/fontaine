@@ -1,37 +1,40 @@
 #!/usr/bin/env node
-import { Command } from 'commander';
-import { analyzeFonts } from './index.js';
-import { FontaineError } from './errors.js';
+import { processFont } from './index.js';
+import { formatResult } from './formatter.js';
 
-const program = new Command();
+async function main() {
+  const args = process.argv.slice(2);
+  
+  if (args.length === 0) {
+    process.stderr.write('Usage: fontaine <source1> [source2] ...\n');
+    process.exit(1);
+  }
 
-program
-  .name('fontaine')
-  .description('Production-grade font metric analyzer')
-  .version('1.0.0')
-  .argument('<source>', 'Path or URL to font asset')
-  .option('-f, --format <type>', 'Output format (json, css)', 'json')
-  .action(async (source, options) => {
-    try {
-      // Strict validation for positional arguments handled by commander, 
-      // but we ensure no unexpected behavior here.
-      const result = await analyzeFonts(source, { 
-        format: options.format as 'json' | 'css' 
-      });
-      process.stdout.write(result + '\n');
-    } catch (error) {
-      if (error instanceof FontaineError) {
-        process.stderr.write(`[${error.code}] ${error.message}\n`);
-      } else {
-        process.stderr.write(`Unexpected Error: ${String(error)}\n`);
-      }
-      process.exit(1);
+  // Atomic Parallelism: Process all sources concurrently without blocking
+  const results = await Promise.allSettled(
+    args.map(source => processFont(source))
+  );
+
+  // Atomic Output Buffer: Prevent interleaved stdout "slop"
+  let output = '';
+  let exitCode = 0;
+
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      const analysis = result.value;
+      output += formatResult(analysis) + '\n';
+      if (!analysis.success) exitCode = 1;
+    } else {
+      output += `Unexpected system error: ${result.reason}\n`;
+      exitCode = 1;
     }
-  });
+  }
 
-if (process.argv.length > 4 && !process.argv.includes('--help') && !process.argv.includes('-h')) {
-  process.stderr.write('Error: Too many arguments provided.\n');
-  process.exit(1);
+  process.stdout.write(output);
+  process.exit(exitCode);
 }
 
-program.parseAsync(process.argv);
+main().catch(err => {
+  process.stderr.write(`Fatal: ${err.message}\n`);
+  process.exit(1);
+});
