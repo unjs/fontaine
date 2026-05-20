@@ -1,25 +1,27 @@
 #!/usr/bin/env node
-import { parseArgs } from 'node:util';
-import { transformCssFile } from './index.js';
+import { fontaine } from './index';
+import { FontaineError } from './errors';
+import { writeFileSync } from 'node:fs';
 
-const { values } = parseArgs({
-  options: {
-    input: { type: 'string', short: 'i' },
-    output: { type: 'string', short: 'o' },
-  },
-});
+async function main() {
+  const [,, input, output] = process.argv;
 
-if (!values.input || !values.output) {
-  console.error('Usage: fontaine --input <file|url> --output <file>');
-  process.exit(1);
+  if (!input || !output) {
+    console.error('Usage: fontaine <input> <output>');
+    process.exit(1);
+  }
+
+  try {
+    const result = await fontaine(input);
+    writeFileSync(output, result);
+  } catch (error) {
+    if (error instanceof FontaineError) {
+      console.error(`[${error.name}] ${error.message}`);
+    } else {
+      console.error('An unexpected error occurred:', error);
+    }
+    process.exit(1);
+  }
 }
 
-console.log(`[*] Transforming: ${values.input} -> ${values.output}`);
-
-try {
-  await transformCssFile(values.input as string, values.output as string);
-  console.log('[+] Transformation successful.');
-} catch (error) {
-  console.error(`[!] Transformation failed: ${error instanceof Error ? error.message : error}`);
-  process.exit(1);
-}
+main();

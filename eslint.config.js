@@ -27,3 +27,12 @@ export default antfu()
       'pnpm/yaml-enforce-settings': 'off',
     },
   })
+// TSDoc enforcement for API discoverability
+{
+  plugins: {
+    tsdoc: require('eslint-plugin-tsdoc'),
+  },
+  rules: {
+    'tsdoc/syntax': 'error',
+  },
+}
