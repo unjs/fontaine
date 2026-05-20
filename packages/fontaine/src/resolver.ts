@@ -1,51 +1,38 @@
-import fs from 'node:fs/promises';
-import { ofetch } from 'ofetch';
+import { readFile } from 'node:fs/promises';
+import ofetch from 'ofetch';
 import { FontaineFetchError, FontaineInvalidContentTypeError } from './errors.js';
 
-const VALID_FONT_MIME_TYPES = new Set([
-  'font/woff2',
-  'font/woff',
-  'font/ttf',
-  'application/font-woff',
-  'application/x-font-ttf',
-  'application/font-sfnt',
-]);
+export type ResourceSource = string | Buffer | Uint8Array;
 
 /**
- * Resolves a font source (local path or HTTPS URL) into a Buffer.
- * 
- * @throws FontaineFetchError if the network request fails.
- * @throws FontaineInvalidContentTypeError if the response is not a font.
- * @throws FontaineError for file system access issues.
+ * Resolves a font resource from a URL or local filesystem.
  */
-export async function resolveFontSource(source: string): Promise<Buffer> {
-  if (source.startsWith('http://') || source.startsWith('https://')) {
+export async function resolveResource(source: ResourceSource): Promise<Uint8Array> {
+  if (source instanceof Buffer || source instanceof Uint8Array) {
+    return new Uint8Array(source);
+  }
+
+  if (source.startsWith('http')) {
     try {
-      const response = await ofetch(source, {
-        responseType: 'arrayBuffer',
-      });
-
-      // ofetch doesn't return headers in the response body by default 
-      // when using responseType: 'arrayBuffer' in some versions, 
-      // so we use a raw fetch call for header validation.
-      const head = await ofetch(source, { method: 'HEAD' });
-      const contentType = head.headers.get('content-type');
-
-      if (!contentType || !VALID_FONT_MIME_TYPES.has(contentType)) {
-        throw new FontaineInvalidContentTypeError(contentType || 'unknown');
+      const response = await ofetch.raw(source);
+      const contentType = response.headers.get('content-type') || '';
+      
+      if (!contentType.includes('font') && !contentType.includes('application/octet-stream')) {
+        throw new FontaineInvalidContentTypeError(contentType);
       }
 
-      return Buffer.from(response as ArrayBuffer);
-    } catch (error) {
-      if (error instanceof FontaineInvalidContentTypeError) throw error;
-      throw new FontaineFetchError(source, error);
+      const buffer = await response.blob().then(b => b.arrayBuffer());
+      return new Uint8Array(buffer);
+    } catch (err) {
+      if (err instanceof FontaineInvalidContentTypeError) throw err;
+      throw new FontaineFetchError(`Failed to fetch remote font: ${source}`);
     }
   }
 
   try {
-    const buffer = await fs.readFile(source);
-    return buffer;
-  } catch (error) {
-    throw new FontaineError(`Local file read failed: ${source}`);
+    const buffer = await readFile(source);
+    return new Uint8Array(buffer);
+  } catch (err) {
+    throw new FontaineFetchError(`Failed to read local font: ${source}`);
   }
 }

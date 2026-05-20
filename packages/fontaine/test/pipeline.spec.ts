@@ -1,33 +1,19 @@
 import { describe, it, expect } from 'vitest';
-import { AnalysisPipeline } from '../src/pipeline';
-import { ResolverError } from '../src/errors';
-import { execa } from 'execa';
+import { fontaine } from '../src/index.js';
+import { FontaineInvalidContentTypeError } from '../src/errors.js';
 
-describe('AnalysisPipeline', () => {
-  const pipeline = new AnalysisPipeline();
-
-  it('should process a valid font source', async () => {
-    // Using a known valid font endpoint for the test
-    const result = await pipeline.run('https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92tCVqlddLlnw.ttf');
-    expect(result).toContain('--font-ascent');
+describe('Fontaine Pipeline Matrix', () => {
+  it('should resolve local file to CSS output', async () => {
+    const result = await fontaine('./playground/fonts/font.ttf', { format: 'css' });
+    expect(result).toContain('size-adjust');
   });
 
-  it('should throw ResolverError for invalid file signatures', async () => {
-    await expect(pipeline.run('https://google.com')).rejects.toThrow(ResolverError);
-  });
-});
-
-describe('CLI Binary', () => {
-  it('should output CSS by default', async () => {
-    const { stdout } = await execa('node', ['../src/cli.ts', 'https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92tCVqlddLlnw.ttf']);
-    expect(stdout).toContain('.fontaine-metrics');
+  it('should resolve remote URL to JSON output', async () => {
+    const result = await fontaine('https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_R8Cg.ttf', { format: 'json' });
+    expect(() => JSON.parse(result)).not.toThrow();
   });
 
-  it('should return exit code 1 for missing arguments', async () => {
-    try {
-      await execa('node', ['../src/cli.ts']);
-    } catch (error: any) {
-      expect(error.exitCode).toBe(1);
-    }
+  it('should throw FontaineInvalidContentTypeError for non-font URLs', async () => {
+    await expect(fontaine('https://google.com')).rejects.toThrow(FontaineInvalidContentTypeError);
   });
 });

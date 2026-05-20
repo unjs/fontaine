@@ -4,21 +4,20 @@ export interface OutputFormatter {
   format(metrics: FontMetrics): string;
 }
 
-export class JsonFormatter implements OutputFormatter {
-  /**
-   * Returns metrics as a JSON string.
-   */
-  format(metrics: FontMetrics): string {
-    return JSON.stringify(metrics, null, 2);
+/**
+ * Formats font metrics as a CSS @font-face override.
+ */
+export class CssFormatter implements OutputFormatter {
+  format({ ascent, descent, lineGap }: FontMetrics): string {
+    return `size-adjust: ${ascent + descent + lineGap}%;`;
   }
 }
 
-export class CssFormatter implements OutputFormatter {
-  /**
-   * Returns metrics as a CSS @font-face size-adjust rule.
-   */
+/**
+ * Formats font metrics as a JSON string for programmatic consumption.
+ */
+export class JsonFormatter implements OutputFormatter {
   format(metrics: FontMetrics): string {
-    const sizeAdjust = (metrics.unitsPerEm / (metrics.ascent - metrics.descent)) * 100;
-    return `size-adjust: ${sizeAdjust.toFixed(2)}%;`;
+    return JSON.stringify(metrics, null, 2);
   }
 }

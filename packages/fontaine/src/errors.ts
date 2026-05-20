@@ -1,37 +1,39 @@
 /**
- * Base error class for all fontaine-related failures.
+ * Base error for all Fontaine operations.
  */
 export class FontaineError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = this.constructor.name;
+    this.name = 'FontaineError';
   }
 }
 
 /**
- * Thrown when a remote font source cannot be fetched.
+ * Error thrown when resource resolution fails.
  */
 export class FontaineFetchError extends FontaineError {
-  constructor(url: string, cause?: unknown) {
-    super(`Failed to fetch font from ${url}`);
-    this.cause = cause;
+  constructor(message: string, public readonly status?: number) {
+    super(message);
+    this.name = 'FontaineFetchError';
   }
 }
 
 /**
- * Thrown when the source content-type does not match expected font MIME types.
- */
-export class FontaineInvalidContentTypeError extends FontaineError {
-  constructor(contentType: string) {
-    super(`Invalid Content-Type: ${contentType}. Expected a font binary.`);
-  }
-}
-
-/**
- * Thrown when the font binary is corrupted or cannot be analyzed.
+ * Error thrown when font binary analysis fails.
  */
 export class FontaineAnalysisError extends FontaineError {
-  constructor(details: string) {
-    super(`Font analysis failed: ${details}`);
+  constructor(message: string) {
+    super(message);
+    this.name = 'FontaineAnalysisError';
+  }
+}
+
+/**
+ * Error thrown when the resource content-type is not a valid font.
+ */
+export class FontaineInvalidContentTypeError extends FontaineFetchError {
+  constructor(contentType: string) {
+    super(`Invalid Content-Type: ${contentType}. Expected font binary.`);
+    this.name = 'FontaineInvalidContentTypeError';
   }
 }
