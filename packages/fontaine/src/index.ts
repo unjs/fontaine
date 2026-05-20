@@ -1,53 +1,36 @@
-import { createResolver } from './resolver.js';
-import { validateFontBinary } from './validator.js';
+import { DefaultFontSourceResolver } from './resolver.js';
+import { analyze } from './metrics.js';
+import { JsonFormatter, OutputFormatter, AnalysisResult } from './formatter.js';
 import { FontaineError } from './errors.js';
-import { analyzeFontMetrics } from './metrics.js';
 
-export * from './errors.js';
-export * from './resolver.js';
-
-/**
- * Result of a font analysis operation.
- */
-export interface AnalysisResult {
-  source: string;
-  metrics: any;
-  success: boolean;
-  error?: FontaineError;
+export interface FontaineOptions {
+  resolver?: any;
+  formatter?: OutputFormatter;
 }
 
 /**
- * Core pipeline for font analysis.
- * Source -> Resolver -> Validator -> Analyzer.
- * 
- * @param source - Path to local file or HTTPS URL.
- * @returns The analysis result.
- * @throws {FontaineError} If the pipeline fails at any stage.
+ * Main analysis pipeline.
+ * Orchestrates source resolution, metric analysis, and output formatting.
  */
-export async function processFont(source: string): Promise<AnalysisResult> {
+export async function runAnalysis(
+  source: string, 
+  options: FontaineOptions = {}
+): Promise<string> {
+  const { 
+    resolver = new DefaultFontSourceResolver(), 
+    formatter = new JsonFormatter() 
+  } = options;
+
   try {
-    const resolver = createResolver(source);
     const buffer = await resolver.resolve(source);
-    
-    validateFontBinary(buffer, source);
-    
-    const metrics = await analyzeFontMetrics(buffer);
-    
-    return {
-      source,
-      metrics,
-      success: true,
-    };
+    const result = await analyze(buffer);
+    return formatter.format(result);
   } catch (error) {
-    const fontaineError = error instanceof FontaineError 
-      ? error 
-      : new FontaineError((error as Error).message);
-      
-    return {
-      source,
-      metrics: null,
-      success: false,
-      error: fontaineError,
-    };
+    if (error instanceof FontaineError) throw error;
+    throw new FontaineError(`Unexpected pipeline error: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
+
+export * from './errors.js';
+export * from './formatter.js';
+export * from './resolver.js';

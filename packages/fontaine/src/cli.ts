@@ -1,40 +1,31 @@
 #!/usr/bin/env node
-import { processFont } from './index.js';
-import { formatResult } from './formatter.js';
+import cac from 'cac';
+import { runAnalysis, CssFormatter, JsonFormatter } from './index.js';
+import { FontaineError } from './errors.js';
 
-async function main() {
-  const args = process.argv.slice(2);
-  
-  if (args.length === 0) {
-    process.stderr.write('Usage: fontaine <source1> [source2] ...\n');
-    process.exit(1);
-  }
+const cli = cac('fontaine');
 
-  // Atomic Parallelism: Process all sources concurrently without blocking
-  const results = await Promise.allSettled(
-    args.map(source => processFont(source))
-  );
+cli
+  .command('<source>', 'Analyze a font file')
+  .option('--format <type>', 'Output format (css|json)', { default: 'json' })
+  .action(async (source, options) => {
+    try {
+      const formatter = options.format === 'css' 
+        ? new CssFormatter() 
+        : new JsonFormatter();
 
-  // Atomic Output Buffer: Prevent interleaved stdout "slop"
-  let output = '';
-  let exitCode = 0;
-
-  for (const result of results) {
-    if (result.status === 'fulfilled') {
-      const analysis = result.value;
-      output += formatResult(analysis) + '\n';
-      if (!analysis.success) exitCode = 1;
-    } else {
-      output += `Unexpected system error: ${result.reason}\n`;
-      exitCode = 1;
+      const output = await runAnalysis(source, { formatter });
+      process.stdout.write(output + '\n');
+      process.exit(0);
+    } catch (error) {
+      if (error instanceof FontaineError) {
+        process.stderr.write(`Error [${error.name}]: ${error.message}\n`);
+        process.exit(error.code);
+      }
+      process.stderr.write(`Unexpected Error: ${error instanceof Error ? error.message : String(error)}\n`);
+      process.exit(1);
     }
-  }
+  });
 
-  process.stdout.write(output);
-  process.exit(exitCode);
-}
-
-main().catch(err => {
-  process.stderr.write(`Fatal: ${err.message}\n`);
-  process.exit(1);
-});
+cli.help();
+cli.parse();

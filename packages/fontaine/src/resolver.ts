@@ -1,51 +1,26 @@
+import { fetch } from 'ofetch';
 import { readFile } from 'node:fs/promises';
-import ofetch from 'ofetch';
 import { FontaineFetchError } from './errors.js';
 
-/**
- * Defines a strategy for resolving a source string into a binary buffer.
- */
-export interface ResourceResolver {
-  /**
-   * Resolves the given source into a Uint8Array.
-   * @throws {FontaineFetchError} If the resource cannot be retrieved.
-   */
+export interface FontSourceResolver {
   resolve(source: string): Promise<Uint8Array>;
 }
 
 /**
- * Resolves resources from the local filesystem.
+ * Resolves font data from either a remote URL or a local file system path.
  */
-export class FileResolver implements ResourceResolver {
+export class DefaultFontSourceResolver implements FontSourceResolver {
   async resolve(source: string): Promise<Uint8Array> {
     try {
+      if (source.startsWith('http://') || source.startsWith('https://')) {
+        const response = await fetch(source, { responseType: 'arrayBuffer' });
+        return new Uint8Array(response as ArrayBuffer);
+      }
+      
       const buffer = await readFile(source);
       return new Uint8Array(buffer);
     } catch (error) {
-      throw new FontaineFetchError(source, error);
+      throw new FontaineFetchError(`Failed to resolve font source at ${source}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
-}
-
-/**
- * Resolves resources from remote HTTP/HTTPS endpoints.
- */
-export class UrlResolver implements ResourceResolver {
-  async resolve(source: string): Promise<Uint8Array> {
-    try {
-      return await ofetch(source, { responseType: 'arrayBuffer' }) as unknown as Uint8Array;
-    } catch (error) {
-      throw new FontaineFetchError(source, error);
-    }
-  }
-}
-
-/**
- * Factory to determine the appropriate resolver based on the source URI.
- */
-export function createResolver(source: string): ResourceResolver {
-  if (source.startsWith('http://') || source.startsWith('https://')) {
-    return new UrlResolver();
-  }
-  return new FileResolver();
 }

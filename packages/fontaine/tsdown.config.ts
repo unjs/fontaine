@@ -7,10 +7,7 @@ export default defineConfig({
   },
   format: ['esm'],
   outDir: 'dist',
-  bundle: true,
-  minify: false,
-  // Ensure the shebang is preserved for the cli entry
-  banner: {
-    js: (entry) => entry === 'cli' ? '#!/usr/bin/env node\n' : '',
-  },
+  clean: true,
+  minify: true,
+  banner: '#!/usr/bin/env node\n',
 });
