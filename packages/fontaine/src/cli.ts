@@ -1,22 +1,31 @@
 #!/usr/bin/env node
-import { fontaine } from './index';
+import { parseArgs } from 'node:util';
+import { transformFont } from './transform';
 import { FontaineError } from './errors';
-import { writeFileSync } from 'node:fs';
+
+const options = {
+  source: { type: 'string', short: 's' },
+  output: { type: 'string', short: 'o' },
+};
 
 async function main() {
-  const [,, input, output] = process.argv;
-
-  if (!input || !output) {
-    console.error('Usage: fontaine <input> <output>');
-    process.exit(1);
-  }
-
   try {
-    const result = await fontaine(input);
-    writeFileSync(output, result);
+    const { values } = parseArgs({ options, tokens: true });
+    
+    if (!values.source || !values.output) {
+      console.error('Usage: fontaine -s <source> -o <output>');
+      process.exit(1);
+    }
+
+    await transformFont({
+      source: values.source as string,
+      output: values.output as string,
+    });
+    
+    console.log('Font transformation complete.');
   } catch (error) {
     if (error instanceof FontaineError) {
-      console.error(`[${error.name}] ${error.message}`);
+      console.error(`[Fontaine Error] ${error.message}`);
     } else {
       console.error('An unexpected error occurred:', error);
     }

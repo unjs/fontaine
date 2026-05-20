@@ -40,7 +40,7 @@
     "node": ">=18.12.0"
   },
   "scripts": {
-    "build": "tsdown",
+     "build": "tsdown "build": "tsdown""build": "tsdown" chmod +x dist/cli.js",
     "dev": "vitest",
     "demo": "vite dev playground",
     "demo:dev": "pnpm demo --config test/vite.config.mjs",

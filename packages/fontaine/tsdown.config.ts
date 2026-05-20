@@ -6,6 +6,6 @@ export default defineConfig({
     index: 'src/index.ts',
   },
   format: ['esm'],
-  shebang: '#!/usr/bin/env node',
-  outDir: 'dist',
+  banner: '#!/usr/bin/env node',
+  minify: true,
 });

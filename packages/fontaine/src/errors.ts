@@ -5,23 +5,22 @@ export class FontaineError extends Error {
   }
 }
 
+/**
+ * Thrown when a remote font resource cannot be retrieved via HTTP.
+ */
 export class FontaineFetchError extends FontaineError {
-  constructor(message: string) {
-    super(message);
+  constructor(url: string, error: unknown) {
+    super(`Failed to fetch font from ${url}: ${String(error)}`);
     this.name = 'FontaineFetchError';
   }
 }
 
-export class FontaineHTTPError extends FontaineFetchError {
-  constructor(public statusCode: number, message: string) {
-    super(message);
-    this.name = 'FontaineHTTPError';
-  }
-}
-
-export class FontaineInvalidContentTypeError extends FontaineFetchError {
-  constructor(public contentType: string) {
-    super(`Invalid Content-Type: ${contentType}. Expected a font asset.`);
+/**
+ * Thrown when the retrieved resource does not match expected font content types.
+ */
+export class FontaineInvalidContentTypeError extends FontaineError {
+  constructor(contentType: string) {
+    super(`Invalid content type: ${contentType}. Expected font binary.`);
     this.name = 'FontaineInvalidContentTypeError';
   }
 }
