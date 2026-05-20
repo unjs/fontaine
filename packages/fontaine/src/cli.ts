@@ -1,45 +1,35 @@
 #!/usr/bin/env node
-import { resolveFont } from './resolver';
-import { analyzeFont } from './metrics';
-import { transformCss } from './transform';
-import { FontaineError } from './errors';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { Command } from 'commander';
+import { analyzeFonts } from './index.js';
+import { FormatterFactory } from './formatter.js';
+import { FontaineError } from './errors.js';
 
-async function main() {
-  const args = process.argv.slice(2);
-  
-  if (args.length === 0) {
-    console.error('Usage: fontaine <url|css-path> [output-path]');
-    process.exit(1);
-  }
+const program = new Command();
 
-  const input = args[0];
-  const output = args[1];
+program
+  .name('fontaine')
+  .description('Analyze fonts and generate size-adjust overrides')
+  .version('1.0.0')
+  .requiredOption('-u, --url <url>', 'URL or path to font file')
+  .requiredOption('-n, --name <name>', 'Font family name')
+  .option('-f, --format <format>', 'Output format (css, json)', 'css')
+  .action(async (options) => {
+    try {
+      const result = await analyzeFonts({
+        url: options.url,
+        fontName: options.name,
+      });
 
-  try {
-    if (input.endsWith('.css')) {
-      // Bulk Transformation
-      const cssContent = readFileSync(input, 'utf8');
-      const result = await transformCss(cssContent);
-      if (output) {
-        writeFileSync(output, result);
-      } else {
-        console.log(result);
+      const formatter = FormatterFactory.getFormatter(options.format as 'css' | 'json');
+      process.stdout.write(formatter.format(result) + '\n');
+    } catch (error) {
+      if (error instanceof FontaineError) {
+        process.stderr.write(`Error: ${error.message}\n`);
+        process.exit(1);
       }
-    } else {
-      // Atomic Analysis
-      const fontBuffer = await resolveFont(input);
-      const overrides = await analyzeFont(fontBuffer);
-      console.log(JSON.stringify(overrides, null, 2));
+      process.stderr.write(`Unexpected Error: ${(error as Error).message}\n`);
+      process.exit(1);
     }
-  } catch (error) {
-    if (error instanceof FontaineError) {
-      console.error(`[${error.code}] ${error.message}`);
-    } else {
-      console.error('An unexpected error occurred:', error);
-    }
-    process.exit(1);
-  }
-}
+  });
 
-main();
+program.parse();

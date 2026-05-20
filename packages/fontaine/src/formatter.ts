@@ -1,26 +1,31 @@
-import { AnalysisResult } from './metrics.js';
+import type { AnalysisResult } from './index.js';
 
 /**
- * Interface for translating analysis results into specific output formats.
+ * Interface for transforming analysis results into specific string formats.
  */
-export interface OutputFormatter {
+export interface FontFormatter {
   format(result: AnalysisResult): string;
 }
 
-/**
- * Outputs results as a structured JSON string.
- */
-export class JsonFormatter implements OutputFormatter {
+export class CssFormatter implements FontFormatter {
+  format(result: AnalysisResult): string {
+    const { fontName, overrides } = result;
+    const rules = Object.entries(overrides)
+      .map(([size, value]) => `@font-face { font-family: "${fontName}"; font-size: ${size}; size-adjust: ${value}; }`)
+      .join('\n');
+    return rules;
+  }
+}
+
+export class JsonFormatter implements FontFormatter {
   format(result: AnalysisResult): string {
     return JSON.stringify(result, null, 2);
   }
 }
 
-/**
- * Outputs results as a CSS @font-face override block.
- */
-export class CssFormatter implements OutputFormatter {
-  format(result: AnalysisResult): string {
-    return `@font-face {\n  font-family: '${result.family}';\n  size-adjust: ${result.sizeAdjust}%;\n}`;
+export class FormatterFactory {
+  static getFormatter(type: 'css' | 'json'): FontFormatter {
+    if (type === 'json') return new JsonFormatter();
+    return new CssFormatter();
   }
 }
