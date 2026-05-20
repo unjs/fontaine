@@ -2,35 +2,38 @@
  * Base error class for all Fontaine-related failures.
  */
 export class FontaineError extends Error {
-  constructor(message: string) {
+  constructor(message: string, public readonly code: string) {
     super(message);
-    this.name = this.constructor.name;
+    this.name = 'FontaineError';
   }
 }
 
 /**
- * Thrown when a network request for a font asset fails.
+ * Error thrown when font retrieval fails (Network, File System, 404).
  */
-export class FontaineNetworkError extends FontaineError {
-  constructor(public readonly url: string, public readonly status: number, message: string) {
-    super(`[Network Error ${status}] ${url}: ${message}`);
+export class FetchError extends FontaineError {
+  constructor(message: string, public readonly statusCode?: number) {
+    super(message, 'FETCH_ERROR');
+    this.name = 'FetchError';
   }
 }
 
 /**
- * Thrown when a font asset fails MIME-type validation or is corrupted.
+ * Error thrown when font validation fails (Incorrect Content-Type or Magic Bytes).
  */
-export class FontaineInvalidAssetError extends FontaineError {
-  constructor(public readonly asset: string, message: string) {
-    super(`[Invalid Asset] ${asset}: ${message}`);
+export class ValidationError extends FontaineError {
+  constructor(message: string) {
+    super(message, 'VALIDATION_ERROR');
+    this.name = 'ValidationError';
   }
 }
 
 /**
- * Thrown during the metric analysis phase if the font buffer cannot be parsed.
+ * Error thrown during the font analysis process.
  */
-export class FontaineAnalysisError extends FontaineError {
-  constructor(public readonly asset: string, message: string) {
-    super(`[Analysis Error] ${asset}: ${message}`);
+export class AnalysisError extends FontaineError {
+  constructor(message: string) {
+    super(message, 'ANALYSIS_ERROR');
+    this.name = 'AnalysisError';
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "@fontaine/core",
   "version": "0.0.1",
-  "type": "module",
+  "type": "module", "bin": { "fontaine": "dist/cli.mjs" },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",

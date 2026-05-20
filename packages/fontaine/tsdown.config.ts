@@ -7,7 +7,7 @@ export default defineConfig({
   },
   format: ['esm'],
   outDir: 'dist',
-  clean: true,
-  minify: true,
-  banner: '#!/usr/bin/env node\n',
+  banner: {
+    cli: '#!/usr/bin/env node',
+  },
 });
