@@ -1,6 +1,3 @@
-/**
- * Base error class for all fontaine-related failures.
- */
 export class FontaineError extends Error {
   constructor(message: string, public readonly code: string) {
     super(message);
@@ -8,32 +5,30 @@ export class FontaineError extends Error {
   }
 }
 
-/**
- * Thrown when resource resolution fails (network or filesystem).
- */
-export class FetchError extends FontaineError {
-  constructor(message: string, public readonly statusCode?: number) {
+export class FontaineFetchError extends FontaineError {
+  constructor(message: string, public readonly status?: number) {
     super(message, 'FETCH_ERROR');
-    this.name = 'FetchError';
+    this.name = 'FontaineFetchError';
   }
 }
 
-/**
- * Thrown when the font buffer is malformed or unsupported.
- */
-export class AnalysisError extends FontaineError {
-  constructor(message: string) {
-    super(message, 'ANALYSIS_ERROR');
-    this.name = 'AnalysisError';
+export class FontaineInvalidContentTypeError extends FontaineFetchError {
+  constructor(contentType: string) {
+    super(`Invalid Content-Type: ${contentType}`, 415);
+    this.name = 'FontaineInvalidContentTypeError';
   }
 }
 
-/**
- * Thrown when the provided input parameters fail validation.
- */
-export class ValidationError extends FontaineError {
+export class FontaineResolutionError extends FontaineError {
+  constructor(source: string) {
+    super(`Could not resolve source: ${source}`, 'RESOLUTION_ERROR');
+    this.name = 'FontaineResolutionError';
+  }
+}
+
+export class FontaineTransformError extends FontaineError {
   constructor(message: string) {
-    super(message, 'VALIDATION_ERROR');
-    this.name = 'ValidationError';
+    super(message, 'TRANSFORM_ERROR');
+    this.name = 'FontaineTransformError';
   }
 }

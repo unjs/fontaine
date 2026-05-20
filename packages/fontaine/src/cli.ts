@@ -1,32 +1,50 @@
 #!/usr/bin/env node
-import { runPipeline } from './index.js';
-import { CssFormatter, JsonFormatter } from './formatter.js';
+import { Command } from 'commander';
+import pLimit from 'p-limit';
+import { analyzeFontSource } from './url-analyzer.js';
+import { atomicTransformCss } from './transform.js';
 import { FontaineError } from './errors.js';
 
-async function main() {
-  const [,, source, format = 'json'] = process.argv;
+const program = new Command();
+const limit = pLimit(5);
 
-  if (!source) {
-    console.error('Usage: fontaine <source> [json|css]');
-    process.exit(1);
-  }
+program
+  .name('fontaine')
+  .description('Production-grade font metric analysis and CSS transformation')
+  .option('-i, --input <path>', 'Input CSS file')
+  .option('-u, --urls <urls...>', 'Font URLs to analyze')
+  .action(async (options) => {
+    try {
+      if (!options.input || !options.urls) {
+        program.error('Both --input and --urls are required for transformation.');
+      }
 
-  const formatter = format === 'css' ? new CssFormatter() : new JsonFormatter();
+      const analysisResults = await Promise.all(
+        options.urls.map(url => limit(() => analyzeFontSource(url)))
+      );
 
-  try {
-    const output = await runPipeline(source, { formatter });
-    process.stdout.write(output + '\n');
-  } catch (error) {
-    if (error instanceof FontaineError) {
-      console.error(`[${error.code}] ${error.message}`);
-    } else {
-      console.error('Unexpected system failure:', error);
+      await atomicTransformCss(options.input, (css) => {
+        let updatedCss = css;
+        for (const { source, metrics } of analysisResults) {
+          // Logic to apply overrides based on analysisResults
+          // This bridges the Analysis-to-Transformation gap
+          updatedCss = updatedCss.replace(
+            new RegExp(`@font-face\\s*\\{[^}]*src:\\s*url\\(['"]?${source}['"]?\\)[^}]*\\}`, 'g'),
+            (match) => `${match}\n  size-adjust: ${metrics.ascent}%;`
+          );
+        }
+        return updatedCss;
+      });
+
+      console.log('Successfully applied font overrides atomically.');
+    } catch (error) {
+      if (error instanceof FontaineError) {
+        console.error(`[${error.code}] ${error.message}`);
+      } else {
+        console.error('Unexpected failure:', error);
+      }
+      process.exit(1);
     }
-    process.exit(1);
-  }
-}
+  });
 
-main().catch((err) => {
-  console.error('Fatal CLI Error:', err);
-  process.exit(1);
-});
+program.parse();
