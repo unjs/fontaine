@@ -1,36 +1,37 @@
 #!/usr/bin/env node
-import { parseArgs } from 'node:util';
-import { transformFont } from './transform';
-import { FontaineError } from './errors';
+import { Command } from 'commander';
+import { analyzeFonts } from './index.js';
+import { FontaineError } from './errors.js';
 
-const options = {
-  source: { type: 'string', short: 's' },
-  output: { type: 'string', short: 'o' },
-};
+const program = new Command();
 
-async function main() {
-  try {
-    const { values } = parseArgs({ options, tokens: true });
-    
-    if (!values.source || !values.output) {
-      console.error('Usage: fontaine -s <source> -o <output>');
+program
+  .name('fontaine')
+  .description('Production-grade font metric analyzer')
+  .version('1.0.0')
+  .argument('<source>', 'Path or URL to font asset')
+  .option('-f, --format <type>', 'Output format (json, css)', 'json')
+  .action(async (source, options) => {
+    try {
+      // Strict validation for positional arguments handled by commander, 
+      // but we ensure no unexpected behavior here.
+      const result = await analyzeFonts(source, { 
+        format: options.format as 'json' | 'css' 
+      });
+      process.stdout.write(result + '\n');
+    } catch (error) {
+      if (error instanceof FontaineError) {
+        process.stderr.write(`[${error.code}] ${error.message}\n`);
+      } else {
+        process.stderr.write(`Unexpected Error: ${String(error)}\n`);
+      }
       process.exit(1);
     }
+  });
 
-    await transformFont({
-      source: values.source as string,
-      output: values.output as string,
-    });
-    
-    console.log('Font transformation complete.');
-  } catch (error) {
-    if (error instanceof FontaineError) {
-      console.error(`[Fontaine Error] ${error.message}`);
-    } else {
-      console.error('An unexpected error occurred:', error);
-    }
-    process.exit(1);
-  }
+if (process.argv.length > 4 && !process.argv.includes('--help') && !process.argv.includes('-h')) {
+  process.stderr.write('Error: Too many arguments provided.\n');
+  process.exit(1);
 }
 
-main();
+program.parseAsync(process.argv);

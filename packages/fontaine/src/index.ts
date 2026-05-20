@@ -1,20 +1,40 @@
-import { resolveFontSource } from './url-analyzer';
-import { transform } from './transform';
-import { FontaineError } from './errors';
+import { resolveFontSource } from './resolver.js';
+import { analyzeFont } from './metrics.js';
+import { JsonFormatter, CssFormatter, type OutputFormatter } from './formatter.js';
+import { FontaineError } from './errors.js';
+
+export * from './errors.js';
 
 /**
- * Programmatic API for font transformation.
- * Supports local paths and remote URLs.
- * 
- * @param input - Path or URL to the source font.
- * @param options - Transformation configuration.
- * @returns The transformed font result.
- * @throws {FontaineError} For domain-specific failures.
+ * Configuration options for the Fontaine analysis pipeline.
  */
-export async function fontaine(input: string, options: any = {}) {
-  const buffer = await resolveFontSource(input);
-  return transform(buffer, options);
+export interface FontaineOptions {
+  /** Format of the output. Defaults to 'json'. */
+  format?: 'json' | 'css';
 }
 
-export * from './errors';
-export * from './metrics';
+/**
+ * Analyzes a font asset and returns the formatted metrics.
+ * 
+ * @param source - Local path or remote URL to the font.
+ * @param options - Pipeline configuration.
+ * @returns Formatted metrics as a string.
+ * @throws {FontaineError} If any stage of the pipeline fails.
+ */
+export async function analyzeFonts(source: string, options: FontaineOptions = {}): Promise<string> {
+  const resolver = resolveFontSource;
+  const analyzer = analyzeFont;
+  
+  const formatter: OutputFormatter = options.format === 'css' 
+    ? new CssFormatter() 
+    : new JsonFormatter();
+
+  try {
+    const buffer = await resolver(source);
+    const metrics = analyzer(buffer);
+    return formatter.format(metrics);
+  } catch (error) {
+    if (error instanceof FontaineError) throw error;
+    throw new FontaineError(`Unexpected error during analysis: ${String(error)}`, 'UNKNOWN_ERROR');
+  }
+}
