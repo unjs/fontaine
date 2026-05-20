@@ -1,34 +1,24 @@
 export class FontaineError extends Error {
   constructor(message: string, public readonly code: string) {
     super(message);
-    this.name = 'FontaineError';
+    this.name = this.constructor.name;
   }
 }
 
-export class FontaineFetchError extends FontaineError {
-  constructor(message: string, public readonly status?: number) {
-    super(message, 'FETCH_ERROR');
-    this.name = 'FontaineFetchError';
+export class FetchError extends FontaineError {
+  constructor(url: string, status?: number) {
+    super(`Failed to fetch font from ${url}${status ? ` with status ${status}` : ''}`, 'FETCH_ERROR');
   }
 }
 
-export class FontaineInvalidContentTypeError extends FontaineFetchError {
-  constructor(contentType: string) {
-    super(`Invalid Content-Type: ${contentType}`, 415);
-    this.name = 'FontaineInvalidContentTypeError';
+export class AnalysisError extends FontaineError {
+  constructor(reason: string) {
+    super(`Font analysis failed: ${reason}`, 'ANALYSIS_ERROR');
   }
 }
 
-export class FontaineResolutionError extends FontaineError {
-  constructor(source: string) {
-    super(`Could not resolve source: ${source}`, 'RESOLUTION_ERROR');
-    this.name = 'FontaineResolutionError';
-  }
-}
-
-export class FontaineTransformError extends FontaineError {
+export class ValidationError extends FontaineError {
   constructor(message: string) {
-    super(message, 'TRANSFORM_ERROR');
-    this.name = 'FontaineTransformError';
+    super(message, 'VALIDATION_ERROR');
   }
 }

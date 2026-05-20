@@ -1,50 +1,45 @@
 #!/usr/bin/env node
-import { Command } from 'commander';
-import pLimit from 'p-limit';
-import { analyzeFontSource } from './url-analyzer.js';
-import { atomicTransformCss } from './transform.js';
-import { FontaineError } from './errors.js';
+import { resolveFont } from './resolver';
+import { analyzeFont } from './metrics';
+import { transformCss } from './transform';
+import { FontaineError } from './errors';
+import { readFileSync, writeFileSync } from 'node:fs';
 
-const program = new Command();
-const limit = pLimit(5);
+async function main() {
+  const args = process.argv.slice(2);
+  
+  if (args.length === 0) {
+    console.error('Usage: fontaine <url|css-path> [output-path]');
+    process.exit(1);
+  }
 
-program
-  .name('fontaine')
-  .description('Production-grade font metric analysis and CSS transformation')
-  .option('-i, --input <path>', 'Input CSS file')
-  .option('-u, --urls <urls...>', 'Font URLs to analyze')
-  .action(async (options) => {
-    try {
-      if (!options.input || !options.urls) {
-        program.error('Both --input and --urls are required for transformation.');
-      }
+  const input = args[0];
+  const output = args[1];
 
-      const analysisResults = await Promise.all(
-        options.urls.map(url => limit(() => analyzeFontSource(url)))
-      );
-
-      await atomicTransformCss(options.input, (css) => {
-        let updatedCss = css;
-        for (const { source, metrics } of analysisResults) {
-          // Logic to apply overrides based on analysisResults
-          // This bridges the Analysis-to-Transformation gap
-          updatedCss = updatedCss.replace(
-            new RegExp(`@font-face\\s*\\{[^}]*src:\\s*url\\(['"]?${source}['"]?\\)[^}]*\\}`, 'g'),
-            (match) => `${match}\n  size-adjust: ${metrics.ascent}%;`
-          );
-        }
-        return updatedCss;
-      });
-
-      console.log('Successfully applied font overrides atomically.');
-    } catch (error) {
-      if (error instanceof FontaineError) {
-        console.error(`[${error.code}] ${error.message}`);
+  try {
+    if (input.endsWith('.css')) {
+      // Bulk Transformation
+      const cssContent = readFileSync(input, 'utf8');
+      const result = await transformCss(cssContent);
+      if (output) {
+        writeFileSync(output, result);
       } else {
-        console.error('Unexpected failure:', error);
+        console.log(result);
       }
-      process.exit(1);
+    } else {
+      // Atomic Analysis
+      const fontBuffer = await resolveFont(input);
+      const overrides = await analyzeFont(fontBuffer);
+      console.log(JSON.stringify(overrides, null, 2));
     }
-  });
+  } catch (error) {
+    if (error instanceof FontaineError) {
+      console.error(`[${error.code}] ${error.message}`);
+    } else {
+      console.error('An unexpected error occurred:', error);
+    }
+    process.exit(1);
+  }
+}
 
-program.parse();
+main();
