@@ -1,31 +1,23 @@
-import type { AnalysisResult } from './index.js';
+import { FontMetrics } from './metrics.js';
 
 /**
- * Interface for transforming analysis results into specific string formats.
+ * Interface for defining output strategies for font analysis.
  */
-export interface FontFormatter {
-  format(result: AnalysisResult): string;
+export interface OutputFormatter {
+  /**
+   * Formats the analysis results into a specific string representation.
+   * 
+   * @param metrics - The calculated font metrics.
+   * @returns The formatted output string.
+   */
+  format(metrics: FontMetrics): string;
 }
 
-export class CssFormatter implements FontFormatter {
-  format(result: AnalysisResult): string {
-    const { fontName, overrides } = result;
-    const rules = Object.entries(overrides)
-      .map(([size, value]) => `@font-face { font-family: "${fontName}"; font-size: ${size}; size-adjust: ${value}; }`)
-      .join('\n');
-    return rules;
-  }
-}
-
-export class JsonFormatter implements FontFormatter {
-  format(result: AnalysisResult): string {
-    return JSON.stringify(result, null, 2);
-  }
-}
-
-export class FormatterFactory {
-  static getFormatter(type: 'css' | 'json'): FontFormatter {
-    if (type === 'json') return new JsonFormatter();
-    return new CssFormatter();
+/**
+ * JSON implementation of the OutputFormatter.
+ */
+export class JsonFormatter implements OutputFormatter {
+  format(metrics: FontMetrics): string {
+    return JSON.stringify(metrics, null, 2);
   }
 }

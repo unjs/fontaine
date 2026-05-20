@@ -1,35 +1,39 @@
 #!/usr/bin/env node
-import { Command } from 'commander';
-import { analyzeFonts } from './index.js';
-import { FormatterFactory } from './formatter.js';
-import { FontaineError } from './errors.js';
+import { runFontaine, CssFormatter, JsonFormatter } from './index.js';
+import { writeFileSync, renameSync, writeFileSync as fsWrite } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 
-const program = new Command();
+async function main() {
+  const args = process.argv.slice(2);
+  if (args.length < 1) {
+    console.error('Usage: fontaine <source> [--json] [--out <path>]');
+    process.exit(1);
+  }
 
-program
-  .name('fontaine')
-  .description('Analyze fonts and generate size-adjust overrides')
-  .version('1.0.0')
-  .requiredOption('-u, --url <url>', 'URL or path to font file')
-  .requiredOption('-n, --name <name>', 'Font family name')
-  .option('-f, --format <format>', 'Output format (css, json)', 'css')
-  .action(async (options) => {
-    try {
-      const result = await analyzeFonts({
-        url: options.url,
-        fontName: options.name,
-      });
+  const source = args[0];
+  const isJson = args.includes('--json');
+  const outIdx = args.indexOf('--out');
+  const outputPath = outIdx !== -1 ? args[outIdx + 1] : null;
 
-      const formatter = FormatterFactory.getFormatter(options.format as 'css' | 'json');
-      process.stdout.write(formatter.format(result) + '\n');
-    } catch (error) {
-      if (error instanceof FontaineError) {
-        process.stderr.write(`Error: ${error.message}\n`);
-        process.exit(1);
-      }
-      process.stderr.write(`Unexpected Error: ${(error as Error).message}\n`);
-      process.exit(1);
+  const formatter = isJson ? new JsonFormatter() : new CssFormatter();
+
+  try {
+    const result = await runFontaine({ source, formatter });
+
+    if (outputPath) {
+      // Atomic Write: Write to temp, then rename
+      const tempPath = join(tmpdir(), `fontaine-${Date.now()}.tmp`);
+      writeFileSync(tempPath, result);
+      renameSync(tempPath, outputPath);
+      console.log(`Successfully wrote analysis to ${outputPath}`);
+    } else {
+      console.log(result);
     }
-  });
+  } catch (error: any) {
+    console.error(`[${error.code || 'ERROR'}] ${error.message}`);
+    process.exit(1);
+  }
+}
 
-program.parse();
+main();

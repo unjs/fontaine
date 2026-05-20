@@ -1,39 +1,37 @@
-import { ValidationError } from './errors.js';
+import { FontaineValidationError } from './errors.js';
+
+const SUPPORTED_FONT_MIME_TYPES = new Set([
+  'font/ttf',
+  'font/otf',
+  'font/woff',
+  'font/woff2',
+  'application/font-ttf',
+  'application/font-otf',
+  'application/x-font-ttf',
+  'application/x-font-otf',
+  'application/vnd.ms-fontobject',
+]);
 
 /**
- * Validates that a buffer contains a valid font file (TTF/OTF).
- * Checks for common font magic numbers.
+ * Validates that a given mime-type is a supported font format.
  * 
- * @param fontBuffer - The raw buffer to validate.
- * @throws {ValidationError} If the buffer is not a recognized font format.
+ * @param mimeType - The content-type string to validate.
+ * @throws {FontaineValidationError} If the mime-type is not supported.
  */
-export function validateFontBuffer(fontBuffer: Uint8Array): void {
-  if (fontBuffer.length < 4) {
-    throw new ValidationError('Font buffer is too small to be a valid font file.');
-  }
-
-  const magic = Array.from(fontBuffer.slice(0, 4))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-
-  // TTF: 00 01 00 00 | OTF: OTTO
-  const isTtf = magic === '00010000';
-  const isOtf = magic === '4f54544f'; // "OTTO" in hex
-
-  if (!isTtf && !isOtf) {
-    throw new ValidationError(`Unsupported font format. Magic bytes: ${magic}`);
+export function validateFontMimeType(mimeType: string): void {
+  if (!SUPPORTED_FONT_MIME_TYPES.has(mimeType.toLowerCase())) {
+    throw new FontaineValidationError(`Unsupported font mime-type: ${mimeType}`);
   }
 }
 
 /**
- * Validates the Content-Type header of a remote asset.
+ * Validates that the provided buffer is not empty.
  * 
- * @param contentType - The header value to check.
- * @throws {ValidationError} If the content type is not a font.
+ * @param buffer - The font buffer to validate.
+ * @throws {FontaineValidationError} If the buffer is empty.
  */
-export function validateContentType(contentType: string | null): void {
-  const fontTypes = ['font/ttf', 'font/otf', 'application/x-font-ttf', 'application/font-sfnt'];
-  if (!contentType || !fontTypes.includes(contentType.toLowerCase())) {
-    throw new ValidationError(`Invalid Content-Type: ${contentType}. Expected one of ${fontTypes.join(', ')}`);
+export function validateFontBuffer(buffer: Buffer): void {
+  if (!buffer || buffer.length === 0) {
+    throw new FontaineValidationError('Font buffer is empty or undefined');
   }
 }

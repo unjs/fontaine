@@ -6,7 +6,7 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "fontaine": "./dist/cli.js"
+    "fontaine": "dist/cli.mjs"
   },
   "scripts": {
     "build": "tsdown",
@@ -20,5 +20,9 @@
     "tsdown": "latest",
     "typescript": "latest",
     "vitest": "latest"
+  },
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./cli": "./dist/cli.mjs"
   }
 }

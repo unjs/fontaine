@@ -1,93 +1,52 @@
-import fs from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { ofetch } from 'ofetch';
-import { FontaineFetchError, FontaineInvalidContentTypeError } from './errors.js';
-
-export interface Resource {
-  buffer: Buffer;
-  mimeType: string;
-}
+import { FontaineFetchError } from './errors.js';
+import { validateFontMimeType } from './validator.js';
 
 /**
- * Strategy for resolving font resources from various protocols.
+ * Strategy for resolving font assets from various sources.
  */
-export interface FontResolver {
-  supports(url: string): boolean;
-  resolve(url: string): Promise<Resource>;
-}
-
-export class FileSystemResolver implements FontResolver {
-  supports(url: string): boolean {
-    return url.startsWith('file://') || !url.includes('://');
-  }
-
-  async resolve(url: string): Promise<Resource> {
-    try {
-      const path = url.startsWith('file://') ? url.replace('file://', '') : url;
-      const buffer = await fs.readFile(path);
-      return {
-        buffer,
-        mimeType: 'application/octet-stream',
-      };
-    } catch (error) {
-      throw new FontaineFetchError(url, error);
+export class FontResolver {
+  /**
+   * Resolves a font from a URL or local file path.
+   * 
+   * @param source - The URI of the font asset.
+   * @returns A promise resolving to the font buffer.
+   * @throws {FontaineFetchError} If the asset cannot be retrieved or validated.
+   */
+  async resolve(source: string): Promise<Buffer> {
+    if (source.startsWith('http')) {
+      return this.fetchRemote(source);
     }
-  }
-}
-
-export class HttpResolver implements FontResolver {
-  supports(url: string): boolean {
-    return url.startsWith('http://') || url.startsWith('https://');
+    return this.fetchLocal(source);
   }
 
-  async resolve(url: string): Promise<Resource> {
+  private async fetchRemote(url: string): Promise<Buffer> {
     try {
-      const response = await ofetch.raw(url);
+      const response = await ofetch.raw(url, {
+        responseType: 'arrayBuffer',
+      });
+
       const contentType = response.headers.get('content-type') || '';
+      validateFontMimeType(contentType);
 
-      if (!this.isValidFontType(contentType)) {
-        throw new FontaineInvalidContentTypeError(url, contentType);
-      }
-
-      const buffer = await response.blob().then((b) => b.arrayBuffer());
-      return {
-        buffer: Buffer.from(buffer),
-        mimeType: contentType,
-      };
-    } catch (error) {
-      if (error instanceof FontaineInvalidContentTypeError) throw error;
-      throw new FontaineFetchError(url, error);
+      return Buffer.from(response._data as ArrayBuffer);
+    } catch (error: any) {
+      throw new FontaineFetchError(
+        error instanceof Error ? error.message : 'Unknown network error',
+        url
+      );
     }
   }
 
-  private isValidFontType(mimeType: string): boolean {
-    const validTypes = [
-      'font/ttf',
-      'font/otf',
-      'font/woff',
-      'font/woff2',
-      'application/font-sfnt',
-      'application/vnd.ms-fontobject',
-      'application/x-font-ttf',
-    ];
-    return validTypes.some((type) => mimeType.includes(type));
-  }
-}
-
-/**
- * Orchestrates multiple resolvers to retrieve font data.
- */
-export class ResolverRegistry {
-  private resolvers: FontResolver[] = [];
-
-  register(resolver: FontResolver): void {
-    this.resolvers.push(resolver);
-  }
-
-  async resolve(url: string): Promise<Resource> {
-    const resolver = this.resolvers.find((r) => r.supports(url));
-    if (!resolver) {
-      throw new FontaineError(`No resolver registered for URL: ${url}`);
+  private fetchLocal(path: string): Buffer {
+    try {
+      return readFileSync(path);
+    } catch (error: any) {
+      throw new FontaineFetchError(
+        `Failed to read local font at ${path}: ${error.message}`,
+        path
+      );
     }
-    return resolver.resolve(url);
   }
 }

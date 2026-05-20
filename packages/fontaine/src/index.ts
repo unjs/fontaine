@@ -1,38 +1,34 @@
-import { ResolverRegistry, FileSystemResolver, HttpResolver } from './resolver.js';
-import type { Resource } from './resolver.js';
-import { analyzeFontMetrics } from './metrics.js';
+import { FontResolver } from './resolver.js';
+import { OutputFormatter } from './formatter.js';
+import { analyzeFont } from './metrics.js';
+import { FontaineError } from './errors.js';
 
-export interface AnalysisResult {
-  fontName: string;
-  overrides: Record<string, string>;
-  metrics: any;
-}
+export * from './errors.js';
+export * from './metrics.js';
+export * from './formatter.js';
+export * from './css.js';
 
-export interface AnalyzeOptions {
-  url: string;
-  fontName: string;
+export interface AnalysisOptions {
+  source: string;
+  formatter: OutputFormatter;
 }
 
 /**
- * Core analysis engine. Decoupled from I/O and CLI.
- * Purely functional: takes a resource and returns structured analysis.
+ * Main entry point for the Fontaine programmatic API.
+ * 
+ * @param options - Configuration for the analysis pipeline.
+ * @returns The formatted analysis results.
+ * @throws {FontaineError} If any stage of the pipeline fails.
  */
-export async function analyzeFonts(options: AnalyzeOptions): Promise<AnalysisResult> {
-  const registry = new ResolverRegistry();
-  registry.register(new FileSystemResolver());
-  registry.register(new HttpResolver());
-
-  const resource = await registry.resolve(options.url);
-  const metrics = await analyzeFontMetrics(resource.buffer);
-
-  return {
-    fontName: options.fontName,
-    overrides: calculateOverrides(metrics),
-    metrics,
-  };
-}
-
-function calculateOverrides(metrics: any): Record<string, string> {
-  // Logic moved from transform.ts to keep index as the orchestrator
-  return { '16px': '100%' }; 
+export async function runFontaine({ source, formatter }: AnalysisOptions): Promise<string> {
+  const resolver = new FontResolver();
+  
+  try {
+    const fontBuffer = await resolver.resolve(source);
+    const fontMetrics = await analyzeFont(fontBuffer);
+    return formatter.format(fontMetrics);
+  } catch (error) {
+    if (error instanceof FontaineError) throw error;
+    throw new FontaineError(error instanceof Error ? error.message : 'Unknown failure', 'INTERNAL_ERROR');
+  }
 }
