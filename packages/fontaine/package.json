@@ -9,21 +9,16 @@
     "fontaine": "./dist/cli.js"
   },
   "scripts": {
-    "build": "tsdown",
-    "test": "vitest run",
-    "test:cov": "vitest run --coverage",
-    "postbuild": "chmod +x ./dist/cli.js"
+    "build": "tsdown src/index.ts src/cli.ts",
+    "test": "vitest"
   },
   "dependencies": {
-    "ofetch": "^1.10.0"
+    "commander": "^11.0.0",
+    "ofetch": "^1.0.0"
   },
   "devDependencies": {
     "tsdown": "latest",
-    "typescript": "latest",
-    "vitest": "latest"
-  },
-  "exports": {
-    ".": "./dist/index.mjs",
-    "./cli": "./dist/cli.mjs"
+    "vitest": "latest",
+    "typescript": "latest"
   }
 }

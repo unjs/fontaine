@@ -1,41 +1,51 @@
+import fs from 'node:fs/promises';
 import { ofetch } from 'ofetch';
-import { joinURL } from 'ufo';
-import { ResolverError } from './errors';
+import { FontaineFetchError, FontaineInvalidContentTypeError } from './errors.js';
 
-const MAGIC_NUMBERS = {
-  TTF: [0x00, 0x01, 0x00, 0x00],
-  OTF: [0x4F, 0x54, 0x54, 0x4F],
-  WOFF: [0x77, 0x4F, 0x46, 0x31],
-  WOFF2: [0x77, 0x4F, 0x46, 0x32],
-};
+const VALID_FONT_MIME_TYPES = new Set([
+  'font/woff2',
+  'font/woff',
+  'font/ttf',
+  'application/font-woff',
+  'application/x-font-ttf',
+  'application/font-sfnt',
+]);
 
-export class SourceResolver {
-  async resolve(url: string): Promise<Uint8Array> {
-    const normalizedUrl = joinURL(url);
-    
+/**
+ * Resolves a font source (local path or HTTPS URL) into a Buffer.
+ * 
+ * @throws FontaineFetchError if the network request fails.
+ * @throws FontaineInvalidContentTypeError if the response is not a font.
+ * @throws FontaineError for file system access issues.
+ */
+export async function resolveFontSource(source: string): Promise<Buffer> {
+  if (source.startsWith('http://') || source.startsWith('https://')) {
     try {
-      const buffer = await ofetch(normalizedUrl, {
+      const response = await ofetch(source, {
         responseType: 'arrayBuffer',
       });
 
-      const uint8 = new Uint8Array(buffer as ArrayBuffer);
-      this.validateSignature(uint8);
-      
-      return uint8;
+      // ofetch doesn't return headers in the response body by default 
+      // when using responseType: 'arrayBuffer' in some versions, 
+      // so we use a raw fetch call for header validation.
+      const head = await ofetch(source, { method: 'HEAD' });
+      const contentType = head.headers.get('content-type');
+
+      if (!contentType || !VALID_FONT_MIME_TYPES.has(contentType)) {
+        throw new FontaineInvalidContentTypeError(contentType || 'unknown');
+      }
+
+      return Buffer.from(response as ArrayBuffer);
     } catch (error) {
-      if (error instanceof ResolverError) throw error;
-      throw new ResolverError(`Failed to resolve font source: ${normalizedUrl}`);
+      if (error instanceof FontaineInvalidContentTypeError) throw error;
+      throw new FontaineFetchError(source, error);
     }
   }
 
-  private validateSignature(buffer: Uint8Array): void {
-    const signature = Array.from(buffer.slice(0, 4));
-    const isValid = Object.values(MAGIC_NUMBERS).some(magic => 
-      magic.every((byte, i) => byte === signature[i])
-    );
-
-    if (!isValid) {
-      throw new ResolverError('Invalid font file signature: buffer does not match known font magic numbers');
-    }
+  try {
+    const buffer = await fs.readFile(source);
+    return buffer;
+  } catch (error) {
+    throw new FontaineError(`Local file read failed: ${source}`);
   }
 }

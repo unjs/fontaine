@@ -1,12 +1,5 @@
-export * from './errors';
-export * from './pipeline';
-export * from './resolver';
-export * from './metrics';
-export * from './formatter';
-
-import { AnalysisPipeline } from './pipeline';
-
-export async function analyzeFont(url: string, options = {}) {
-  const pipeline = new AnalysisPipeline();
-  return pipeline.run(url, options);
-}
+export * from './errors.js';
+export * from './resolver.js';
+export * from './metrics.js';
+export * from './formatter.js';
+export * from './pipeline.js';
