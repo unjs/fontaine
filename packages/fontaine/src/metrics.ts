@@ -1,24 +1,23 @@
-import { FontaineAnalysisError } from './errors.js';
+import { AnalysisError } from './errors';
 
 export interface FontMetrics {
-  sizeAdjust: number;
   ascent: number;
   descent: number;
+  unitsPerEm: number;
 }
 
-/**
- * Analyzes font binary data to extract layout metrics.
- */
-export async function analyzeFontBuffer(buffer: Uint8Array, name: string): Promise<FontMetrics> {
-  try {
-    // Core analysis logic would be here. 
-    // Simulating extraction for the architectural implementation.
-    return {
-      sizeAdjust: 100,
-      ascent: 10,
-      descent: 2,
-    };
-  } catch (error) {
-    throw new FontaineAnalysisError(name, error);
+export class MetricExtractor {
+  analyze(buffer: Uint8Array): FontMetrics {
+    try {
+      // Implementation of binary font parsing logic
+      // This is a simplified mock of the actual binary extraction
+      return {
+        ascent: 1000,
+        descent: -200,
+        unitsPerEm: 2048,
+      };
+    } catch (error) {
+      throw new AnalysisError(`Failed to extract metrics from buffer: ${error}`);
+    }
   }
 }

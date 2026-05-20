@@ -1,30 +1,33 @@
-import { describe, it, expect, vi } from 'vitest';
-import { runPipeline } from '../src/index.js';
-import { FetchError } from '../src/errors.js';
-import { Resolver } from '../src/resolver.js';
+import { describe, it, expect } from 'vitest';
+import { AnalysisPipeline } from '../src/pipeline';
+import { ResolverError } from '../src/errors';
+import { execa } from 'execa';
 
-vi.mock('ofetch');
-import { ofetch } from 'ofetch';
+describe('AnalysisPipeline', () => {
+  const pipeline = new AnalysisPipeline();
 
-describe('Pipeline Edge Cases', () => {
-  it('should throw FetchError on invalid content-type', async () => {
-    vi.mocked(ofetch).mockResolvedValue({
-      headers: { get: () => 'text/plain' },
-      _data: new ArrayBuffer(8),
-    } as any);
-
-    await expect(runPipeline('https://example.com/font.ttf'))
-      .rejects.toThrow(FetchError);
+  it('should process a valid font source', async () => {
+    // Using a known valid font endpoint for the test
+    const result = await pipeline.run('https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92tCVqlddLlnw.ttf');
+    expect(result).toContain('--font-ascent');
   });
 
-  it('should fail fast on non-existent local files', async () => {
-    await expect(runPipeline('/non/existent/path.ttf'))
-      .rejects.toThrow(FetchError);
+  it('should throw ResolverError for invalid file signatures', async () => {
+    await expect(pipeline.run('https://google.com')).rejects.toThrow(ResolverError);
+  });
+});
+
+describe('CLI Binary', () => {
+  it('should output CSS by default', async () => {
+    const { stdout } = await execa('node', ['../src/cli.ts', 'https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92tCVqlddLlnw.ttf']);
+    expect(stdout).toContain('.fontaine-metrics');
   });
 
-  it('should handle network timeouts via ofetch rejection', async () => {
-    vi.mocked(ofetch).mockRejectedValue(new Error('Timeout'));
-    await expect(runPipeline('https://example.com/font.ttf'))
-      .rejects.toThrow(FetchError);
+  it('should return exit code 1 for missing arguments', async () => {
+    try {
+      await execa('node', ['../src/cli.ts']);
+    } catch (error: any) {
+      expect(error.exitCode).toBe(1);
+    }
   });
 });

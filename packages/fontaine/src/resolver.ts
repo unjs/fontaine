@@ -1,52 +1,41 @@
-import { readFileSync } from 'node:fs';
 import { ofetch } from 'ofetch';
-import { FontaineFetchError } from './errors.js';
-import { validateFontMimeType } from './validator.js';
+import { joinURL } from 'ufo';
+import { ResolverError } from './errors';
 
-/**
- * Strategy for resolving font assets from various sources.
- */
-export class FontResolver {
-  /**
-   * Resolves a font from a URL or local file path.
-   * 
-   * @param source - The URI of the font asset.
-   * @returns A promise resolving to the font buffer.
-   * @throws {FontaineFetchError} If the asset cannot be retrieved or validated.
-   */
-  async resolve(source: string): Promise<Buffer> {
-    if (source.startsWith('http')) {
-      return this.fetchRemote(source);
-    }
-    return this.fetchLocal(source);
-  }
+const MAGIC_NUMBERS = {
+  TTF: [0x00, 0x01, 0x00, 0x00],
+  OTF: [0x4F, 0x54, 0x54, 0x4F],
+  WOFF: [0x77, 0x4F, 0x46, 0x31],
+  WOFF2: [0x77, 0x4F, 0x46, 0x32],
+};
 
-  private async fetchRemote(url: string): Promise<Buffer> {
+export class SourceResolver {
+  async resolve(url: string): Promise<Uint8Array> {
+    const normalizedUrl = joinURL(url);
+    
     try {
-      const response = await ofetch.raw(url, {
+      const buffer = await ofetch(normalizedUrl, {
         responseType: 'arrayBuffer',
       });
 
-      const contentType = response.headers.get('content-type') || '';
-      validateFontMimeType(contentType);
-
-      return Buffer.from(response._data as ArrayBuffer);
-    } catch (error: any) {
-      throw new FontaineFetchError(
-        error instanceof Error ? error.message : 'Unknown network error',
-        url
-      );
+      const uint8 = new Uint8Array(buffer as ArrayBuffer);
+      this.validateSignature(uint8);
+      
+      return uint8;
+    } catch (error) {
+      if (error instanceof ResolverError) throw error;
+      throw new ResolverError(`Failed to resolve font source: ${normalizedUrl}`);
     }
   }
 
-  private fetchLocal(path: string): Buffer {
-    try {
-      return readFileSync(path);
-    } catch (error: any) {
-      throw new FontaineFetchError(
-        `Failed to read local font at ${path}: ${error.message}`,
-        path
-      );
+  private validateSignature(buffer: Uint8Array): void {
+    const signature = Array.from(buffer.slice(0, 4));
+    const isValid = Object.values(MAGIC_NUMBERS).some(magic => 
+      magic.every((byte, i) => byte === signature[i])
+    );
+
+    if (!isValid) {
+      throw new ResolverError('Invalid font file signature: buffer does not match known font magic numbers');
     }
   }
 }
