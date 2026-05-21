@@ -1,17 +1,18 @@
-import { readFile, writeFile, rename } from 'node:fs/promises';
-import { join } from 'node:path';
-import { FontaineTransformError } from './errors.js';
+import { FontMetrics } from './metrics.js';
 
-export async function atomicTransformCss(filePath: string, transformFn: (content: string) => string): Promise<void> {
-  const atomicPath = `${filePath}.atomic.${Math.random().toString(36).slice(2)}.tmp`;
+export interface TransformOptions {
+  fallbackFont: string;
+}
+
+/**
+ * Transforms CSS @font-face rules to include size-adjust and ascent-override.
+ */
+export function transformFontCss(css: string, metrics: FontMetrics, { fallbackFont }: TransformOptions): string {
+  const ascentOverride = `${metrics.ascent / 1000}em`;
+  const descentOverride = `${metrics.descent / 1000}em`;
   
-  try {
-    const content = await readFile(filePath, 'utf8');
-    const result = transformFn(content);
-    
-    await writeFile(atomicPath, result, 'utf8');
-    await rename(atomicPath, filePath);
-  } catch (error) {
-    throw new FontaineTransformError(error instanceof Error ? error.message : 'Atomic write failed');
-  }
+  // Regex replaces font-face declarations with optimized overrides
+  return css.replace(/(@font-face\s*\{[^}]*\})/g, (match) => {
+    return `${match.replace('{', `{\n  ascent-override: ${ascentOverride};\n  descent-override: ${descentOverride};\n  size-adjust: 100%;`)}`;
+  });
 }

@@ -7,7 +7,6 @@ export default defineConfig({
   },
   format: ['esm'],
   outDir: 'dist',
-  banner: {
-    cli: '#!/usr/bin/env node',
-  },
+  minify: false,
+  bundle: true,
 });

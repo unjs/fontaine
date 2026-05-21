@@ -1,38 +1,45 @@
+import { ofetch } from 'ofetch';
 import { readFile } from 'node:fs/promises';
-import ofetch from 'ofetch';
-import { FontaineFetchError, FontaineInvalidContentTypeError } from './errors.js';
+import { FontaineFetchError } from './errors.js';
 
-export type ResourceSource = string | Buffer | Uint8Array;
+type ResourceCache = Map<string, Promise<Uint8Array>>;
+
+const cache: ResourceCache = new Map();
 
 /**
- * Resolves a font resource from a URL or local filesystem.
+ * Resolves a font resource from local filesystem or remote URL.
+ * Implements Promise-based memoization to coalesce concurrent requests.
  */
-export async function resolveResource(source: ResourceSource): Promise<Uint8Array> {
-  if (source instanceof Buffer || source instanceof Uint8Array) {
-    return new Uint8Array(source);
+export async function resolveFont(url: string): Promise<Uint8Array> {
+  if (cache.has(url)) {
+    return cache.get(url)!;
   }
 
-  if (source.startsWith('http')) {
+  const request = (async () => {
     try {
-      const response = await ofetch.raw(source);
-      const contentType = response.headers.get('content-type') || '';
-      
-      if (!contentType.includes('font') && !contentType.includes('application/octet-stream')) {
-        throw new FontaineInvalidContentTypeError(contentType);
+      if (url.startsWith('http')) {
+        const response = await ofetch(url, {
+          responseType: 'arrayBuffer',
+          onResponse({ response }) {
+            const contentType = response.headers.get('content-type');
+            const isFont = contentType?.includes('font') || 
+                           contentType?.includes('application/octet-stream');
+            
+            if (!isFont) {
+              throw new FontaineFetchError(url, response.status, `Invalid Content-Type: ${contentType}`);
+            }
+          },
+        });
+        return new Uint8Array(response as ArrayBuffer);
       }
 
-      const buffer = await response.blob().then(b => b.arrayBuffer());
-      return new Uint8Array(buffer);
+      return new Uint8Array(await readFile(url));
     } catch (err) {
-      if (err instanceof FontaineInvalidContentTypeError) throw err;
-      throw new FontaineFetchError(`Failed to fetch remote font: ${source}`);
+      if (err instanceof FontaineFetchError) throw err;
+      throw new FontaineFetchError(url, 0, err instanceof Error ? err.message : 'Unknown resolution error');
     }
-  }
+  })();
 
-  try {
-    const buffer = await readFile(source);
-    return new Uint8Array(buffer);
-  } catch (err) {
-    throw new FontaineFetchError(`Failed to read local font: ${source}`);
-  }
+  cache.set(url, request);
+  return request;
 }

@@ -1,23 +1,13 @@
-import { FontMetrics } from './metrics.js';
-
-export interface OutputFormatter {
-  format(metrics: FontMetrics): string;
+export interface FormatOptions {
+  format: 'css' | 'json';
 }
 
 /**
- * Formats font metrics as a CSS @font-face override.
+ * Formats the analysis results into the requested output string.
  */
-export class CssFormatter implements OutputFormatter {
-  format({ ascent, descent, lineGap }: FontMetrics): string {
-    return `size-adjust: ${ascent + descent + lineGap}%;`;
+export function formatOutput(content: string | object, { format }: FormatOptions): string {
+  if (format === 'json') {
+    return JSON.stringify(content, null, 2);
   }
-}
-
-/**
- * Formats font metrics as a JSON string for programmatic consumption.
- */
-export class JsonFormatter implements OutputFormatter {
-  format(metrics: FontMetrics): string {
-    return JSON.stringify(metrics, null, 2);
-  }
+  return content as string;
 }

@@ -22,3 +22,6 @@
     "typescript": "latest"
   }
 }
+  "bin": {
+    "fontaine": "./dist/cli.mjs"
+  },
