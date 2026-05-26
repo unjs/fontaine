@@ -1,30 +1,46 @@
-import fs from 'node:fs/promises';
-import { FontaineFetchError, FontaineResolverError, FontaineValidationError } from './errors.js';
+import { readFile } from 'node:fs/promises';
+import { ofetch } from 'ofetch';
+import { isAbsolute } from 'ufo';
+import { FontaineFetchError } from './errors.js';
 
-export async function resolveFontSource(source: string): Promise<Buffer> {
-  if (source.startsWith('https://')) {
+export interface FontResolver {
+  resolve(url: string): Promise<Uint8Array>;
+}
+
+/**
+ * Resolves fonts from the local file system.
+ */
+export class LocalResolver implements FontResolver {
+  async resolve(path: string): Promise<Uint8Array> {
     try {
-      const response = await fetch(source);
-      if (!response.ok) {
-        throw new FontaineFetchError(source, response.status);
-      }
-      
-      const contentType = response.headers.get('content-type');
-      if (contentType && !contentType.includes('font')) {
-        throw new FontaineValidationError(`Expected font content-type, got ${contentType}`);
-      }
-      
-      const arrayBuffer = await response.arrayBuffer();
-      return Buffer.from(arrayBuffer);
-    } catch (error) {
-      if (error instanceof FontaineError) throw error;
-      throw new FontaineFetchError(source, 0);
+      return new Uint8Array(await readFile(path));
+    } catch (err) {
+      throw new FontaineFetchError(path, err);
     }
   }
+}
 
-  try {
-    return await fs.readFile(source);
-  } catch (error) {
-    throw new FontaineResolverError(source, (error as Error).message);
+/**
+ * Resolves fonts from remote HTTPS endpoints.
+ */
+export class RemoteResolver implements FontResolver {
+  async resolve(url: string): Promise<Uint8Array> {
+    try {
+      return await ofetch(url, {
+        responseType: 'arrayBuffer',
+      }) as unknown as Uint8Array;
+    } catch (err) {
+      throw new FontaineFetchError(url, err);
+    }
   }
+}
+
+/**
+ * Factory to determine the appropriate resolver based on the input URI.
+ */
+export function createResolver(url: string): FontResolver {
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return new RemoteResolver();
+  }
+  return new LocalResolver();
 }

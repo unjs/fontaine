@@ -1,32 +1,39 @@
 #!/usr/bin/env node
-import { resolveFontSource } from './resolver.js';
-import { formatAnalysis } from './formatter.js';
-import { FontaineError } from './errors.js';
-import { analyzeFont } from './metrics.js';
+import { analyzeFonts } from './pipeline.js';
+import { formatResult } from './formatter.js'; // Assuming this exists
+import { parseArgs } from 'node:util';
 
 async function main() {
-  const args = process.argv.slice(2);
-  const source = args[0];
-  const format = args.find(arg => arg.startsWith('--format='))?.split('=')[1] as 'css' | 'json' || 'css';
+  const { positionals, values } = parseArgs({
+    options: {
+      output: { type: 'string', short: 'o' },
+    },
+    allowPositionals: true,
+  });
 
-  if (!source) {
-    console.error('Usage: fontaine <source> [--format=css|json]');
+  const target = positionals[0];
+
+  if (!target) {
+    console.error('Usage: fontaine <path|url> [-o output]');
     process.exit(1);
   }
 
-  try {
-    const buffer = await resolveFontSource(source);
-    const metrics = await analyzeFont(buffer);
-    const output = formatAnalysis(metrics, format);
-    process.stdout.write(output + '\n');
-  } catch (error) {
-    if (error instanceof FontaineError) {
-      console.error(`[${error.name}] ${error.message}`);
-    } else {
-      console.error('An unexpected error occurred:', (error as Error).message);
-    }
+  const result = await analyzeFonts(target);
+
+  if (!result.success) {
+    console.error(`Error: ${result.error.message}`);
     process.exit(1);
+  }
+
+  const output = formatResult(result.data);
+  if (values.output) {
+    // Logic to write to file
+  } else {
+    console.log(output);
   }
 }
 
-main().catch(() => process.exit(1));
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
