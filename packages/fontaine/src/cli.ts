@@ -1,33 +1,29 @@
 #!/usr/bin/env node
 import { runAnalysis } from './pipeline.js';
-import { formatterRegistry } from './formatter.js';
-import { AnalysisOptions } from './index.js';
+import { JsonFormatter, CssFormatter } from './formatter.js';
+import { FontaineError } from './errors.js';
 
 async function main() {
   const args = process.argv.slice(2);
-  if (args.length < 1) {
-    console.error('Usage: fontaine <source> [--format=json|text]');
+  const url = args[0];
+  const format = args[1] === '--css' ? new CssFormatter() : new JsonFormatter();
+
+  if (!url) {
+    console.error('Usage: fontaine <url> [--css]');
     process.exit(1);
   }
-
-  const source = args[0];
-  const formatArg = args.find(a => a.startsWith('--format='))?.split('=')[1] || 'text';
-
-  const options: AnalysisOptions = {
-    source,
-    strict: true
-  };
 
   try {
-    const result = await runAnalysis(options);
-    const formatter = formatterRegistry.get(formatArg);
-    process.stdout.write(formatter.format(result) + '\n');
+    const output = await runAnalysis(url, { formatter: format });
+    process.stdout.write(output + '\n');
   } catch (error) {
-    console.error(`Error: ${(error as Error).message}`);
+    if (error instanceof FontaineError) {
+      console.error(`[${error.name}] ${error.message}`);
+    } else {
+      console.error('Unexpected system error occurred');
+    }
     process.exit(1);
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch(() => process.exit(1));
-}
+main();

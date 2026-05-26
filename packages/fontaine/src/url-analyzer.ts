@@ -1,26 +1,14 @@
-import { z } from 'zod';
-import { resolveSource } from './resolver.js';
-import { calculateMetrics } from './metrics.js';
+export const SUPPORTED_FONT_MIMES = [
+  'font/ttf',
+  'font/otf',
+  'font/woff',
+  'font/woff2',
+  'application/x-font-ttf',
+  'application/x-font-otf',
+  'application/font-woff',
+  'application/font-woff2',
+];
 
-export const AnalysisResultSchema = z.object({
-  source: z.string(),
-  metrics: z.object({
-    ascent: z.number(),
-    descent: z.number(),
-    lineGap: z.number(),
-  }),
-  timestamp: z.string().datetime(),
-});
-
-export type AnalysisResult = z.infer<typeof AnalysisResultSchema>;
-
-export async function analyzeFontSource(source: string): Promise<AnalysisResult> {
-  const buffer = await resolveSource(source);
-  const metrics = await calculateMetrics(buffer);
-
-  return AnalysisResultSchema.parse({
-    source,
-    metrics,
-    timestamp: new Date().toISOString(),
-  });
+export function isValidFontMime(mime: string): boolean {
+  return SUPPORTED_FONT_MIMES.includes(mime);
 }

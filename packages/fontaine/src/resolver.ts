@@ -1,28 +1,42 @@
-import { readFile } from 'node:fs/promises';
-import { createReadStream } from 'node:fs';
-import { Readable } from 'node:stream';
-import ofetch from 'ofetch';
-import { ResolutionError } from './errors.js';
+import fs from 'node:fs/promises';
+import { ofetch } from 'ofetch';
+import { FontaineInvalidContentTypeError, FontaineResolutionError } from './errors.js';
+import { isValidFontMime } from './url-analyzer.js';
 
-export type SourceStream = Readable | ReadableStream;
+export interface ResourcePayload {
+  buffer: Buffer;
+  mimeType: string;
+}
 
-/**
- * Resolves a source identifier into a readable stream.
- * Supports local file system paths and HTTPS URLs.
- */
-export async function resolveSource(source: string): Promise<SourceStream> {
-  try {
-    if (source.startsWith('http://') || source.startsWith('https://')) {
-      const response = await ofetch.raw(source);
-      if (!response.ok) {
-        throw new ResolutionError(source, `HTTP ${response.status}`);
+export async function resolveAsset(url: string): Promise<ResourcePayload> {
+  if (url.startsWith('http')) {
+    try {
+      const response = await ofetch.raw(url);
+      const contentType = response.headers.get('content-type') || '';
+      
+      if (!isValidFontMime(contentType)) {
+        throw new FontaineInvalidContentTypeError(contentType);
       }
-      return response.body as ReadableStream;
-    }
 
-    return createReadStream(source);
+      const buffer = await response.blob().then(blob => blob.arrayBuffer());
+      return { 
+        buffer: Buffer.from(buffer), 
+        mimeType: contentType 
+      };
+    } catch (error) {
+      if (error instanceof FontaineInvalidContentTypeError) throw error;
+      throw new FontaineResolutionError(`Remote fetch failed: ${url}`);
+    }
+  }
+
+  try {
+    const buffer = await fs.readFile(url);
+    // Local files lack MIME headers; validation happens via extension or magic bytes in pipeline
+    return { 
+      buffer, 
+      mimeType: 'application/octet-stream' 
+    };
   } catch (error) {
-    if (error instanceof ResolutionError) throw error;
-    throw new ResolutionError(source, (error as Error).message);
+    throw new FontaineResolutionError(`Local file access failed: ${url}`);
   }
 }

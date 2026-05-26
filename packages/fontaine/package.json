@@ -3,25 +3,18 @@
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "bin": {
     "fontaine": "./dist/cli.js"
   },
-  "scripts": {
-    "build": "tsdown src/index.ts src/cli.ts",
-    "test": "vitest"
+  "exports": {
+    ".": "./dist/index.js"
   },
   "dependencies": {
-    "commander": "^11.0.0",
     "ofetch": "^1.0.0"
   },
   "devDependencies": {
-    "tsdown": "latest",
-    "vitest": "latest",
-    "typescript": "latest"
+    "tsdown": "^1.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
   }
 }
-  "bin": {
-    "fontaine": "./dist/cli.mjs"
-  },
