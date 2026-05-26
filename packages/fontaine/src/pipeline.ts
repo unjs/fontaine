@@ -1,40 +1,31 @@
-import { defu } from 'defu';
-import { resolveFont } from './resolver.js';
-import { analyzeFont } from './metrics.js';
-import { transformFontCss, TransformOptions } from './transform.js';
-import { formatOutput, FormatOptions } from './formatter.js';
-
-export interface AnalysisOptions {
-  fallbackFont?: string;
-  format?: 'css' | 'json';
-  verbose?: boolean;
-}
-
-const DEFAULT_OPTIONS: AnalysisOptions = {
-  fallbackFont: 'Arial',
-  format: 'css',
-  verbose: false,
-};
+import { FontResolver } from './resolver.js';
+import { FontValidator } from './validator.js';
+import { Formatter } from './formatter.js';
+import { analyzeFont } from './url-analyzer.js';
+import { Metrics } from './metrics.js';
 
 /**
- * Orchestrates the full font analysis and transformation pipeline.
- * Resolver -> Analyzer -> Transformer -> Formatter.
+ * Coordinates the font analysis workflow from retrieval to formatting.
  */
-export async function runFontPipeline(
-  cssInput: string, 
-  fontMapping: Record<string, string>, 
-  options: AnalysisOptions = {}
-): Promise<string> {
-  const config = defu(options, DEFAULT_OPTIONS);
-  let processedCss = cssInput;
+export class FontainePipeline {
+  constructor(
+    private resolver = new FontResolver(),
+    private validator = new FontValidator(),
+  ) {}
 
-  for (const [fontName, url] of Object.entries(fontMapping)) {
-    const buffer = await resolveFont(url);
-    const metrics = analyzeFont(buffer, fontName);
-    processedCss = transformFontCss(processedCss, metrics, { 
-      fallbackFont: config.fallbackFont 
-    });
+  /**
+   * Executes the full analysis pipeline.
+   * @example
+   * const pipeline = new FontainePipeline();
+   * const result = await pipeline.run('font.ttf', new CssFormatter());
+   * @param source Location of the font.
+   * @param formatter Strategy for output formatting.
+   */
+  async run(source: string, formatter: Formatter): Promise<string> {
+    const { buffer, contentType } = await this.resolver.resolve(source);
+    this.validator.validate(contentType, buffer);
+    
+    const metrics: Metrics = await analyzeFont(buffer);
+    return formatter.format(metrics);
   }
-
-  return formatOutput(processedCss, { format: config.format });
 }

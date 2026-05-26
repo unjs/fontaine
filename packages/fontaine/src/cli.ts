@@ -1,29 +1,34 @@
 #!/usr/bin/env node
-import { runFontPipeline } from './pipeline.js';
-import { readFile, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { Command } from 'commander';
+import { FontainePipeline } from './pipeline.js';
+import { createFormatter } from './formatter.js';
+import { FontaineError } from './errors.js';
 
-async function main() {
-  const args = process.argv.slice(2);
-  if (args.length < 2) {
-    console.error('Usage: fontaine <input.css> <mapping.json> [output.css]');
-    process.exit(1);
-  }
+const program = new Command();
 
-  try {
-    const cssInput = await readFile(resolve(args[0]), 'utf-8');
-    const mapping = JSON.parse(await readFile(resolve(args[1]), 'utf-8'));
-    const output = await runFontPipeline(cssInput, mapping);
-
-    if (args[2]) {
-      await writeFile(resolve(args[2]), output);
-    } else {
+program
+  .name('fontaine')
+  .description('Enterprise font metric analyzer')
+  .version('1.0.0')
+  .argument('<source>', 'Path or URL to font asset')
+  .option('-f, --format <type>', 'Output format (css, json)', 'css')
+  .action(async (source, options) => {
+    try {
+      const pipeline = new FontainePipeline();
+      const formatter = createFormatter(options.format as any);
+      const output = await pipeline.run(source, formatter);
       process.stdout.write(output + '\n');
+    } catch (error) {
+      if (error instanceof FontaineError) {
+        process.stderr.write(`[${error.code}] ${error.message}\n`);
+      } else {
+        process.stderr.write(`Unexpected error: ${error instanceof Error ? error.message : String(error)}\n`);
+      }
+      process.exit(1);
     }
-  } catch (err) {
-    console.error(`Fatal Error: ${err instanceof Error ? err.message : String(err)}`);
-    process.exit(1);
-  }
-}
+  });
 
-main();
+program.parseAsync(process.argv).catch((err) => {
+  process.stderr.write(`CLI Error: ${err.message}\n`);
+  process.exit(1);
+});
