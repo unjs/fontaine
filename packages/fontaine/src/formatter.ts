@@ -1,33 +1,45 @@
-import { Metrics } from './metrics.js';
+import { AnalysisResult } from './metrics.js';
 
-export interface Formatter {
-  format(metrics: Metrics): string;
+export interface OutputFormatter {
+  format(result: AnalysisResult): string;
 }
 
-/**
- * Formats font metrics as a CSS @font-face override.
- */
-export class CssFormatter implements Formatter {
-  format({ ascent, descent, lineGap }: Metrics): string {
-    return `line-gap: ${lineGap}px;`;
+export class JsonFormatter implements OutputFormatter {
+  format(result: AnalysisResult): string {
+    return JSON.stringify(result, null, 2);
   }
 }
 
-/**
- * Formats font metrics as a structured JSON string.
- */
-export class JsonFormatter implements Formatter {
-  format(metrics: Metrics): string {
-    return JSON.stringify(metrics, null, 2);
+export class TextFormatter implements OutputFormatter {
+  format(result: AnalysisResult): string {
+    const lines = [
+      `Font Analysis: ${result.fontName}`,
+      `Metric: ${result.metric} -> ${result.value}`,
+      `Status: ${result.status}`,
+    ];
+    return lines.join('\n');
   }
 }
 
-export type FormatterType = 'css' | 'json';
+export class FormatterRegistry {
+  private formatters = new Map<string, OutputFormatter>();
 
-export function createFormatter(type: FormatterType): Formatter {
-  const formatters: Record<FormatterType, Formatter> = {
-    css: new CssFormatter(),
-    json: new JsonFormatter(),
-  };
-  return formatters[type];
+  constructor() {
+    this.register('json', new JsonFormatter());
+    this.register('text', new TextFormatter());
+  }
+
+  register(name: string, formatter: OutputFormatter): void {
+    this.formatters.set(name, formatter);
+  }
+
+  get(name: string): OutputFormatter {
+    const formatter = this.formatters.get(name);
+    if (!formatter) {
+      throw new Error(`Unsupported formatter: ${name}`);
+    }
+    return formatter;
+  }
 }
+
+export const formatterRegistry = new FormatterRegistry();

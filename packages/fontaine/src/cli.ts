@@ -1,34 +1,33 @@
 #!/usr/bin/env node
-import { Command } from 'commander';
-import { FontainePipeline } from './pipeline.js';
-import { createFormatter } from './formatter.js';
-import { FontaineError } from './errors.js';
+import { runAnalysis } from './pipeline.js';
+import { formatterRegistry } from './formatter.js';
+import { AnalysisOptions } from './index.js';
 
-const program = new Command();
+async function main() {
+  const args = process.argv.slice(2);
+  if (args.length < 1) {
+    console.error('Usage: fontaine <source> [--format=json|text]');
+    process.exit(1);
+  }
 
-program
-  .name('fontaine')
-  .description('Enterprise font metric analyzer')
-  .version('1.0.0')
-  .argument('<source>', 'Path or URL to font asset')
-  .option('-f, --format <type>', 'Output format (css, json)', 'css')
-  .action(async (source, options) => {
-    try {
-      const pipeline = new FontainePipeline();
-      const formatter = createFormatter(options.format as any);
-      const output = await pipeline.run(source, formatter);
-      process.stdout.write(output + '\n');
-    } catch (error) {
-      if (error instanceof FontaineError) {
-        process.stderr.write(`[${error.code}] ${error.message}\n`);
-      } else {
-        process.stderr.write(`Unexpected error: ${error instanceof Error ? error.message : String(error)}\n`);
-      }
-      process.exit(1);
-    }
-  });
+  const source = args[0];
+  const formatArg = args.find(a => a.startsWith('--format='))?.split('=')[1] || 'text';
 
-program.parseAsync(process.argv).catch((err) => {
-  process.stderr.write(`CLI Error: ${err.message}\n`);
-  process.exit(1);
-});
+  const options: AnalysisOptions = {
+    source,
+    strict: true
+  };
+
+  try {
+    const result = await runAnalysis(options);
+    const formatter = formatterRegistry.get(formatArg);
+    process.stdout.write(formatter.format(result) + '\n');
+  } catch (error) {
+    console.error(`Error: ${(error as Error).message}`);
+    process.exit(1);
+  }
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch(() => process.exit(1));
+}
