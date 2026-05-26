@@ -1,42 +1,30 @@
 import fs from 'node:fs/promises';
-import { ofetch } from 'ofetch';
-import { FontaineInvalidContentTypeError, FontaineResolutionError } from './errors.js';
-import { isValidFontMime } from './url-analyzer.js';
+import { FontaineFetchError, FontaineResolverError, FontaineValidationError } from './errors.js';
 
-export interface ResourcePayload {
-  buffer: Buffer;
-  mimeType: string;
-}
-
-export async function resolveAsset(url: string): Promise<ResourcePayload> {
-  if (url.startsWith('http')) {
+export async function resolveFontSource(source: string): Promise<Buffer> {
+  if (source.startsWith('https://')) {
     try {
-      const response = await ofetch.raw(url);
-      const contentType = response.headers.get('content-type') || '';
-      
-      if (!isValidFontMime(contentType)) {
-        throw new FontaineInvalidContentTypeError(contentType);
+      const response = await fetch(source);
+      if (!response.ok) {
+        throw new FontaineFetchError(source, response.status);
       }
-
-      const buffer = await response.blob().then(blob => blob.arrayBuffer());
-      return { 
-        buffer: Buffer.from(buffer), 
-        mimeType: contentType 
-      };
+      
+      const contentType = response.headers.get('content-type');
+      if (contentType && !contentType.includes('font')) {
+        throw new FontaineValidationError(`Expected font content-type, got ${contentType}`);
+      }
+      
+      const arrayBuffer = await response.arrayBuffer();
+      return Buffer.from(arrayBuffer);
     } catch (error) {
-      if (error instanceof FontaineInvalidContentTypeError) throw error;
-      throw new FontaineResolutionError(`Remote fetch failed: ${url}`);
+      if (error instanceof FontaineError) throw error;
+      throw new FontaineFetchError(source, 0);
     }
   }
 
   try {
-    const buffer = await fs.readFile(url);
-    // Local files lack MIME headers; validation happens via extension or magic bytes in pipeline
-    return { 
-      buffer, 
-      mimeType: 'application/octet-stream' 
-    };
+    return await fs.readFile(source);
   } catch (error) {
-    throw new FontaineResolutionError(`Local file access failed: ${url}`);
+    throw new FontaineResolverError(source, (error as Error).message);
   }
 }

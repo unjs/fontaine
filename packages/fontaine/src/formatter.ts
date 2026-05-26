@@ -1,21 +1,20 @@
-export interface AnalysisResult {
-  metrics: Record<string, number>;
-  source: string;
+export interface FontMetrics {
+  ascent: number;
+  descent: number;
+  lineGap: number;
 }
 
-export interface Formatter {
-  format(result: AnalysisResult): string;
-}
+export type OutputFormat = 'css' | 'json';
 
-export class JsonFormatter implements Formatter {
-  format({ metrics, source }): string {
-    return JSON.stringify({ source, metrics }, null, 2);
+export function formatAnalysis(metrics: FontMetrics, format: OutputFormat = 'css'): string {
+  if (format === 'json') {
+    return JSON.stringify({ metrics }, null, 2);
   }
-}
 
-export class CssFormatter implements Formatter {
-  format({ metrics }): string {
-    const sizeAdjustment = metrics.ascent || 0;
-    return `.font-adjusted { size-adjust: ${sizeAdjustment}%; }`;
-  }
+  const { ascent, descent, lineGap } = metrics;
+  const size = ascent + Math.abs(descent) + lineGap;
+  
+  return `@font-face {
+  size-adjust: ${size}%;
+}`;
 }

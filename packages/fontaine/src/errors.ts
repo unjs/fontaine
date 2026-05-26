@@ -1,16 +1,27 @@
 export class FontaineError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = this.constructor.name;
+    this.name = 'FontaineError';
   }
 }
 
-export class FontaineFetchError extends FontaineError {}
-
-export class FontaineInvalidContentTypeError extends FontaineFetchError {
-  constructor(contentType: string) {
-    super(`Unsupported MIME type: ${contentType}. Only font binaries are permitted.`);
+export class FontaineFetchError extends FontaineError {
+  constructor(url: string, status: number) {
+    super(`Failed to fetch font from ${url}: ${status}`);
+    this.name = 'FontaineFetchError';
   }
 }
 
-export class FontaineResolutionError extends FontaineError {}
+export class FontaineValidationError extends FontaineError {
+  constructor(reason: string) {
+    super(`Invalid font file: ${reason}`);
+    this.name = 'FontaineValidationError';
+  }
+}
+
+export class FontaineResolverError extends FontaineError {
+  constructor(path: string, reason: string) {
+    super(`Could not resolve source at ${path}: ${reason}`);
+    this.name = 'FontaineResolverError';
+  }
+}
