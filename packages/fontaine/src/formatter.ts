@@ -1,22 +1,26 @@
-export interface AnalysisResult {
-  metrics: Record<string, number>;
-  fontFamily: string;
-  source: string;
+import type { FontMetrics } from './metrics';
+
+export interface OutputFormatter<T = any> {
+  format(data: T): string;
 }
 
-export interface Formatter {
-  format(result: AnalysisResult): string;
-}
-
-export class JsonFormatter implements Formatter {
-  format(result: AnalysisResult): string {
-    return JSON.stringify(result, null, 2);
+export class JsonFormatter implements OutputFormatter<FontMetrics[]> {
+  format(data: FontMetrics[]): string {
+    return JSON.stringify(data, null, 2);
   }
 }
 
-export class CssFormatter implements Formatter {
-  format(result: AnalysisResult): string {
-    const { fontFamily, source } = result;
-    return `@font-face {\n  font-family: '${fontFamily}';\n  src: url('${source}');\n}`;
+export class CssFormatter implements OutputFormatter<FontMetrics[]> {
+  format(data: FontMetrics[]): string {
+    return data
+      .map(({ name, metrics }) => {
+        // Generate size-adjust and ascent-override based on analysis
+        return `@font-face {
+  font-family: "${name}";
+  size-adjust: ${metrics.sizeAdjust}%;
+  ascent-override: ${metrics.ascentOverride}%;
+}`;
+      })
+      .join('\n');
   }
 }

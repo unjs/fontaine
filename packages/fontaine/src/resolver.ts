@@ -1,50 +1,45 @@
-import { readFile } from 'node:fs/promises';
-import { FetchError, InvalidContentTypeError, ResolutionError } from './errors.js';
+import { ofetch } from 'ofetch';
+import { FontaineFetchError, FontaineValidationError } from './errors';
 
-export interface FontResolver {
-  resolve(source: string): Promise<Buffer>;
+export interface Resolver {
+  resolve(url: string): Promise<Uint8Array>;
 }
 
-export class LocalResolver implements FontResolver {
-  async resolve(path: string): Promise<Buffer> {
+export class HttpResolver implements Resolver {
+  async resolve(url: string): Promise<Uint8Array> {
     try {
-      return Buffer.from(await readFile(path));
-    } catch (error) {
-      throw new ResolutionError(`Failed to read local file at ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const response = await ofetch(url, {
+        responseType: 'arrayBuffer',
+        onResponse({ response }) {
+          const contentType = response.headers.get('content-type') || '';
+          const isValid = [
+            'font/woff2',
+            'application/font-woff2',
+            'font/ttf',
+            'application/x-font-ttf'
+          ].some(type => contentType.includes(type));
+
+          if (!isValid) {
+            throw new FontaineValidationError(url, contentType);
+          }
+        }
+      });
+      return new Uint8Array(response as ArrayBuffer);
+    } catch (err) {
+      if (err instanceof FontaineValidationError) throw err;
+      throw new FontaineFetchError(url, (err as Error).message);
     }
   }
 }
 
-export class RemoteResolver implements FontResolver {
-  async resolve(url: string): Promise<Buffer> {
+export class LocalResolver implements Resolver {
+  async resolve(path: string): Promise<Uint8Array> {
     try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new FetchError(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const contentType = response.headers.get('content-type');
-      const isFont = contentType?.startsWith('font/') || 
-                     contentType?.includes('application/x-font') || 
-                     contentType?.includes('application/font');
-
-      if (!isFont) {
-        throw new InvalidContentTypeError(contentType || 'undefined');
-      }
-
-      const arrayBuffer = await response.arrayBuffer();
-      return Buffer.from(arrayBuffer);
-    } catch (error) {
-      if (error instanceof FontaineError) throw error;
-      throw new FetchError(`Network request failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const fs = await import('node:fs/promises');
+      const buffer = await fs.readFile(path);
+      return new Uint8Array(buffer);
+    } catch (err) {
+      throw new FontaineFetchError(path, (err as Error).message);
     }
-  }
-}
-
-export class FontResolverFactory {
-  static create(source: string): FontResolver {
-    return source.startsWith('http://') || source.startsWith('https://') 
-      ? new RemoteResolver() 
-      : new LocalResolver();
   }
 }

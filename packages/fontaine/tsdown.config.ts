@@ -1,10 +1,15 @@
 import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-  entry: ['./src/cli.ts'],
+  entry: {
+    index: 'src/index.ts',
+    cli: 'src/cli.ts',
+  },
   format: ['esm'],
   outDir: 'dist',
-  banner: '#!/usr/bin/env node',
   minify: true,
-  splitting: false,
+  // Ensure the CLI file maintains the shebang
+  banner: {
+    cli: '#!/usr/bin/env node\n',
+  },
 });
