@@ -1,22 +1,33 @@
-import { FontSourceResolver } from './resolver.js';
-import { createFormatter, type Formatter } from './formatter.js';
-import { analyze } from './metrics.js';
-import { AnalysisError } from './errors.js';
+import { resolveSource, type Source } from './resolver.js';
+import { validateFontBinary } from './validator.js';
+import { analyzeFont } from './metrics.js';
+import { getFormatter } from './formatter.js';
+import { FontaineError } from './errors.js';
 
-export interface PipelineOptions {
-  format: 'json' | 'css';
+export interface AnalyzeOptions {
+  format?: 'json' | 'css';
 }
 
-export async function runFontainePipeline(source: string, options: PipelineOptions) {
-  const resolver = new FontSourceResolver();
-  const formatter: Formatter = createFormatter(options.format);
-
-  const buffer = await resolver.resolve(source);
+/**
+ * Primary programmatic API for analyzing fonts.
+ * 
+ * @example
+ * const output = await analyzeFonts('https://fonts.gstatic.com/s/inter.ttf', { format: 'json' });
+ * 
+ * @param source - URL, path, or Buffer of the font.
+ * @param options - Analysis configuration.
+ * @returns The formatted analysis result.
+ * @throws {FontaineError} If any step of the pipeline fails.
+ */
+export async function analyzeFonts(source: Source, options: AnalyzeOptions = {}): Promise<string> {
+  const bytes = await resolveSource(source);
   
-  try {
-    const metrics = analyze(buffer);
-    return formatter.format(metrics);
-  } catch (err: any) {
-    throw new AnalysisError(`Analysis failed: ${err.message}`);
-  }
+  // In a real production scenario, we would fetch the header from ofetch 
+  // and pass it here. For the unified API, we validate the bytes.
+  validateFontBinary(bytes);
+  
+  const metrics = analyzeFont(bytes);
+  const formatter = getFormatter(options.format || 'json');
+  
+  return formatter.format(metrics);
 }

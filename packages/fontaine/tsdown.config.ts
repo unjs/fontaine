@@ -6,5 +6,8 @@ export default defineConfig({
     cli: 'src/cli.ts',
   },
   format: ['esm'],
+  banner: {
+    cli: '#!/usr/bin/env node',
+  },
   outDir: 'dist',
 });

@@ -1,23 +1,37 @@
 #!/usr/bin/env node
-import { Command } from 'commander';
-import { analyzeFonts, type PipelineOptions } from './index.js';
 
-const program = new Command();
+import { analyzeFonts } from './pipeline.js';
+import { FontaineError, FontaineFetchError, FontaineValidationError } from './errors.js';
 
-program
-  .name('fontaine')
-  .description('Analyze font metrics for CSS size-adjust')
-  .argument('<source>', 'URL or path to font file')
-  .option('-f, --format <type>', 'Output format (css, json)', 'css')
-  .action(async (source, options) => {
-    try {
-      const format = options.format as PipelineOptions['format'];
-      const result = await analyzeFonts(source, { format });
-      process.stdout.write(result + '\n');
-    } catch (err: any) {
-      process.stderr.write(`Error: ${err.message}\n`);
+async function main() {
+  const [,, source, format = 'json'] = process.argv;
+
+  if (!source) {
+    console.error('Usage: fontaine <source> [json|css]');
+    process.exit(1);
+  }
+
+  try {
+    const result = await analyzeFonts(source, { format: format as any });
+    process.stdout.write(result + '\n');
+    process.exit(0);
+  } catch (error) {
+    if (error instanceof FontaineFetchError) {
+      console.error(`Network/FS Error: ${error.message}`);
+      process.exit(2);
+    }
+    if (error instanceof FontaineValidationError) {
+      console.error(`Validation Error: ${error.message}`);
       process.exit(1);
     }
-  });
+    if (error instanceof FontaineError) {
+      console.error(`Analysis Error: ${error.message}`);
+      process.exit(1);
+    }
+    
+    console.error('Unexpected Error:', error);
+    process.exit(3);
+  }
+}
 
-program.parse();
+main();
