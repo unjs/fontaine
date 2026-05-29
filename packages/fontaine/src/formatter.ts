@@ -1,26 +1,18 @@
-import type { FontMetrics } from './metrics';
+import { FontMetrics } from './metrics.js';
 
-export interface OutputFormatter<T = any> {
-  format(data: T): string;
+export interface OutputFormatter {
+  format(metrics: FontMetrics): string;
 }
 
-export class JsonFormatter implements OutputFormatter<FontMetrics[]> {
-  format(data: FontMetrics[]): string {
-    return JSON.stringify(data, null, 2);
+export class JsonFormatter implements OutputFormatter {
+  format(metrics: FontMetrics): string {
+    return JSON.stringify(metrics, null, 2);
   }
 }
 
-export class CssFormatter implements OutputFormatter<FontMetrics[]> {
-  format(data: FontMetrics[]): string {
-    return data
-      .map(({ name, metrics }) => {
-        // Generate size-adjust and ascent-override based on analysis
-        return `@font-face {
-  font-family: "${name}";
-  size-adjust: ${metrics.sizeAdjust}%;
-  ascent-override: ${metrics.ascentOverride}%;
-}`;
-      })
-      .join('\n');
+export class CssFormatter implements OutputFormatter {
+  format(metrics: FontMetrics): string {
+    const size = metrics.ascent - metrics.descent;
+    return `.fontaine-metrics { --font-ascent: ${metrics.ascent}; --font-descent: ${metrics.descent}; --font-size: ${size}; }`;
   }
 }

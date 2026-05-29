@@ -1,46 +1,32 @@
-import { Command } from 'commander';
-import fg from 'fast-glob';
-import { loadConfig } from './config';
-import { runPipeline } from './pipeline';
-import { FontaineError } from './errors';
+#!/usr/bin/env node
+import { FontainePipeline } from './pipeline.js';
+import { JsonFormatter, CssFormatter } from './formatter.js';
+import { FontaineError } from './errors.js';
 
-const program = new Command();
+async function main() {
+  const args = process.argv.slice(2);
+  const input = args[0];
+  const format = args.find(arg => arg.startsWith('--format='))?.split('=')[1] || 'json';
 
-program
-  .name('fontaine')
-  .description('Production-grade font metric analyzer')
-  .option('-i, --input <pattern>', 'Input font file or glob pattern')
-  .option('-o, --output <path>', 'Output destination')
-  .option('--dry-run', 'Validate sources without writing files')
-  .option('--no-cache', 'Disable caching of remote metrics')
-  .action(async (options) => {
-    const config = loadConfig();
-    const mergedOptions = {
-      ...config,
-      ...options,
-    };
+  if (!input) {
+    console.error('Usage: fontaine <path|url> [--format=json|css]');
+    process.exit(1);
+  }
 
-    try {
-      const files = mergedOptions.input 
-        ? await fg(mergedOptions.input) 
-        : [];
+  const formatter = format === 'css' ? new CssFormatter() : new JsonFormatter();
+  const pipeline = new FontainePipeline({ formatter });
 
-      if (files.length === 0) {
-        console.error('No fonts found matching the pattern.');
-        process.exit(1);
-      }
-
-      for (const file of files) {
-        await runPipeline(file, mergedOptions);
-      }
-    } catch (error) {
-      if (error instanceof FontaineError) {
-        console.error(`[${error.code}] ${error.message}`);
-      } else {
-        console.error('Unexpected system error:', error);
-      }
-      process.exit(1);
+  try {
+    const result = await pipeline.run(input);
+    process.stdout.write(result + '\n');
+  } catch (error) {
+    if (error instanceof FontaineError) {
+      console.error(`[${error.code}] ${error.message}`);
+    } else {
+      console.error('An unexpected error occurred:', error);
     }
-  });
+    process.exit(1);
+  }
+}
 
-program.parse();
+main();

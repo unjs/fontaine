@@ -1,24 +1,39 @@
+/**
+ * Base error class for all Fontaine-related failures.
+ */
 export class FontaineError extends Error {
-  constructor(message: string) {
+  constructor(message: string, public readonly code: string) {
     super(message);
-    this.name = this.constructor.name;
+    this.name = 'FontaineError';
   }
 }
 
+/**
+ * Error thrown when a font resource cannot be retrieved from the provided source.
+ */
 export class FontaineFetchError extends FontaineError {
-  constructor(public url: string, public status?: number, message: string = 'Failed to fetch font resource') {
-    super(`${message}: [${status || 'Unknown'}] ${url}`);
+  constructor(message: string, public readonly source: string) {
+    super(message, 'FETCH_ERROR');
+    this.name = 'FontaineFetchError';
   }
 }
 
-export class FontaineInvalidContentTypeError extends FontaineError {
-  constructor(public contentType: string, public expected: string[]) {
-    super(`Invalid Content-Type: ${contentType}. Expected one of: ${expected.join(', ')}`);
+/**
+ * Error thrown when the resolved resource does not match expected font MIME types.
+ */
+export class FontaineInvalidContentTypeError extends FontaineFetchError {
+  constructor(source: string, public readonly contentType: string) {
+    super(`Invalid content type received: ${contentType}`, source);
+    this.name = 'FontaineInvalidContentTypeError';
   }
 }
 
-export class FontaineAnalysisError extends FontaineError {
+/**
+ * Error thrown when the font binary is malformed or cannot be parsed.
+ */
+export class FontaineParseError extends FontaineError {
   constructor(message: string) {
-    super(`Font analysis failed: ${message}`);
+    super(message, 'PARSE_ERROR');
+    this.name = 'FontaineParseError';
   }
 }

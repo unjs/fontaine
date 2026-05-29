@@ -1,24 +1,28 @@
-import { resolveFont } from './resolver.js';
-import { analyzeUrl } from './url-analyzer.js';
-import { transformFont } from './transform.js';
+import { FontSourceResolver } from './resolver.js';
+import { FontAnalyzer } from './metrics.js';
+import { OutputFormatter } from './formatter.js';
 
 export interface PipelineOptions {
-  fetch?: any;
+  formatter: OutputFormatter;
 }
 
 /**
- * Orchestrates the Source -> Analysis -> Formatting pipeline.
- * 
- * @param source - Source URL or path.
- * @param options - Pipeline configuration.
+ * Orchestrates the end-to-end process of resolving, analyzing, and formatting font data.
  */
-export async function runFontainePipeline(source: string, options: PipelineOptions = {}) {
-  if (source.startsWith('http')) {
-    await analyzeUrl(source, options.fetch);
+export class FontainePipeline {
+  private resolver = new FontSourceResolver();
+  private analyzer = new FontAnalyzer();
+
+  constructor(private { formatter }: PipelineOptions) {}
+
+  /**
+   * Executes the font analysis pipeline.
+   * 
+   * @throws {FontaineError} For any failure in the pipeline.
+   */
+  async run(input: string | Buffer): Promise<string> {
+    const { buffer } = await this.resolver.resolve(input);
+    const metrics = this.analyzer.analyze(buffer);
+    return this.formatter.format(metrics);
   }
-
-  const buffer = await resolveFont(source, options);
-  const metrics = transformFont(buffer);
-
-  return metrics;
 }
