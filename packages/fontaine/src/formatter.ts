@@ -1,40 +1,36 @@
-import type { FontMetrics } from './metrics';
+import { FontMetrics } from './metrics.js';
 
-/**
- * Strategy interface for converting font metrics into a specific output format.
- */
-export interface OutputFormatter {
-  /**
-   * Formats the provided metrics into a string.
-   * @param metrics - The extracted font metrics.
-   * @returns The formatted string output.
-   */
+export type OutputFormat = 'json' | 'css';
+
+export interface Formatter {
   format(metrics: FontMetrics): string;
 }
 
-/**
- * Formats metrics as a JSON string.
- */
-export class JsonFormatter implements OutputFormatter {
+class JSONFormatter implements Formatter {
   format(metrics: FontMetrics): string {
     return JSON.stringify(metrics, null, 2);
   }
 }
 
-/**
- * Formats metrics as a CSS @font-face override or utility class.
- */
-export class CssFormatter implements OutputFormatter {
+class CSSFormatter implements Formatter {
   format(metrics: FontMetrics): string {
     const { ascent, descent, lineGap } = metrics;
-    return `.font-metrics-adjusted {\n  line-height: ${ascent + descent + lineGap}px;\n}`;
+    return `@font-face { font-display: swap; font-metrics: ${ascent} ${descent} ${lineGap}; }`;
   }
 }
 
-/**
- * Registry for available formatters to support extensibility.
- */
-export const FORMATTERS: Record<string, new () => OutputFormatter> = {
-  json: JsonFormatter,
-  css: CssFormatter,
+const formatters: Record<OutputFormat, Formatter> = {
+  json: new JSONFormatter(),
+  css: new CSSFormatter(),
 };
+
+/**
+ * Returns the formatted output based on the requested strategy.
+ * 
+ * @param metrics - The analyzed font metrics.
+ * @param format - The output format ('json' or 'css').
+ */
+export function formatMetrics(metrics: FontMetrics, format: OutputFormat): string {
+  const formatter = formatters[format];
+  return formatter.format(metrics);
+}

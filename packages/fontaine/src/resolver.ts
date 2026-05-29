@@ -1,39 +1,31 @@
-import { ofetch } from 'ofetch';
-import { FetchError, InvalidContentTypeError } from './errors';
 import { readFile } from 'node:fs/promises';
+import { ofetch } from 'ofetch';
+import { isURL } from 'ufo';
+import { FontaineFetchError } from './errors.js';
 
 /**
- * Resolves a font source from a URL or local file path.
+ * Resolves a source identifier into a Uint8Array.
+ * Supports remote URLs and local filesystem paths.
  * 
- * @param source - The URI of the font (https:// or file://).
- * @returns The binary content of the font.
- * @throws {FetchError} If the resource is unreachable.
- * @throws {InvalidContentTypeError} If the response is not a font.
+ * @param source - The URL or file path to resolve.
+ * @returns A promise resolving to the source buffer.
+ * @throws {FontaineFetchError} If the source cannot be retrieved.
  */
-export async function resolveFontSource(source: string): Promise<Uint8Array> {
-  if (source.startsWith('file://')) {
-    try {
-      const path = source.replace('file://', '');
-      const buffer = await readFile(path);
-      return new Uint8Array(buffer);
-    } catch (error) {
-      throw new FetchError(`Failed to read local file: ${source}`);
-    }
-  }
-
+export async function resolveSource(source: string): Promise<Uint8Array> {
   try {
-    const response = await ofetch.raw(source, {
-      responseType: 'arrayBuffer',
-    });
-
-    const contentType = response.headers.get('content-type') || '';
-    if (!contentType.includes('font')) {
-      throw new InvalidContentTypeError(contentType);
+    if (isURL(source)) {
+      const response = await ofetch(source, {
+        responseType: 'arrayBuffer',
+      });
+      return new Uint8Array(response as ArrayBuffer);
     }
 
-    return new Uint8Array(response._data);
-  } catch (error) {
-    if (error instanceof InvalidContentTypeError) throw error;
-    throw new FetchError(`Failed to fetch font from ${source}`);
+    const buffer = await readFile(source);
+    return new Uint8Array(buffer);
+  } catch (error: any) {
+    throw new FontaineFetchError(
+      error.message || 'Failed to resolve font source',
+      error.response?.status
+    );
   }
 }

@@ -1,6 +1,3 @@
-/**
- * Base error class for all Fontaine-related failures.
- */
 export class FontaineError extends Error {
   constructor(message: string, public readonly code: string) {
     super(message);
@@ -8,32 +5,23 @@ export class FontaineError extends Error {
   }
 }
 
-/**
- * Thrown when a font source cannot be fetched or loaded.
- */
-export class FetchError extends FontaineError {
+export class FontaineFetchError extends FontaineError {
   constructor(message: string, public readonly status?: number) {
     super(message, 'FETCH_ERROR');
-    this.name = 'FetchError';
+    this.name = 'FontaineFetchError';
   }
 }
 
-/**
- * Thrown when the fetched resource does not match expected font content types.
- */
-export class InvalidContentTypeError extends FontaineError {
-  constructor(contentType: string) {
-    super(`Unexpected content type: ${contentType}`, 'INVALID_CONTENT_TYPE');
-    this.name = 'InvalidContentTypeError';
+export class FontaineAnalysisError extends FontaineError {
+  constructor(message: string, public readonly detail?: any) {
+    super(message, 'ANALYSIS_ERROR');
+    this.name = 'FontaineAnalysisError';
   }
 }
 
-/**
- * Thrown when the font file is corrupted or cannot be parsed for metrics.
- */
-export class ParseError extends FontaineError {
+export class FontaineValidationError extends FontaineError {
   constructor(message: string) {
-    super(message, 'PARSE_ERROR');
-    this.name = 'ParseError';
+    super(message, 'VALIDATION_ERROR');
+    this.name = 'FontaineValidationError';
   }
 }

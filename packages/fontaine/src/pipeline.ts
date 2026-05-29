@@ -1,23 +1,33 @@
-import { resolveFontSource } from './resolver';
-import { analyzeFont } from './metrics';
-import { OutputFormatter } from './formatter';
-import type { FontMetrics } from './metrics';
+import { resolveSource } from './resolver.js';
+import { validateFont } from './validator.js';
+import { analyzeFontBuffer } from './url-analyzer.js';
+import { FontaineError } from './errors.js';
+
+export interface AnalysisOptions {
+  source: string;
+  strict?: boolean;
+}
 
 /**
- * Orchestrates the process of fetching, analyzing, and formatting font data.
+ * Executes the atomic font analysis pipeline.
+ * 
+ * @param options - Pipeline configuration.
+ * @returns The analyzed font metrics.
+ * @throws {FontaineError} For any failure in the pipeline.
  */
-export class FontainePipeline {
-  /**
-   * Process a font source and return the formatted result.
-   * 
-   * @param source - Font URI.
-   * @param formatter - The strategy used to format the output.
-   * @returns The formatted output string.
-   * @throws {FontaineError} If any stage of the pipeline fails.
-   */
-  async process(source: string, formatter: OutputFormatter): Promise<string> {
-    const buffer = await resolveFontSource(source);
-    const metrics = await analyzeFont(buffer);
-    return formatter.format(metrics);
+export async function runAnalysisPipeline(options: AnalysisOptions) {
+  const { source } = options;
+
+  try {
+    const buffer = await resolveSource(source);
+    
+    await validateFont(buffer);
+    
+    const metrics = await analyzeFontBuffer(buffer);
+    
+    return metrics;
+  } catch (error) {
+    if (error instanceof FontaineError) throw error;
+    throw new FontaineError(error.message, 'PIPELINE_INTERNAL_ERROR');
   }
 }
