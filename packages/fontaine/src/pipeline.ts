@@ -1,21 +1,23 @@
-import { resolveSource } from './resolver.js';
-import { extractMetrics } from './metrics.js';
-import { AnalysisResult } from './formatter.js';
-
-export interface AnalysisOptions {
-  format: 'json' | 'css';
-}
+import { resolveFontSource } from './resolver';
+import { analyzeFont } from './metrics';
+import { OutputFormatter } from './formatter';
+import type { FontMetrics } from './metrics';
 
 /**
- * Orchestrates the font analysis pipeline: Resolver -> Validator -> Engine.
+ * Orchestrates the process of fetching, analyzing, and formatting font data.
  */
-export async function analyzeFont(url: string): Promise<AnalysisResult> {
-  const source = await resolveSource(url);
-  const metrics = extractMetrics(source.buffer);
-
-  return {
-    url,
-    metrics,
-    timestamp: new Date().toISOString(),
-  };
+export class FontainePipeline {
+  /**
+   * Process a font source and return the formatted result.
+   * 
+   * @param source - Font URI.
+   * @param formatter - The strategy used to format the output.
+   * @returns The formatted output string.
+   * @throws {FontaineError} If any stage of the pipeline fails.
+   */
+  async process(source: string, formatter: OutputFormatter): Promise<string> {
+    const buffer = await resolveFontSource(source);
+    const metrics = await analyzeFont(buffer);
+    return formatter.format(metrics);
+  }
 }

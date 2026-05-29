@@ -1,37 +1,39 @@
-import ofetch from 'ofetch';
-import { validateMimeType } from './validator.js';
-import { NetworkError } from './errors.js';
+import { ofetch } from 'ofetch';
+import { FetchError, InvalidContentTypeError } from './errors';
 import { readFile } from 'node:fs/promises';
 
-export interface ResolvedSource {
-  buffer: Buffer;
-  mimeType: string;
-  url: string;
-}
-
 /**
- * Resolves a font asset from either a remote URL or a local file system path.
- * Ensures the asset is a valid font via MIME-type validation.
+ * Resolves a font source from a URL or local file path.
+ * 
+ * @param source - The URI of the font (https:// or file://).
+ * @returns The binary content of the font.
+ * @throws {FetchError} If the resource is unreachable.
+ * @throws {InvalidContentTypeError} If the response is not a font.
  */
-export async function resolveSource(url: string): Promise<ResolvedSource> {
+export async function resolveFontSource(source: string): Promise<Uint8Array> {
+  if (source.startsWith('file://')) {
+    try {
+      const path = source.replace('file://', '');
+      const buffer = await readFile(path);
+      return new Uint8Array(buffer);
+    } catch (error) {
+      throw new FetchError(`Failed to read local file: ${source}`);
+    }
+  }
+
   try {
-    if (url.startsWith('http')) {
-      const response = await ofetch.raw(url);
-      const mimeType = response.headers.get('content-type') || '';
-      
-      validateMimeType(mimeType);
-      
-      const buffer = await response.blob().then(blob => Buffer.from(await blob.arrayBuffer()));
-      return { buffer, mimeType, url };
+    const response = await ofetch.raw(source, {
+      responseType: 'arrayBuffer',
+    });
+
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('font')) {
+      throw new InvalidContentTypeError(contentType);
     }
 
-    const buffer = await readFile(url);
-    const mimeType = 'font/ttf'; // Default for local unless extended with a mime-lookup lib
-    
-    validateMimeType(mimeType);
-    return { buffer, mimeType, url };
-  } catch (error: any) {
-    if (error instanceof ValidationError) throw error;
-    throw new NetworkError(`Failed to resolve asset at ${url}: ${error.message}`, error.status);
+    return new Uint8Array(response._data);
+  } catch (error) {
+    if (error instanceof InvalidContentTypeError) throw error;
+    throw new FetchError(`Failed to fetch font from ${source}`);
   }
 }

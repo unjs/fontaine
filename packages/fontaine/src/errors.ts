@@ -9,31 +9,31 @@ export class FontaineError extends Error {
 }
 
 /**
- * Error thrown when a network request for a font asset fails.
+ * Thrown when a font source cannot be fetched or loaded.
  */
-export class NetworkError extends FontaineError {
-  constructor(message: string, public readonly statusCode?: number) {
-    super(message, 'NETWORK_FAILURE');
-    this.name = 'NetworkError';
+export class FetchError extends FontaineError {
+  constructor(message: string, public readonly status?: number) {
+    super(message, 'FETCH_ERROR');
+    this.name = 'FetchError';
   }
 }
 
 /**
- * Error thrown when a font asset fails MIME-type validation.
+ * Thrown when the fetched resource does not match expected font content types.
  */
-export class ValidationError extends FontaineError {
-  constructor(message: string, public readonly invalidMime?: string) {
-    super(message, 'INVALID_FONT_FORMAT');
-    this.name = 'ValidationError';
+export class InvalidContentTypeError extends FontaineError {
+  constructor(contentType: string) {
+    super(`Unexpected content type: ${contentType}`, 'INVALID_CONTENT_TYPE');
+    this.name = 'InvalidContentTypeError';
   }
 }
 
 /**
- * Error thrown when the analysis engine encounters an internal processing failure.
+ * Thrown when the font file is corrupted or cannot be parsed for metrics.
  */
-export class AnalysisError extends FontaineError {
-  constructor(message: string, public readonly details?: unknown) {
-    super(message, 'ANALYSIS_FAILURE');
-    this.name = 'AnalysisError';
+export class ParseError extends FontaineError {
+  constructor(message: string) {
+    super(message, 'PARSE_ERROR');
+    this.name = 'ParseError';
   }
 }
