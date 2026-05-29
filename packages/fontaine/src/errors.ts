@@ -1,6 +1,3 @@
-/**
- * Base error class for all Fontaine-related failures.
- */
 export class FontaineError extends Error {
   constructor(message: string, public readonly code: string) {
     super(message);
@@ -8,32 +5,23 @@ export class FontaineError extends Error {
   }
 }
 
-/**
- * Error thrown when a network request for a font fails.
- */
-export class FontaineNetworkError extends FontaineError {
-  constructor(message: string, public readonly status?: number) {
-    super(message, 'NETWORK_ERROR');
-    this.name = 'FontaineNetworkError';
+export class FetchError extends FontaineError {
+  constructor(message: string) {
+    super(message, 'FETCH_ERROR');
+    this.name = 'FetchError';
   }
 }
 
-/**
- * Error thrown when a local file system operation fails.
- */
-export class FontaineFileSystemError extends FontaineError {
+export class FileSystemError extends FontaineError {
   constructor(message: string) {
     super(message, 'FS_ERROR');
-    this.name = 'FontaineFileSystemError';
+    this.name = 'FileSystemError';
   }
 }
 
-/**
- * Error thrown when font analysis fails due to corrupt or unsupported data.
- */
-export class FontaineAnalysisError extends FontaineError {
+export class AnalysisError extends FontaineError {
   constructor(message: string) {
     super(message, 'ANALYSIS_ERROR');
-    this.name = 'FontaineAnalysisError';
+    this.name = 'AnalysisError';
   }
 }

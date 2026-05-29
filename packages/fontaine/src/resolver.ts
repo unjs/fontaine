@@ -1,52 +1,25 @@
-import { ofetch } from 'ofetch';
-import { ufo } from 'ufo';
 import { readFile } from 'node:fs/promises';
-import { FontaineNetworkError, FontaineFileSystemError } from './errors.js';
+import { ofetch } from 'ofetch';
+import { FetchError, FileSystemError } from './errors.js';
 
-/**
- * Handles retrieval of font data from various protocols (http, https, file).
- */
-export class FontResolver {
-  /**
-   * Resolves a source string into a Uint8Array.
-   * 
-   * @param source - The URL or file path to the font.
-   * @throws {FontaineNetworkError} if network request fails.
-   * @throws {FontaineFileSystemError} if file access fails.
-   * @returns A promise resolving to the font data as a Uint8Array.
-   */
+export interface SourceResolver {
+  resolve(source: string): Promise<Uint8Array>;
+}
+
+export class FontSourceResolver implements SourceResolver {
   async resolve(source: string): Promise<Uint8Array> {
-    const url = ufo.stringify(source);
-
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return this.resolveRemote(url);
+    if (source.startsWith('http')) {
+      try {
+        return await ofetch(source, { responseType: 'arrayBuffer' }) as Uint8Array;
+      } catch (err: any) {
+        throw new FetchError(`Failed to fetch font from ${source}: ${err.message}`);
+      }
     }
 
-    return this.resolveLocal(source);
-  }
-
-  private async resolveRemote(url: string): Promise<Uint8Array> {
     try {
-      const response = await ofetch(url, {
-        responseType: 'arrayBuffer',
-      });
-      return new Uint8Array(response as ArrayBuffer);
+      return new Uint8Array(await readFile(source));
     } catch (err: any) {
-      throw new FontaineNetworkError(
-        `Failed to fetch font from ${url}: ${err.message}`,
-        err.response?.status
-      );
-    }
-  }
-
-  private async resolveLocal(path: string): Promise<Uint8Array> {
-    try {
-      const buffer = await readFile(path);
-      return new Uint8Array(buffer);
-    } catch (err: any) {
-      throw new FontaineFileSystemError(
-        `Failed to read font file at ${path}: ${err.message}`
-      );
+      throw new FileSystemError(`Failed to read font file at ${source}: ${err.message}`);
     }
   }
 }

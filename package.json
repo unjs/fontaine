@@ -11,7 +11,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "build": "pnpm --filter fontaine --filter fontless build",
+    "build": "tsdown src/index.ts src/cli.ts",
     "lint": "eslint .",
     "release": "bumpp packages/fontaine/package.json --tag fontaine@ --sign && bumpp packages/fontless/package.json --tag fontless@ --sign",
     "test:unit": "pnpm -r test:unit",
@@ -40,5 +40,8 @@
     "*.{js,ts,mjs,cjs,json,.*rc}": [
       "npx eslint --fix"
     ]
+  },
+  "bin": {
+    "fontaine": "./dist/cli.js"
   }
 }
