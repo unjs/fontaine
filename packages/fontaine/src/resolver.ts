@@ -1,42 +1,37 @@
-import { readFile } from 'node:fs/promises';
 import ofetch from 'ofetch';
-import { FontaineFetchError } from './errors.js';
+import { validateMimeType } from './validator.js';
+import { NetworkError } from './errors.js';
+import { readFile } from 'node:fs/promises';
 
-export type Source = string | URL | Buffer;
+export interface ResolvedSource {
+  buffer: Buffer;
+  mimeType: string;
+  url: string;
+}
 
 /**
- * Resolves a font source into a Uint8Array.
- * Supports local paths, remote URLs, and raw buffers.
- * 
- * @example
- * const bytes = await resolveSource('https://example.com/font.ttf');
- * const bytes = await resolveSource('./assets/font.woff2');
- * 
- * @param source - The location or raw data of the font.
- * @returns A promise resolving to the font binary as a Uint8Array.
- * @throws {FontaineFetchError} If the source cannot be read.
+ * Resolves a font asset from either a remote URL or a local file system path.
+ * Ensures the asset is a valid font via MIME-type validation.
  */
-export async function resolveSource(source: Source): Promise<Uint8Array> {
-  if (source instanceof Buffer) {
-    return new Uint8Array(source);
-  }
-
-  const urlString = source instanceof URL ? source.toString() : source;
-
-  if (urlString.startsWith('http')) {
-    try {
-      const response = await ofetch.raw(urlString);
-      const blob = await response.blob();
-      return new Uint8Array(await blob.arrayBuffer());
-    } catch (error) {
-      throw new FontaineFetchError(urlString, error);
-    }
-  }
-
+export async function resolveSource(url: string): Promise<ResolvedSource> {
   try {
-    const buffer = await readFile(urlString);
-    return new Uint8Array(buffer);
-  } catch (error) {
-    throw new FontaineFetchError(urlString, error);
+    if (url.startsWith('http')) {
+      const response = await ofetch.raw(url);
+      const mimeType = response.headers.get('content-type') || '';
+      
+      validateMimeType(mimeType);
+      
+      const buffer = await response.blob().then(blob => Buffer.from(await blob.arrayBuffer()));
+      return { buffer, mimeType, url };
+    }
+
+    const buffer = await readFile(url);
+    const mimeType = 'font/ttf'; // Default for local unless extended with a mime-lookup lib
+    
+    validateMimeType(mimeType);
+    return { buffer, mimeType, url };
+  } catch (error: any) {
+    if (error instanceof ValidationError) throw error;
+    throw new NetworkError(`Failed to resolve asset at ${url}: ${error.message}`, error.status);
   }
 }

@@ -6,8 +6,10 @@ export default defineConfig({
     cli: 'src/cli.ts',
   },
   format: ['esm'],
-  banner: {
-    cli: '#!/usr/bin/env node',
+  minify: false,
+  // Post-build hook to ensure binary executable permissions
+  onBuildComplete: async () => {
+    const { execSync } = await import('node:child_process');
+    execSync('chmod +x dist/cli.js');
   },
-  outDir: 'dist',
 });

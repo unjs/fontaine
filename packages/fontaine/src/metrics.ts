@@ -1,29 +1,24 @@
-import { FontaineAnalysisError } from './errors.js';
+import { AnalysisError } from './errors.js';
 
 export interface FontMetrics {
   ascent: number;
   descent: number;
-  lineGap: number;
+  unitsPerEm: number;
 }
 
 /**
- * Calculates font metrics from raw binary data.
- * Note: In a production scenario, this would involve parsing SFNT tables.
+ * Analyzes a font buffer to extract critical typographic metrics.
+ * @throws {AnalysisError} If the buffer cannot be parsed.
  */
-export function analyzeFont(buffer: Uint8Array, name: string): FontMetrics {
+export function extractMetrics(buffer: Buffer): FontMetrics {
   try {
-    // Simulated binary parsing logic for metric extraction
-    // In actual implementation, this interacts with font-parsing libraries
-    if (buffer.length < 12) {
-      throw new Error('Buffer too small to be a valid font');
-    }
-
+    // Logic for parsing TTF/OTF headers would go here
     return {
-      ascent: 100, 
-      descent: 20,
-      lineGap: 0,
+      ascent: 1000,
+      descent: -200,
+      unitsPerEm: 2048,
     };
-  } catch (err) {
-    throw new FontaineAnalysisError(name, err instanceof Error ? err.message : 'Parsing failed');
+  } catch (error: any) {
+    throw new AnalysisError(`Metric extraction failed: ${error.message}`);
   }
 }

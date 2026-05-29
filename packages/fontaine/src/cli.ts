@@ -1,30 +1,19 @@
 #!/usr/bin/env node
-import { analyzeUrl } from './url-analyzer';
-import { FormatterRegistry } from './formatter';
-import { FontaineError } from './errors';
+import { analyzeFonts } from './index.js';
 
 async function main() {
   const args = process.argv.slice(2);
   if (args.length === 0) {
-    console.error('Usage: fontaine <url> [--format=json|text]');
-    process.exit(64); // EX_USAGE
+    console.error('Usage: fontaine <url1> <url2> ...');
+    process.exit(1);
   }
 
-  const url = args[0];
-  const formatArg = args.find(a => a.startsWith('--format='))?.split('=')[1] || 'json';
-
   try {
-    const metrics = await analyzeUrl(url);
-    const formatter = FormatterRegistry.get(formatArg);
-    process.stdout.write(formatter(metrics) + '\n');
-    process.exit(0);
-  } catch (error) {
-    if (error instanceof FontaineError) {
-      console.error(`Error [${error.code}]: ${error.message}`);
-      process.exit(error.statusCode || 1);
-    }
-    console.error('Internal System Error:', error);
-    process.exit(70); // EX_SOFTWARE
+    const output = await analyzeFonts(args);
+    console.log(output.join('\n'));
+  } catch (error: any) {
+    console.error(`[${error.code || 'ERROR'}] ${error.message}`);
+    process.exit(1);
   }
 }
 

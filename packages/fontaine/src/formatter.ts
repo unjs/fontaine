@@ -1,26 +1,17 @@
-import type { FontMetrics } from './metrics';
-
-export type FormatterFn = (metrics: FontMetrics) => string;
-
-export class FormatterRegistry {
-  private static formats = new Map<string, FormatterFn>();
-
-  static register(format: string, fn: FormatterFn) {
-    this.formats.set(format, fn);
-  }
-
-  static get(format: string): FormatterFn {
-    const formatter = this.formats.get(format);
-    if (!formatter) {
-      throw new Error(`Unsupported output format: ${format}`);
-    }
-    return formatter;
-  }
-
-  static availableFormats(): string[] {
-    return Array.from(this.formats.keys());
-  }
+export interface AnalysisResult {
+  url: string;
+  metrics: any;
+  timestamp: string;
 }
 
-FormatterRegistry.register('json', (metrics) => JSON.stringify(metrics, null, 2));
-FormatterRegistry.register('text', (metrics) => `Font Metrics: ${metrics.ascent} / ${metrics.descent}`);
+/**
+ * Formats analysis results into the requested output style.
+ */
+export function formatOutput(result: AnalysisResult, format: 'json' | 'css'): string {
+  if (format === 'json') {
+    return JSON.stringify(result, null, 2);
+  }
+
+  const { metrics } = result;
+  return `.font-metrics { --ascent: ${metrics.ascent}; --descent: ${metrics.descent}; }`;
+}
