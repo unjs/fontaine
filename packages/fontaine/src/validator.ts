@@ -1,36 +1,36 @@
-import { ValidationError } from './errors.js';
-
-const FONT_MAGIC_BYTES: Record<string, Uint8Array> = {
-  woff2: new Uint8Array([0x77, 0x4f, 0x46, 0x32]), // "wOF2"
-  ttf: new Uint8Array([0x00, 0x01, 0x00, 0x00]),   // TrueType
-  otf: new Uint8Array([0x4f, 0x54, 0x54, 0x4f]),   // "OTTO"
-};
+import { FontaineValidationError } from './errors.js';
 
 const VALID_MIME_TYPES = new Set([
+  'font/woff',
   'font/woff2',
-  'font/ttf',
   'font/otf',
+  'font/ttf',
+  'application/font-woff',
   'application/font-woff2',
   'application/x-font-ttf',
   'application/x-font-otf',
 ]);
 
 /**
- * Validates the source of a font based on MIME type and magic bytes.
- * 
- * @example
- * await validateFont(buffer, 'font/woff2');
+ * Verifies if the provided content-type is a recognized font format.
  */
-export async function validateFont(buffer: Uint8Array, contentType?: string): Promise<void> {
-  if (contentType && !VALID_MIME_TYPES.has(contentType)) {
-    throw new ValidationError(`Unsupported Content-Type: ${contentType}`);
+export function validateContentType(contentType: string): void {
+  if (!contentType || !VALID_MIME_TYPES.has(contentType.toLowerCase())) {
+    throw new FontaineValidationError(`Unsupported content-type: ${contentType}`);
   }
+}
 
-  const isMagicValid = Object.values(FONT_MAGIC_BYTES).some((magic) => {
-    return buffer.slice(0, magic.length).every((byte, i) => byte === magic[i]);
-  });
-
-  if (!isMagicValid) {
-    throw new ValidationError('Invalid font format: magic bytes do not match known font types.');
+/**
+ * Validates font magic bytes to prevent analysis of non-font binaries.
+ */
+export function validateMagicBytes(buffer: Uint8Array): void {
+  const header = buffer.slice(0, 4);
+  const hex = Array.from(header).map(b => b.toString(16).padStart(2, '0')).join('');
+  
+  const isWoff2 = hex.startsWith('774f4632'); // wOFF
+  const isTtf = hex.startsWith('00010000') || hex.startsWith('774f4646'); // TTF or wOFF
+  
+  if (!isWoff2 && !isTtf) {
+    throw new FontaineValidationError('Binary header does not match known font formats');
   }
 }

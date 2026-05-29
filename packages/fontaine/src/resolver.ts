@@ -1,50 +1,35 @@
-import fs from 'node:fs/promises';
+import { ufo } from 'ufo';
 import { ofetch } from 'ofetch';
-import { FetchError, ValidationError } from './errors.js';
+import { FontaineFetchError } from './errors.js';
+import { validateContentType } from './validator.js';
+
+export interface ResolverOptions {
+  timeout?: number;
+  headers?: Record<string, string>;
+}
 
 /**
- * Supported MIME types for font analysis.
+ * Resolves a font asset from a local path or remote URL.
  */
-const SUPPORTED_MIME_TYPES = [
-  'font/ttf',
-  'font/otf',
-  'font/woff',
-  'font/woff2',
-  'application/font-sfnt',
-  'application/x-font-ttf',
-  'application/x-font-otf',
-];
-
-/**
- * Resolves a font source from a local path or remote URL into a Buffer.
- * 
- * @param source - The path or URL to the font file.
- * @returns A Promise resolving to the font data as a Buffer.
- * @throws {FetchError} If the source cannot be reached.
- * @throws {ValidationError} If the source is not a recognized font type.
- */
-export async function resolveFontSource(source: string): Promise<Buffer> {
-  if (source.startsWith('http')) {
-    try {
-      const response = await ofetch.raw(source, {
-        responseType: 'arrayBuffer',
-      });
-
-      const contentType = response.headers.get('content-type')?.toLowerCase();
-      if (!contentType || !SUPPORTED_MIME_TYPES.includes(contentType)) {
-        throw new ValidationError(`Unsupported Content-Type: ${contentType}`);
-      }
-
-      return Buffer.from(response._data as ArrayBuffer);
-    } catch (err) {
-      if (err instanceof ValidationError) throw err;
-      throw new FetchError(`Failed to fetch remote font: ${source}`, (err as any).status);
-    }
-  }
-
+export async function resolveFont(url: string, options: ResolverOptions = {}): Promise<Uint8Array> {
+  const normalizedUrl = ufo(url);
+  
   try {
-    return await fs.readFile(source);
-  } catch (err) {
-    throw new FetchError(`Failed to read local font: ${source}`);
+    const response = await ofetch.raw(normalizedUrl, {
+      method: 'GET',
+      headers: options.headers,
+      timeout: options.timeout,
+    });
+
+    const contentType = response.headers.get('content-type') || '';
+    validateContentType(contentType);
+
+    const buffer = await response.blob().then(b => b.arrayBuffer());
+    return new Uint8Array(buffer);
+  } catch (error: any) {
+    if (error.response) {
+      throw new FontaineFetchError(normalizedUrl, error.response.status);
+    }
+    throw new FontaineFetchError(normalizedUrl);
   }
 }

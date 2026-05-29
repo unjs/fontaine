@@ -1,6 +1,3 @@
-/**
- * Base error class for all Fontaine-related failures.
- */
 export class FontaineError extends Error {
   constructor(message: string, public readonly code: string) {
     super(message);
@@ -8,32 +5,23 @@ export class FontaineError extends Error {
   }
 }
 
-/**
- * Error thrown when font retrieval fails via network or filesystem.
- */
-export class FetchError extends FontaineError {
-  constructor(message: string, public readonly statusCode?: number) {
-    super(message, 'FETCH_ERROR');
-    this.name = 'FetchError';
+export class FontaineFetchError extends FontaineError {
+  constructor(url: string, status?: number) {
+    super(`Failed to fetch font from ${url}${status ? ` (Status: ${status})` : ''}`, 'FETCH_ERROR');
+    this.name = 'FontaineFetchError';
   }
 }
 
-/**
- * Error thrown when font analysis fails due to corrupt data or unsupported formats.
- */
-export class AnalysisError extends FontaineError {
-  constructor(message: string) {
-    super(message, 'ANALYSIS_ERROR');
-    this.name = 'AnalysisError';
+export class FontaineValidationError extends FontaineError {
+  constructor(reason: string) {
+    super(`Invalid font binary: ${reason}`, 'VALIDATION_ERROR');
+    this.name = 'FontaineValidationError';
   }
 }
 
-/**
- * Error thrown when the provided asset is not a valid font file.
- */
-export class ValidationError extends FontaineError {
-  constructor(message: string) {
-    super(message, 'VALIDATION_ERROR');
-    this.name = 'ValidationError';
+export class FontaineAnalysisError extends FontaineError {
+  constructor(details: string) {
+    super(`Font analysis failed: ${details}`, 'ANALYSIS_ERROR');
+    this.name = 'FontaineAnalysisError';
   }
 }

@@ -1,33 +1,33 @@
-import { resolveFontSource } from './resolver.js';
-import { getFormatter } from './formatter.js';
-import { analyzeFontMetrics } from './metrics.js';
-import { AnalysisError } from './errors.js';
+import { resolveFont } from './resolver.js';
+import { analyzeFont } from './metrics.js';
+import { validateMagicBytes } from './validator.js';
+import { FontaineFormatter, FORMATTERS } from './formatter.js';
+import { FontaineAnalysisError } from './errors.js';
 
-export interface AnalyzeOptions {
-  /** The path or URL to the font file */
-  source: string;
-  /** The desired output format */
-  format: 'json' | 'css';
-  /** Optional configuration for metrics calculation */
-  metricsOptions?: Record<string, any>;
+export interface PipelineOptions {
+  format?: keyof typeof FORMATTERS;
+  timeout?: number;
 }
 
 /**
- * Orchestrates the font analysis pipeline: Resolve -> Analyze -> Format.
- * 
- * @param options - Configuration for the analysis process.
- * @returns The formatted analysis result.
- * @throws {FontaineError} If any stage of the pipeline fails.
+ * Orchestrates the Resolver -> Validator -> Analyzer -> Formatter pipeline.
  */
-export async function analyzeFonts({ source, format, metricsOptions }: AnalyzeOptions): Promise<string> {
+export async function runFontainePipeline(url: string, options: PipelineOptions = {}) {
+  const { format = 'json', timeout = 10000 } = options;
+  
+  const buffer = await resolveFont(url, { timeout });
+  validateMagicBytes(buffer);
+  
   try {
-    const buffer = await resolveFontSource(source);
-    const metrics = await analyzeFontMetrics(buffer, metricsOptions);
-    const formatter = getFormatter(format);
+    const metrics = await analyzeFont(buffer);
+    const formatter = FORMATTERS[format];
+    
+    if (!formatter) {
+      throw new FontaineAnalysisError(`Unsupported format: ${format}`);
+    }
     
     return formatter.format(metrics);
-  } catch (err) {
-    if (err instanceof Error && 'code' in err) throw err;
-    throw new AnalysisError(err instanceof Error ? err.message : 'Unknown analysis failure');
+  } catch (error: any) {
+    throw new FontaineAnalysisError(error.message);
   }
 }

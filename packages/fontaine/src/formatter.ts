@@ -1,52 +1,32 @@
-import { AnalysisResult } from './metrics.js';
+import { Metrics } from './metrics.js';
 
-/**
- * Interface for font analysis output strategies.
- */
-export interface Formatter {
-  /**
-   * Formats the analysis result into a string representation.
-   * @param result - The result of the font analysis.
-   * @returns The formatted string.
-   */
-  format(result: AnalysisResult): string;
+export interface FontaineFormatter {
+  format(metrics: Metrics): string;
 }
 
-/**
- * Formats analysis results as a JSON string.
- */
-export class JsonFormatter implements Formatter {
-  format(result: AnalysisResult): string {
-    return JSON.stringify(result, null, 2);
+export class CssFormatter implements FontaineFormatter {
+  format({ ascent, descent, lineGap }): string {
+    const size = ascent + descent + lineGap;
+    return `font-display: swap; line-gap: ${lineGap}px;`;
   }
 }
 
-/**
- * Formats analysis results as CSS @font-face overrides.
- */
-export class CssFormatter implements Formatter {
-  format(result: AnalysisResult): string {
-    const { sizeAdjust, ascentOverride, descentOverride, lineGapOverride } = result;
-    return `size-adjust: ${sizeAdjust}; ascent-override: ${ascentOverride}; descent-override: ${descentOverride}; line-gap-override: ${lineGapOverride};`;
+export class JsonFormatter implements FontaineFormatter {
+  format(metrics: Metrics): string {
+    return JSON.stringify(metrics, null, 2);
   }
 }
 
-/**
- * Factory to retrieve the appropriate formatter based on a type identifier.
- * 
- * @param type - The requested format ('json' or 'css').
- * @returns An implementation of the Formatter interface.
- * @throws {Error} If the format type is unsupported.
- */
-export function getFormatter(type: 'json' | 'css'): Formatter {
-  const formatters = {
-    json: new JsonFormatter(),
-    css: new CssFormatter(),
-  };
-
-  const formatter = formatters[type];
-  if (!formatter) {
-    throw new Error(`Unsupported format: ${type}`);
+export class YamlFormatter implements FontaineFormatter {
+  format(metrics: Metrics): string {
+    return Object.entries(metrics)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join('\n');
   }
-  return formatter;
 }
+
+export const FORMATTERS: Record<string, FontaineFormatter> = {
+  css: new CssFormatter(),
+  json: new JsonFormatter(),
+  yaml: new YamlFormatter(),
+};

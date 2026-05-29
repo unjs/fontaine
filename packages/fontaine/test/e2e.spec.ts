@@ -1,23 +1,33 @@
-import { execSync } from 'child_process';
 import { describe, it, expect } from 'vitest';
-import path from 'path';
+import { execa } from 'execa';
+import path from 'node:path';
 
-describe('CLI Binary Integrity', () => {
-  const binaryPath = path.resolve(__dirname, '../dist/cli.js');
+describe('Fontaine CLI E2E', () => {
+  const CLI_PATH = path.resolve(__dirname, '../dist/cli.js');
 
-  it('should execute via node and return correct exit code for missing args', () => {
+  it('should exit with error code 1 on invalid URL', async () => {
     try {
-      execSync(`node ${binaryPath}`);
+      await execa('node', [CLI_PATH, 'https://invalid-url-that-does-not-exist.com/font.woff2']);
     } catch (error: any) {
-      expect(error.status).toBe(64);
+      expect(error.exitCode).toBe(1);
+      expect(error.stderr).toContain('FETCH_ERROR');
     }
   });
 
-  it('should handle invalid URLs with NetworkError code', () => {
+  it('should reject non-font binaries', async () => {
+    // Using a known non-font asset (the package.json) as a dummy binary
+    const dummyFile = path.resolve(__dirname, '../package.json');
     try {
-      execSync(`node ${binaryPath} http://invalid.local`);
+      await execa('node', [CLI_PATH, dummyFile]);
     } catch (error: any) {
-      expect(error.status).not.toBe(0);
+      expect(error.exitCode).toBe(1);
+      expect(error.stderr).toContain('VALIDATION_ERROR');
     }
+  });
+
+  it('should output valid JSON when requested', async () => {
+    const fontPath = path.resolve(__dirname, '../playground/fonts/font.ttf');
+    const { stdout } = await execa('node', [CLI_PATH, fontPath, '--format', 'json']);
+    expect(() => JSON.parse(stdout)).not.toThrow();
   });
 });
