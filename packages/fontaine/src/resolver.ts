@@ -1,23 +1,48 @@
-import { ofetch } from 'ofetch';
-import fs from 'node:fs/promises';
-import { FontaineFetchError } from './errors.js';
+import { readFileSync } from 'node:fs';
+import ofetch from 'ofetch';
+import { FetchError } from './errors.js';
+
+export interface SourceResolver {
+  resolve(source: string): Promise<Uint8Array>;
+}
 
 /**
- * Resolves a font source from a URL or local path into a Uint8Array.
- * @param source - The URI or file path to the font.
- * @returns A Uint8Array containing the font binary.
- * @throws {FontaineFetchError} If the source cannot be retrieved.
+ * Handles remote font retrieval with strict MIME-type validation.
+ * This prevents the analysis engine from attempting to process HTML error pages
+ * returned as 200 OK.
  */
-export async function resolveFontSource(source: string): Promise<Uint8Array> {
-  try {
-    if (source.startsWith('http://') || source.startsWith('https://')) {
-      const response = await ofetch(source, { responseType: 'arrayBuffer' });
-      return new Uint8Array(response as ArrayBuffer);
-    }
+export class RemoteResolver implements SourceResolver {
+  async resolve(url: string): Promise<Uint8Array> {
+    try {
+      const response = await ofetch.raw(url, { responseType: 'arrayBuffer' });
+      const contentType = response.headers.get('content-type');
 
-    const buffer = await fs.readFile(source);
-    return new Uint8Array(buffer);
-  } catch (error: any) {
-    throw new FontaineFetchError(`Failed to resolve font source: ${error.message}`);
+      if (!contentType || !contentType.startsWith('font/') && !contentType.includes('application/x-font')) {
+        throw new FetchError(`Invalid MIME type: ${contentType}. Expected a font binary.`);
+      }
+
+      return new Uint8Array(response._data);
+    } catch (err) {
+      if (err instanceof FetchError) throw err;
+      throw new FetchError(`Failed to fetch font from ${url}: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
+}
+
+/**
+ * Handles local filesystem font retrieval.
+ */
+export class LocalResolver implements SourceResolver {
+  async resolve(path: string): Promise<Uint8Array> {
+    try {
+      const buffer = readFileSync(path);
+      return new Uint8Array(buffer);
+    } catch (err) {
+      throw new FetchError(`Failed to read local file ${path}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+}
+
+export function createResolver(source: string): SourceResolver {
+  return source.startsWith('http') ? new RemoteResolver() : new LocalResolver();
 }

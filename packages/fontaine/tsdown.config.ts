@@ -6,8 +6,8 @@ export default defineConfig({
     cli: 'src/cli.ts',
   },
   format: 'esm',
-  outDir: 'dist',
   banner: {
-    cli: '#!/usr/bin/env node',
+    js: '#!/usr/bin/env node',
   },
+  // Ensure output is treated as executable via build pipeline post-step
 });

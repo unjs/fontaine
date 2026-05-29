@@ -1,31 +1,40 @@
 #!/usr/bin/env node
-import { Command } from 'commander';
-import { runPipeline } from './pipeline.js';
+import { cac } from 'cac';
+import { analyze, transform } from './index.js';
 import { FontaineError } from './errors.js';
 
-const program = new Command();
+const cli = cac('fontaine');
 
-program
-  .name('fontaine')
-  .description('Industrial-grade font metric analyzer')
-  .version('1.0.0')
-  .argument('<source>', 'Path or URL to the font file')
-  .option('-f, --format <format>', 'Output format (json, css)', 'json')
+cli.command('analyze <source>', 'Analyze a font source')
+  .option('--format <format>', 'Output format (json|css)', { default: 'json' })
   .action(async (source, options) => {
     try {
-      const result = await runPipeline({
-        source,
-        format: options.format,
-      });
+      const result = await analyze({ source, format: options.format as 'json' | 'css' });
       process.stdout.write(result + '\n');
-    } catch (error) {
-      if (error instanceof FontaineError) {
-        process.stderr.write(`[${error.code}] ${error.message}\n`);
-      } else {
-        process.stderr.write(`Unexpected error: ${(error as Error).message}\n`);
-      }
-      process.exit(1);
+    } catch (err) {
+      handleError(err);
     }
   });
 
-program.parse();
+cli.command('transform <input>', 'Transform CSS font declarations')
+  .option('--output <output>', 'Output file path')
+  .action(async (input, options) => {
+    try {
+      const result = await transform({ input, output: options.output });
+      if (!options.output) process.stdout.write(result + '\n');
+    } catch (err) {
+      handleError(err);
+    }
+  });
+
+function handleError(err: unknown) {
+  if (err instanceof FontaineError) {
+    process.stderr.write(`Error: [${err.name}] ${err.message}\n`);
+    process.exit(1);
+  }
+  process.stderr.write(`Unexpected Error: ${err instanceof Error ? err.message : String(err)}\n`);
+  process.exit(1);
+}
+
+cli.help();
+cli.parse();

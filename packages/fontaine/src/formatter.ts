@@ -1,36 +1,28 @@
-import { FontaineFormatterError } from './errors.js';
+import { AnalysisResult } from './metrics.js';
 
 export interface OutputFormatter {
-  format(data: any): string;
+  format(result: AnalysisResult): string;
 }
-
-export class JsonFormatter implements OutputFormatter {
-  format(data: any): string {
-    return JSON.stringify(data, null, 2);
-  }
-}
-
-export class CssFormatter implements OutputFormatter {
-  format(data: any): string {
-    // Logic simplified for architectural demonstration
-    return `/* Fontaine Analysis */\n:root { --font-metrics: ${JSON.stringify(data)}; }`;
-  }
-}
-
-const FORMATTERS: Record<string, OutputFormatter> = {
-  json: new JsonFormatter(),
-  css: new CssFormatter(),
-};
 
 /**
- * Returns the appropriate formatter based on the requested format.
- * @param format - The format key ('json' | 'css').
- * @throws {FontaineFormatterError} If the format is unsupported.
+ * Outputs analysis results as a JSON string for programmatic consumption.
  */
-export function getFormatter(format: string): OutputFormatter {
-  const formatter = FORMATTERS[format];
-  if (!formatter) {
-    throw new FontaineFormatterError(`Unsupported output format: ${format}`);
+export class JSONFormatter implements OutputFormatter {
+  format(result: AnalysisResult): string {
+    return JSON.stringify(result, null, 2);
   }
-  return formatter;
+}
+
+/**
+ * Outputs analysis results as CSS @font-face overrides.
+ * Used to inject calculated size-adjust or ascent-override values.
+ */
+export class CSSFormatter implements OutputFormatter {
+  format({ family, metrics }): string {
+    return `@font-face {\n  font-family: "${family}";\n  size-adjust: ${metrics.sizeAdjust}%;\n}\n`;
+  }
+}
+
+export function createFormatter(format: 'json' | 'css'): OutputFormatter {
+  return format === 'css' ? new CSSFormatter() : new JSONFormatter();
 }

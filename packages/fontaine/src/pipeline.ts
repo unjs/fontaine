@@ -1,28 +1,14 @@
-import defu from 'defu';
-import { resolveFontSource } from './resolver.js';
-import { getFormatter } from './formatter.js';
-import { analyzeFont } from './metrics.js';
+import { createResolver } from './resolver.js';
+import { createFormatter } from './formatter.js';
+import { analyzeFont } from './url-analyzer.js';
+import { AnalysisResult } from './metrics.js';
 
-export interface PipelineOptions {
-  source: string;
-  format?: string;
-}
-
-const DEFAULT_OPTIONS: PipelineOptions = {
-  format: 'json',
-};
-
-/**
- * Orchestrates the Source Resolver -> Core Analyzer -> Output Formatter pipeline.
- * @param options - Execution configuration.
- * @returns The formatted analysis result.
- */
-export async function runPipeline(options: PipelineOptions) {
-  const config = defu(options, DEFAULT_OPTIONS);
+export async function runAnalysis(source: string, format: 'json' | 'css' = 'json'): Promise<string> {
+  const resolver = createResolver(source);
+  const formatter = createFormatter(format);
   
-  const buffer = await resolveFontSource(config.source);
-  const metrics = await analyzeFont(buffer);
-  const formatter = getFormatter(config.format!);
+  const buffer = await resolver.resolve(source);
+  const result: AnalysisResult = await analyzeFont(buffer);
   
-  return formatter.format(metrics);
+  return formatter.format(result);
 }

@@ -1,27 +1,40 @@
+/**
+ * Base error for all Fontaine-related failures.
+ * Used to differentiate tool-specific errors from native runtime errors.
+ */
 export class FontaineError extends Error {
-  constructor(message: string, public readonly code: string) {
+  constructor(message: string) {
     super(message);
     this.name = 'FontaineError';
   }
 }
 
-export class FontaineFetchError extends FontaineError {
-  constructor(message: string) {
-    super(message, 'FETCH_ERROR');
-    this.name = 'FontaineFetchError';
+/**
+ * Triggered when source resolution fails (e.g., 404, Invalid MIME type).
+ */
+export class FetchError extends FontaineError {
+  constructor(message: string, public statusCode?: number) {
+    super(message);
+    this.name = 'FetchError';
   }
 }
 
-export class FontaineAnalysisError extends FontaineError {
+/**
+ * Triggered when the binary font data cannot be parsed or analyzed.
+ */
+export class AnalysisError extends FontaineError {
   constructor(message: string) {
-    super(message, 'ANALYSIS_ERROR');
-    this.name = 'FontaineAnalysisError';
+    super(message);
+    this.name = 'AnalysisError';
   }
 }
 
-export class FontaineFormatterError extends FontaineError {
+/**
+ * Triggered when input options fail schema validation.
+ */
+export class ValidationError extends FontaineError {
   constructor(message: string) {
-    super(message, 'FORMATTER_ERROR');
-    this.name = 'FontaineFormatterError';
+    super(message);
+    this.name = 'ValidationError';
   }
 }
