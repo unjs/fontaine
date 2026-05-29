@@ -1,38 +1,37 @@
 #!/usr/bin/env node
-import { analyzeFonts } from './index.js';
-import { JsonFormatter, CssFormatter } from './formatter.js';
-import { parseArgs } from 'node:util';
-
-const options = {
-  format: {
-    type: 'string',
-    short: 'f',
-    default: 'json',
-  },
-};
-
-const { values, positionals } = parseArgs({ options, allowPositionals: true });
+import { analyzeFont, transformCss } from './index';
+import { resolve } from 'node:path';
 
 async function main() {
-  const source = positionals[0];
+  const args = process.argv.slice(2);
+  const command = args[0];
 
-  if (!source) {
-    console.error('Usage: fontaine <source> [-f json|css]');
-    process.exit(1);
+  if (command === 'analyze') {
+    const source = args[1];
+    if (!source) {
+      console.error('Missing font source path');
+      process.exit(1);
+    }
+    try {
+      const result = await analyzeFont(resolve(source));
+      console.log(JSON.stringify(result, null, 2));
+    } catch (error) {
+      console.error(`Error: ${error.message}`);
+      process.exit(1);
+    }
+  } else if (command === 'transform') {
+    const filePath = args[1];
+    if (!filePath) {
+      console.error('Missing CSS file path');
+      process.exit(1);
+    }
+    // logic for reading file and passing to transformCss
+  } else {
+    console.log('Usage: fontaine <analyze|transform> [path]');
   }
-
-  const formatter = values.format === 'css' ? new CssFormatter() : new JsonFormatter();
-  const response = await analyzeFonts(source);
-
-  if (!response.success) {
-    console.error(`Error: ${response.error.message}`);
-    process.exit(1);
-  }
-
-  console.log(formatter.format(response.data));
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
