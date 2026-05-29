@@ -1,35 +1,65 @@
-import { ufo } from 'ufo';
-import { ofetch } from 'ofetch';
-import { FontaineFetchError } from './errors.js';
+import fs from 'node:fs/promises';
+import ofetch from 'ofetch';
+import { FontaineFetchError, FontaineResolutionError } from './errors.js';
 import { validateContentType } from './validator.js';
 
-export interface ResolverOptions {
-  timeout?: number;
-  headers?: Record<string, string>;
+export interface FontBuffer {
+  buffer: Buffer;
+  mimeType: string;
+  source: string;
 }
 
 /**
- * Resolves a font asset from a local path or remote URL.
+ * Handles transparent resolution of fonts from local paths or remote URLs.
  */
-export async function resolveFont(url: string, options: ResolverOptions = {}): Promise<Uint8Array> {
-  const normalizedUrl = ufo(url);
-  
-  try {
-    const response = await ofetch.raw(normalizedUrl, {
-      method: 'GET',
-      headers: options.headers,
-      timeout: options.timeout,
-    });
-
-    const contentType = response.headers.get('content-type') || '';
-    validateContentType(contentType);
-
-    const buffer = await response.blob().then(b => b.arrayBuffer());
-    return new Uint8Array(buffer);
-  } catch (error: any) {
-    if (error.response) {
-      throw new FontaineFetchError(normalizedUrl, error.response.status);
+export class FontSourceResolver {
+  /**
+   * Resolves a source string into a FontBuffer.
+   * 
+   * @throws {FontaineFetchError} On network failure.
+   * @throws {FontaineResolutionError} On filesystem failure.
+   * @throws {FontaineInvalidContentTypeError} On invalid MIME type.
+   */
+  async resolve(source: string): Promise<FontBuffer> {
+    if (source.startsWith('http://') || source.startsWith('https://')) {
+      return this.resolveRemote(source);
     }
-    throw new FontaineFetchError(normalizedUrl);
+    return this.resolveLocal(source);
+  }
+
+  private async resolveRemote(url: string): Promise<FontBuffer> {
+    try {
+      const response = await ofetch.raw(url);
+      const contentType = response.headers.get('content-type') || 'application/octet-stream';
+      
+      validateContentType(contentType);
+
+      const buffer = await response.blob().then(b => b.arrayBuffer());
+      return {
+        buffer: Buffer.from(buffer),
+        mimeType: contentType,
+        source: url,
+      };
+    } catch (error: any) {
+      if (error instanceof Error && error.name === 'FontaineInvalidContentTypeError') throw error;
+      throw new FontaineFetchError(url, error.response?.status);
+    }
+  }
+
+  private async resolveLocal(path: string): Promise<FontBuffer> {
+    try {
+      const buffer = await fs.readFile(path);
+      // Local files lack MIME headers; basic extension check or generic assignment
+      // In production, a library like 'mime-types' would be used here
+      const mimeType = 'font/ttf'; 
+      
+      return {
+        buffer,
+        mimeType,
+        source: path,
+      };
+    } catch (error: any) {
+      throw new FontaineResolutionError(path, error);
+    }
   }
 }

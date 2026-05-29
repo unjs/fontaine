@@ -2,10 +2,12 @@ import { defineConfig } from 'tsdown';
 
 export default defineConfig({
   entry: {
-    cli: 'src/cli.ts',
     index: 'src/index.ts',
+    cli: 'src/cli.ts',
   },
   format: ['esm'],
-  minify: false,
-  banner: '#!/usr/bin/env node\n',
+  banner: {
+    js: '#!/usr/bin/env node',
+  },
+  outDir: 'dist',
 });
