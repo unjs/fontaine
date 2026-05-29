@@ -1,75 +1,50 @@
-import { readFile } from 'node:fs/promises';
-import { FetchError } from './errors.js';
-import { validateFont } from './validator.js';
+import fs from 'node:fs/promises';
+import { ofetch } from 'ofetch';
+import { FetchError, ValidationError } from './errors.js';
 
-export interface SourceResolver {
-  resolve(source: string | Buffer | Uint8Array): Promise<Uint8Array>;
-}
+/**
+ * Supported MIME types for font analysis.
+ */
+const SUPPORTED_MIME_TYPES = [
+  'font/ttf',
+  'font/otf',
+  'font/woff',
+  'font/woff2',
+  'application/font-sfnt',
+  'application/x-font-ttf',
+  'application/x-font-otf',
+];
 
-class LocalResolver implements SourceResolver {
-  async resolve(source: string): Promise<Uint8Array> {
+/**
+ * Resolves a font source from a local path or remote URL into a Buffer.
+ * 
+ * @param source - The path or URL to the font file.
+ * @returns A Promise resolving to the font data as a Buffer.
+ * @throws {FetchError} If the source cannot be reached.
+ * @throws {ValidationError} If the source is not a recognized font type.
+ */
+export async function resolveFontSource(source: string): Promise<Buffer> {
+  if (source.startsWith('http')) {
     try {
-      const buffer = await readFile(source);
-      const uint8 = new Uint8Array(buffer);
-      await validateFont(uint8);
-      return uint8;
-    } catch (error) {
-      throw new FetchError(`Failed to read local file: ${source}`, source);
+      const response = await ofetch.raw(source, {
+        responseType: 'arrayBuffer',
+      });
+
+      const contentType = response.headers.get('content-type')?.toLowerCase();
+      if (!contentType || !SUPPORTED_MIME_TYPES.includes(contentType)) {
+        throw new ValidationError(`Unsupported Content-Type: ${contentType}`);
+      }
+
+      return Buffer.from(response._data as ArrayBuffer);
+    } catch (err) {
+      if (err instanceof ValidationError) throw err;
+      throw new FetchError(`Failed to fetch remote font: ${source}`, (err as any).status);
     }
   }
-}
 
-class HttpResolver implements SourceResolver {
-  async resolve(source: string): Promise<Uint8Array> {
-    try {
-      const response = await fetch(source);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      
-      const contentType = response.headers.get('Content-Type');
-      const buffer = await response.arrayBuffer();
-      const uint8 = new Uint8Array(buffer);
-      
-      await validateFont(uint8, contentType);
-      return uint8;
-    } catch (error) {
-      throw new FetchError(`Failed to fetch remote font: ${source}`, source);
-    }
-  }
-}
-
-class BufferResolver implements SourceResolver {
-  async resolve(source: Buffer | Uint8Array): Promise<Uint8Array> {
-    const uint8 = source instanceof Uint8Array ? source : new Uint8Array(source);
-    await validateFont(uint8);
-    return uint8;
-  }
-}
-
-export class FontResolver {
-  private resolvers: Map<string, SourceResolver> = new Map();
-
-  constructor() {
-    this.resolvers.set('local', new LocalResolver());
-    this.resolvers.set('http', new HttpResolver());
-    this.resolvers.set('buffer', new BufferResolver());
-  }
-
-  /**
-   * Resolves a font source into a Uint8Array.
-   * 
-   * @example
-   * const resolver = new FontResolver();
-   * const buffer = await resolver.resolve('https://fonts.com/font.woff2');
-   */
-  async resolve(source: string | Buffer | Uint8Array): Promise<Uint8Array> {
-    if (source instanceof Uint8Array || Buffer.isBuffer(source)) {
-      return this.resolvers.get('buffer')!.resolve(source);
-    }
-
-    if (source.startsWith('http://') || source.startsWith('https://')) {
-      return this.resolvers.get('http')!.resolve(source);
-    }
-
-    return this.resolvers.get('local')!.resolve(source);
+  try {
+    return await fs.readFile(source);
+  } catch (err) {
+    throw new FetchError(`Failed to read local font: ${source}`);
   }
 }
