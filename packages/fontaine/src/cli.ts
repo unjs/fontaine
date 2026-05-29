@@ -1,31 +1,44 @@
-#!/usr/bin/env node
 import { Command } from 'commander';
-import { runFontainePipeline } from './pipeline.js';
-import { FontaineError } from './errors.js';
+import fg from 'fast-glob';
+import { loadConfig } from './config';
+import { runPipeline } from './pipeline';
+import { FontaineError } from './errors';
 
 const program = new Command();
 
 program
   .name('fontaine')
-  .description('Analyze fonts to generate size-adjust overrides')
-  .version('1.0.0')
-  .argument('<source>', 'URL or path to font file')
-  .option('-f, --format <type>', 'Output format (json, css)', 'json')
-  .action(async (source, options) => {
+  .description('Production-grade font metric analyzer')
+  .option('-i, --input <pattern>', 'Input font file or glob pattern')
+  .option('-o, --output <path>', 'Output destination')
+  .option('--dry-run', 'Validate sources without writing files')
+  .option('--no-cache', 'Disable caching of remote metrics')
+  .action(async (options) => {
+    const config = loadConfig();
+    const mergedOptions = {
+      ...config,
+      ...options,
+    };
+
     try {
-      const metrics = await runFontainePipeline(source);
-      
-      if (options.format === 'json') {
-        console.log(JSON.stringify(metrics, null, 2));
-      } else {
-        console.log(`:root { --font-ascent: ${metrics.ascent}; }`);
+      const files = mergedOptions.input 
+        ? await fg(mergedOptions.input) 
+        : [];
+
+      if (files.length === 0) {
+        console.error('No fonts found matching the pattern.');
+        process.exit(1);
+      }
+
+      for (const file of files) {
+        await runPipeline(file, mergedOptions);
       }
     } catch (error) {
       if (error instanceof FontaineError) {
-        console.error(`Error: ${error.message}`);
-        process.exit(1);
+        console.error(`[${error.code}] ${error.message}`);
+      } else {
+        console.error('Unexpected system error:', error);
       }
-      console.error('Unexpected internal error');
       process.exit(1);
     }
   });
