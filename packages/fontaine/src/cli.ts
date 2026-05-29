@@ -1,36 +1,30 @@
 #!/usr/bin/env node
-
-import { analyzeFonts } from './pipeline.js';
-import { FontaineError, FontaineFetchError, FontaineValidationError } from './errors.js';
+import { analyzeUrl } from './url-analyzer';
+import { FormatterRegistry } from './formatter';
+import { FontaineError } from './errors';
 
 async function main() {
-  const [,, source, format = 'json'] = process.argv;
-
-  if (!source) {
-    console.error('Usage: fontaine <source> [json|css]');
-    process.exit(1);
+  const args = process.argv.slice(2);
+  if (args.length === 0) {
+    console.error('Usage: fontaine <url> [--format=json|text]');
+    process.exit(64); // EX_USAGE
   }
 
+  const url = args[0];
+  const formatArg = args.find(a => a.startsWith('--format='))?.split('=')[1] || 'json';
+
   try {
-    const result = await analyzeFonts(source, { format: format as any });
-    process.stdout.write(result + '\n');
+    const metrics = await analyzeUrl(url);
+    const formatter = FormatterRegistry.get(formatArg);
+    process.stdout.write(formatter(metrics) + '\n');
     process.exit(0);
   } catch (error) {
-    if (error instanceof FontaineFetchError) {
-      console.error(`Network/FS Error: ${error.message}`);
-      process.exit(2);
-    }
-    if (error instanceof FontaineValidationError) {
-      console.error(`Validation Error: ${error.message}`);
-      process.exit(1);
-    }
     if (error instanceof FontaineError) {
-      console.error(`Analysis Error: ${error.message}`);
-      process.exit(1);
+      console.error(`Error [${error.code}]: ${error.message}`);
+      process.exit(error.statusCode || 1);
     }
-    
-    console.error('Unexpected Error:', error);
-    process.exit(3);
+    console.error('Internal System Error:', error);
+    process.exit(70); // EX_SOFTWARE
   }
 }
 

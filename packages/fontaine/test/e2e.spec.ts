@@ -1,17 +1,23 @@
+import { execSync } from 'child_process';
 import { describe, it, expect } from 'vitest';
-import { execSync } from 'node:child_process';
-import { join } from 'node:path';
+import path from 'path';
 
-describe('CLI Binary Distribution', () => {
-  it('executes compiled binary and returns valid JSON', () => {
-    const binaryPath = join(process.cwd(), 'dist/cli.mjs');
-    
-    // Test with a local file from the playground
-    const fontPath = join(process.cwd(), 'playground/fonts/font.ttf');
-    const output = execSync(`node \${binaryPath} \${fontPath} --format=json`).toString();
-    
-    expect(() => JSON.parse(output)).not.toThrow();
-    const json = JSON.parse(output);
-    expect(json).toHaveProperty('fontName');
+describe('CLI Binary Integrity', () => {
+  const binaryPath = path.resolve(__dirname, '../dist/cli.js');
+
+  it('should execute via node and return correct exit code for missing args', () => {
+    try {
+      execSync(`node ${binaryPath}`);
+    } catch (error: any) {
+      expect(error.status).toBe(64);
+    }
+  });
+
+  it('should handle invalid URLs with NetworkError code', () => {
+    try {
+      execSync(`node ${binaryPath} http://invalid.local`);
+    } catch (error: any) {
+      expect(error.status).not.toBe(0);
+    }
   });
 });

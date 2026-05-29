@@ -1,35 +1,26 @@
-import { FontaineAnalysisResult } from './metrics.js';
+import type { FontMetrics } from './metrics';
 
-export interface OutputFormatter {
-  format(result: FontaineAnalysisResult): string;
-}
+export type FormatterFn = (metrics: FontMetrics) => string;
 
-/**
- * Formats analysis results as a JSON string.
- */
-export class JsonFormatter implements OutputFormatter {
-  format(result: FontaineAnalysisResult): string {
-    return JSON.stringify(result, null, 2);
+export class FormatterRegistry {
+  private static formats = new Map<string, FormatterFn>();
+
+  static register(format: string, fn: FormatterFn) {
+    this.formats.set(format, fn);
+  }
+
+  static get(format: string): FormatterFn {
+    const formatter = this.formats.get(format);
+    if (!formatter) {
+      throw new Error(`Unsupported output format: ${format}`);
+    }
+    return formatter;
+  }
+
+  static availableFormats(): string[] {
+    return Array.from(this.formats.keys());
   }
 }
 
-/**
- * Formats analysis results as a CSS @font-face override.
- */
-export class CssFormatter implements OutputFormatter {
-  format(result: FontaineAnalysisResult): string {
-    const { ascent, descent, lineGap } = result;
-    return `font-display: swap; line-gap: ${lineGap}px;`;
-  }
-}
-
-/**
- * Factory to retrieve the appropriate formatter.
- * 
- * @param format - The desired output format ('json' | 'css').
- * @returns An implementation of OutputFormatter.
- */
-export function getFormatter(format: string): OutputFormatter {
-  if (format === 'css') return new CssFormatter();
-  return new JsonFormatter();
-}
+FormatterRegistry.register('json', (metrics) => JSON.stringify(metrics, null, 2));
+FormatterRegistry.register('text', (metrics) => `Font Metrics: ${metrics.ascent} / ${metrics.descent}`);

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "bin": {
-    "fontaine": "./dist/cli.mjs"
+    "fontaine": "./dist/cli.js"
   },
   "main": "dist/index.mjs",
   "module": "dist/index.mjs",
@@ -15,7 +15,7 @@
     }
   },
   "scripts": {
-    "build": "tsdown build"
+    "build": "tsdown build "build": "tsdown build""build": "tsdown build" chmod +x dist/cli.js"
   },
   "dependencies": {
     "commander": "^11.0.0",
