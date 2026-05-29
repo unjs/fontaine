@@ -1,51 +1,50 @@
-import { ofetch, FetchResponse } from 'ofetch';
-import fs from 'node:fs/promises';
-import { FetchError, InvalidSourceError } from './errors';
+import { readFile } from 'node:fs/promises';
+import { FetchError, InvalidContentTypeError, ResolutionError } from './errors.js';
 
-export class FontResolver {
-  /**
-   * Resolves a font source (URL or local path) into a Uint8Array.
-   * 
-   * @param source - The location of the font file.
-   * @returns A promise resolving to the font binary data.
-   * @throws {InvalidSourceError} If the source format is unsupported.
-   * @throws {FetchError} If the resource cannot be retrieved.
-   */
-  async resolve(source: string): Promise<Uint8Array> {
-    if (this.isRemote(source)) {
-      return this.resolveRemote(source);
-    }
-    return this.resolveLocal(source);
-  }
+export interface FontResolver {
+  resolve(source: string): Promise<Buffer>;
+}
 
-  private isRemote(source: string): boolean {
-    return source.startsWith('http://') || source.startsWith('https://');
-  }
-
-  private async resolveRemote(source: string): Promise<Uint8Array> {
+export class LocalResolver implements FontResolver {
+  async resolve(path: string): Promise<Buffer> {
     try {
-      const response = await ofetch.raw(source, {
-        responseType: 'arrayBuffer',
-      });
+      return Buffer.from(await readFile(path));
+    } catch (error) {
+      throw new ResolutionError(`Failed to read local file at ${path}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+}
 
-      const contentType = response.headers.get('content-type');
-      if (contentType && !contentType.includes('font') && !contentType.includes('application/octet-stream')) {
-        throw new InvalidSourceError(`Unsupported content-type: ${contentType}`);
+export class RemoteResolver implements FontResolver {
+  async resolve(url: string): Promise<Buffer> {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new FetchError(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      return new Uint8Array(response._data as ArrayBuffer);
+      const contentType = response.headers.get('content-type');
+      const isFont = contentType?.startsWith('font/') || 
+                     contentType?.includes('application/x-font') || 
+                     contentType?.includes('application/font');
+
+      if (!isFont) {
+        throw new InvalidContentTypeError(contentType || 'undefined');
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      return Buffer.from(arrayBuffer);
     } catch (error) {
-      if (error instanceof InvalidSourceError) throw error;
-      throw new FetchError(`Failed to fetch remote font: ${source}`, (error as any).status);
+      if (error instanceof FontaineError) throw error;
+      throw new FetchError(`Network request failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
+}
 
-  private async resolveLocal(source: string): Promise<Uint8Array> {
-    try {
-      const buffer = await fs.readFile(source);
-      return new Uint8Array(buffer);
-    } catch (error) {
-      throw new FetchError(`Failed to read local font file: ${source}`);
-    }
+export class FontResolverFactory {
+  static create(source: string): FontResolver {
+    return source.startsWith('http://') || source.startsWith('https://') 
+      ? new RemoteResolver() 
+      : new LocalResolver();
   }
 }

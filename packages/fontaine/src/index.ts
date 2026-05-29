@@ -1,48 +1,32 @@
-import pLimit from 'p-limit';
-import { FontResolver } from './resolver';
-import { analyze } from './metrics';
-import { transform } from './transform';
-import { FontaineError } from './errors';
+import { FontResolverFactory } from './resolver.js';
+import { pipeline } from './pipeline.js';
 
-const limit = pLimit(5);
-const resolver = new FontResolver();
-
-/**
- * Low-level API to extract raw font metrics.
- * 
- * @param source - URL or filesystem path to the font file.
- * @returns A promise resolving to the analysis metrics.
- * @throws {FontaineError} If resolution or analysis fails.
- */
-export async function analyzeFont(source: string) {
-  return limit(async () => {
-    try {
-      const buffer = await resolver.resolve(source);
-      return await analyze(buffer);
-    } catch (error) {
-      if (error instanceof FontaineError) throw error;
-      throw new FontaineError(String(error), 'UNKNOWN_ERROR');
-    }
-  });
+export interface AnalyzeOptions {
+  /** Precision for metric calculations */
+  precision?: number;
+  /** Force a specific resolver strategy */
+  strategy?: 'local' | 'remote';
 }
 
 /**
- * High-level API to transform CSS containing @font-face rules.
+ * Analyzes a font from a local path, URL, or raw Buffer.
  * 
- * @param css - The raw CSS input string.
- * @param options - Configuration for transformation overrides.
- * @returns A promise resolving to the transformed CSS string.
- * @throws {FontaineError} If CSS processing or font analysis fails.
+ * @param source - The font source (URL, File Path, or Buffer)
+ * @param options - Configuration for analysis
+ * @returns Analysis results
+ * @throws {FontaineError} if resolution or analysis fails
  */
-export async function transformCss(css: string, options: any = {}) {
-  return limit(async () => {
-    try {
-      return await transform(css, options);
-    } catch (error) {
-      if (error instanceof FontaineError) throw error;
-      throw new FontaineError(String(error), 'CSS_TRANSFORM_ERROR');
-    }
-  });
+export async function analyzeFonts(source: string | Buffer, options: AnalyzeOptions = {}) {
+  let buffer: Buffer;
+
+  if (Buffer.isBuffer(source)) {
+    buffer = source;
+  } else {
+    const resolver = FontResolverFactory.create(source);
+    buffer = await resolver.resolve(source);
+  }
+
+  return pipeline(buffer, options);
 }
 
-export * from './errors';
+export * from './errors.js';

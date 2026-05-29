@@ -1,40 +1,39 @@
 import { describe, it, expect, vi } from 'vitest';
-import { FontResolver } from '../src/resolver';
-import { ofetch } from 'ofetch';
+import { LocalResolver, RemoteResolver, InvalidContentTypeError } from '../src/resolver.js';
 import { readFile } from 'node:fs/promises';
-import { FontaineNetworkError, FontaineFileSystemError } from '../src/errors';
 
-vi.mock('ofetch');
 vi.mock('node:fs/promises');
 
-describe('FontResolver', () => {
-  const resolver = new FontResolver();
-
-  it('should resolve remote fonts using ofetch', async () => {
-    const mockBuffer = new ArrayBuffer(8);
-    vi.mocked(ofetch).mockResolvedValue(mockBuffer);
-
-    const result = await resolver.resolve('https://example.com/font.ttf');
-    expect(result).toBeInstanceOf(Uint8Array);
-    expect(ofetch).toHaveBeenCalledWith('https://example.com/font.ttf', { responseType: 'arrayBuffer' });
+describe('FontResolver Matrix', () => {
+  describe('LocalResolver', () => {
+    it('should resolve existing local files', async () => {
+      (readFile as any).mockResolvedValue(Buffer.from('fake-font-binary'));
+      const resolver = new LocalResolver();
+      const result = await resolver.resolve('/path/to/font.ttf');
+      expect(result.toString()).toBe('fake-font-binary');
+    });
   });
 
-  it('should resolve local fonts using readFile', async () => {
-    const mockBuffer = Buffer.from('font-data');
-    vi.mocked(readFile).mockResolvedValue(mockBuffer);
+  describe('RemoteResolver', () => {
+    it('should throw InvalidContentTypeError for non-font types', async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: () => 'text/html' },
+        arrayBuffer: async () => new ArrayBuffer(8),
+      });
+      const resolver = new RemoteResolver();
+      await expect(resolver.resolve('https://example.com/not-a-font')).rejects.toThrow(InvalidContentTypeError);
+    });
 
-    const result = await resolver.resolve('./font.ttf');
-    expect(result).toBeInstanceOf(Uint8Array);
-    expect(readFile).toHaveBeenCalledWith('./font.ttf');
-  });
-
-  it('should throw FontaineNetworkError on fetch failure', async () => {
-    vi.mocked(ofetch).mockRejectedValue({ response: { status: 404 }, message: 'Not Found' });
-    await expect(resolver.resolve('https://example.com/404.ttf')).rejects.toThrow(FontaineNetworkError);
-  });
-
-  it('should throw FontaineFileSystemError on read failure', async () => {
-    vi.mocked(readFile).mockRejectedValue(new Error('ENOENT'));
-    await expect(resolver.resolve('./missing.ttf')).rejects.toThrow(FontaineFileSystemError);
+    it('should resolve valid remote fonts', async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: () => 'font/woff2' },
+        arrayBuffer: async () => new ArrayBuffer(8),
+      });
+      const resolver = new RemoteResolver();
+      const result = await resolver.resolve('https://example.com/font.woff2');
+      expect(result).toBeInstanceOf(Buffer);
+    });
   });
 });

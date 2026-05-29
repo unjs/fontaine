@@ -9,31 +9,28 @@ export class FontaineError extends Error {
 }
 
 /**
- * Thrown when a font source cannot be retrieved via network or filesystem.
+ * Thrown when a remote resource cannot be fetched.
  */
 export class FetchError extends FontaineError {
-  constructor(message: string, public readonly statusCode?: number) {
+  constructor(message: string) {
     super(message, 'FETCH_ERROR');
-    this.name = 'FetchError';
   }
 }
 
 /**
- * Thrown when font analysis fails due to malformed binary data.
+ * Thrown when the resource Content-Type does not match expected font binary types.
  */
-export class AnalysisError extends FontaineError {
-  constructor(message: string) {
-    super(message, 'ANALYSIS_ERROR');
-    this.name = 'AnalysisError';
+export class InvalidContentTypeError extends FontaineError {
+  constructor(contentType: string) {
+    super(`Invalid Content-Type: ${contentType}. Expected a font binary.`, 'INVALID_CONTENT_TYPE');
   }
 }
 
 /**
- * Thrown when the provided source URL or path is invalid or unsupported.
+ * Thrown when a local file cannot be resolved or read.
  */
-export class InvalidSourceError extends FontaineError {
+export class ResolutionError extends FontaineError {
   constructor(message: string) {
-    super(message, 'INVALID_SOURCE_ERROR');
-    this.name = 'InvalidSourceError';
+    super(message, 'RESOLUTION_ERROR');
   }
 }

@@ -1,37 +1,27 @@
 #!/usr/bin/env node
-import { analyzeFont, transformCss } from './index';
-import { resolve } from 'node:path';
+import { analyzeFonts, FontaineError } from './index.js';
 
 async function main() {
-  const args = process.argv.slice(2);
-  const command = args[0];
+  const source = process.argv[2];
+  if (!source) {
+    console.error('Usage: fontaine <source>');
+    process.exit(1);
+  }
 
-  if (command === 'analyze') {
-    const source = args[1];
-    if (!source) {
-      console.error('Missing font source path');
-      process.exit(1);
+  try {
+    const results = await analyzeFonts(source);
+    console.log(JSON.stringify(results, null, 2));
+  } catch (error) {
+    if (error instanceof FontaineError) {
+      console.error(`[${error.code}] ${error.message}`);
+    } else {
+      console.error('An unexpected error occurred:', error);
     }
-    try {
-      const result = await analyzeFont(resolve(source));
-      console.log(JSON.stringify(result, null, 2));
-    } catch (error) {
-      console.error(`Error: ${error.message}`);
-      process.exit(1);
-    }
-  } else if (command === 'transform') {
-    const filePath = args[1];
-    if (!filePath) {
-      console.error('Missing CSS file path');
-      process.exit(1);
-    }
-    // logic for reading file and passing to transformCss
-  } else {
-    console.log('Usage: fontaine <analyze|transform> [path]');
+    process.exit(1);
   }
 }
 
-main().catch((err) => {
-  console.error(err);
+main().catch((error) => {
+  console.error('Fatal:', error);
   process.exit(1);
 });
