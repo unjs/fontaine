@@ -1,15 +1,24 @@
-import { describe, it, expect } from 'vitest';
-import { runAnalysisPipeline } from '../src/pipeline';
-import { FontaineFetchError, FontaineValidationError } from '../src/errors';
+import { describe, it, expect, vi } from 'vitest';
+import { runFontainePipeline } from '../src/pipeline';
+import { FontaineFetchError, FontaineInvalidContentTypeError } from '../src/errors';
 
-describe('Analysis Pipeline Integration', () => {
-  it('should throw FontaineFetchError for 404 responses', async () => {
-    await expect(runAnalysisPipeline({ source: 'https://example.com/nonexistent.ttf' }))
-      .rejects.toThrow(FontaineFetchError);
+describe('Fontaine Pipeline', () => {
+  it('should throw FontaineInvalidContentTypeError for non-font URLs', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      headers: { get: () => 'text/plain' }
+    });
+    
+    await expect(runFontainePipeline('https://example.com/test.txt', { fetch: mockFetch }))
+      .rejects.toThrow(FontaineInvalidContentTypeError);
   });
 
-  it('should throw FontaineValidationError for invalid font buffers', async () => {
-    await expect(runAnalysisPipeline({ source: 'packages/fontaine/package.json' }))
-      .rejects.toThrow(FontaineValidationError);
+  it('should throw FontaineFetchError for 404 responses', async () => {
+    const mockFetch = vi.fn().mockRejectedValue({
+      response: { status: 404 },
+      message: 'Not Found'
+    });
+
+    await expect(runFontainePipeline('https://example.com/404.ttf', { fetch: mockFetch }))
+      .rejects.toThrow(FontaineFetchError);
   });
 });

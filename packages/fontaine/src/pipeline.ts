@@ -1,51 +1,24 @@
-import { Resolver } from './resolver';
-import { analyzeFont } from './url-analyzer';
-import { OutputFormatter } from './formatter';
-import type { FontMetrics } from './metrics';
+import { resolveFont } from './resolver.js';
+import { analyzeUrl } from './url-analyzer.js';
+import { transformFont } from './transform.js';
 
 export interface PipelineOptions {
-  resolver: Resolver;
-  formatter: OutputFormatter;
+  fetch?: any;
 }
 
-export class FontainePipeline {
-  constructor(private options: PipelineOptions) {}
-
-  async process(urls: string[]): Promise<{
-    results: Array<{ url: string; status: 'fulfilled'; value: FontMetrics }>;
-    errors: Array<{ url: string; status: 'rejected'; reason: Error }>;
-  }> {
-    const tasks = urls.map(async (url) => {
-      try {
-        const buffer = await this.options.resolver.resolve(url);
-        const metrics = await analyzeFont(buffer, url);
-        return { url, status: 'fulfilled' as const, value: metrics };
-      } catch (error) {
-        return { url, status: 'rejected' as const, reason: error as Error };
-      }
-    });
-
-    const settled = await Promise.allSettled(tasks);
-    
-    const results: any[] = [];
-    const errors: any[] = [];
-
-    settled.forEach((res, idx) => {
-      if (res.status === 'fulfilled') {
-        const item = res.value;
-        if (item.status === 'fulfilled') results.push(item);
-        else errors.push(item);
-      } else {
-        errors.push({ url: urls[idx], status: 'rejected', reason: res.reason });
-      }
-    });
-
-    return { results, errors };
+/**
+ * Orchestrates the Source -> Analysis -> Formatting pipeline.
+ * 
+ * @param source - Source URL or path.
+ * @param options - Pipeline configuration.
+ */
+export async function runFontainePipeline(source: string, options: PipelineOptions = {}) {
+  if (source.startsWith('http')) {
+    await analyzeUrl(source, options.fetch);
   }
 
-  async execute(urls: string[]): Promise<string> {
-    const { results } = await this.process(urls);
-    const metrics = results.map(r => r.value);
-    return this.options.formatter.format(metrics);
-  }
+  const buffer = await resolveFont(source, options);
+  const metrics = transformFont(buffer);
+
+  return metrics;
 }

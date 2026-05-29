@@ -1,28 +1,33 @@
 #!/usr/bin/env node
-import { analyze } from './index';
-import { CssFormatter, JsonFormatter } from './formatter';
+import { Command } from 'commander';
+import { runFontainePipeline } from './pipeline.js';
+import { FontaineError } from './errors.js';
 
-async function main() {
-  const args = process.argv.slice(2);
-  const flags = args.filter(a => a.startsWith('--'));
-  const urls = args.filter(a => !a.startsWith('--'));
+const program = new Command();
 
-  if (urls.length === 0) {
-    console.error('Error: No URLs provided.');
-    process.exit(1);
-  }
+program
+  .name('fontaine')
+  .description('Analyze fonts to generate size-adjust overrides')
+  .version('1.0.0')
+  .argument('<source>', 'URL or path to font file')
+  .option('-f, --format <type>', 'Output format (json, css)', 'json')
+  .action(async (source, options) => {
+    try {
+      const metrics = await runFontainePipeline(source);
+      
+      if (options.format === 'json') {
+        console.log(JSON.stringify(metrics, null, 2));
+      } else {
+        console.log(`:root { --font-ascent: ${metrics.ascent}; }`);
+      }
+    } catch (error) {
+      if (error instanceof FontaineError) {
+        console.error(`Error: ${error.message}`);
+        process.exit(1);
+      }
+      console.error('Unexpected internal error');
+      process.exit(1);
+    }
+  });
 
-  const useCss = flags.includes('--css');
-  
-  try {
-    const result = await analyze(urls, {
-      formatter: useCss ? new CssFormatter() : new JsonFormatter()
-    });
-    process.stdout.write(result + '\n');
-  } catch (err) {
-    console.error(`Fatal Error: ${(err as Error).message}`);
-    process.exit(1);
-  }
-}
-
-main();
+program.parse();

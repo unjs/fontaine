@@ -1,45 +1,33 @@
 import { ofetch } from 'ofetch';
-import { FontaineFetchError, FontaineValidationError } from './errors';
+import { FontaineFetchError } from './errors.js';
+import { readFile } from 'node:fs/promises';
 
-export interface Resolver {
-  resolve(url: string): Promise<Uint8Array>;
+export interface ResolverOptions {
+  /** Custom fetch implementation for restricted edge environments */
+  fetch?: typeof ofetch;
 }
 
-export class HttpResolver implements Resolver {
-  async resolve(url: string): Promise<Uint8Array> {
+/**
+ * Resolves a font source from a URL or local path into a Uint8Array.
+ * 
+ * @param source - The location of the font file.
+ * @param options - Resolver configuration.
+ * @returns The raw font binary data.
+ * @throws {FontaineFetchError} If the resource cannot be retrieved.
+ */
+export async function resolveFont(source: string, { fetch = ofetch }: ResolverOptions = {}) {
+  if (source.startsWith('http')) {
     try {
-      const response = await ofetch(url, {
-        responseType: 'arrayBuffer',
-        onResponse({ response }) {
-          const contentType = response.headers.get('content-type') || '';
-          const isValid = [
-            'font/woff2',
-            'application/font-woff2',
-            'font/ttf',
-            'application/x-font-ttf'
-          ].some(type => contentType.includes(type));
-
-          if (!isValid) {
-            throw new FontaineValidationError(url, contentType);
-          }
-        }
-      });
-      return new Uint8Array(response as ArrayBuffer);
-    } catch (err) {
-      if (err instanceof FontaineValidationError) throw err;
-      throw new FontaineFetchError(url, (err as Error).message);
+      return await fetch(source, { responseType: 'arrayBuffer' }) as Uint8Array;
+    } catch (error: any) {
+      throw new FontaineFetchError(source, error.response?.status, error.message);
     }
   }
-}
 
-export class LocalResolver implements Resolver {
-  async resolve(path: string): Promise<Uint8Array> {
-    try {
-      const fs = await import('node:fs/promises');
-      const buffer = await fs.readFile(path);
-      return new Uint8Array(buffer);
-    } catch (err) {
-      throw new FontaineFetchError(path, (err as Error).message);
-    }
+  try {
+    const buffer = await readFile(source);
+    return new Uint8Array(buffer);
+  } catch (error: any) {
+    throw new FontaineFetchError(source, 0, `FileSystem error: ${error.message}`);
   }
 }

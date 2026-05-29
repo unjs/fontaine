@@ -1,41 +1,28 @@
+import { FontaineInvalidContentTypeError } from './errors.js';
 import { ofetch } from 'ofetch';
-import pLimit from 'p-limit';
-import { NetworkError, FontFormatError } from './errors';
-import type { FontMetrics } from './metrics';
 
-const limit = pLimit(5);
+const ALLOWED_MIME_TYPES = [
+  'font/ttf',
+  'font/otf',
+  'application/x-font-ttf',
+  'application/x-font-opentype',
+  'application/font-sfnt',
+];
 
-export async function analyzeUrl(url: string): Promise<FontMetrics> {
-  return limit(async () => {
-    try {
-      const response = await ofetch(url, {
-        responseType: 'stream',
-      });
+/**
+ * Validates the MIME type of a remote resource to ensure it is a font.
+ * 
+ * @param url - The resource URL to analyze.
+ * @param fetchClient - The fetch implementation to use for the HEAD request.
+ * @throws {FontaineInvalidContentTypeError} If the content-type is not a recognized font type.
+ */
+export async function analyzeUrl(url: string, fetchClient = ofetch) {
+  const response = await fetchClient(url, { method: 'HEAD' });
+  const contentType = response.headers.get('content-type')?.split(';')[0] || '';
 
-      // Staff-level Stream processing to prevent Heap Overflows on large binaries
-      const buffer = await streamToBuffer(response as any);
-      return parseFontBinary(buffer);
-    } catch (error: any) {
-      if (error.response) {
-        throw new NetworkError(`Failed to fetch font at ${url}`, error.response.status);
-      }
-      throw new NetworkError(error.message);
-    }
-  });
-}
-
-async function streamToBuffer(stream: any): Promise<Buffer> {
-  const chunks: any[] = [];
-  for await (const chunk of stream) {
-    chunks.push(chunk);
+  if (!ALLOWED_MIME_TYPES.includes(contentType)) {
+    throw new FontaineInvalidContentTypeError(contentType, ALLOWED_MIME_TYPES);
   }
-  return Buffer.concat(chunks);
-}
 
-function parseFontBinary(buffer: Buffer): FontMetrics {
-  if (buffer.length < 12) {
-    throw new FontFormatError('Font binary too small to be valid');
-  }
-  // Logic for parsing binary metrics would go here
-  return { ascent: 100, descent: 20 }; 
+  return { contentType };
 }
