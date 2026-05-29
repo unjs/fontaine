@@ -1,39 +1,31 @@
 #!/usr/bin/env node
-import { analyzeFonts } from './pipeline.js';
-import { formatResult } from './formatter.js'; // Assuming this exists
-import { parseArgs } from 'node:util';
+import { Command } from 'commander';
+import { runPipeline } from './pipeline.js';
+import { FontaineError } from './errors.js';
 
-async function main() {
-  const { positionals, values } = parseArgs({
-    options: {
-      output: { type: 'string', short: 'o' },
-    },
-    allowPositionals: true,
+const program = new Command();
+
+program
+  .name('fontaine')
+  .description('Industrial-grade font metric analyzer')
+  .version('1.0.0')
+  .argument('<source>', 'Path or URL to the font file')
+  .option('-f, --format <format>', 'Output format (json, css)', 'json')
+  .action(async (source, options) => {
+    try {
+      const result = await runPipeline({
+        source,
+        format: options.format,
+      });
+      process.stdout.write(result + '\n');
+    } catch (error) {
+      if (error instanceof FontaineError) {
+        process.stderr.write(`[${error.code}] ${error.message}\n`);
+      } else {
+        process.stderr.write(`Unexpected error: ${(error as Error).message}\n`);
+      }
+      process.exit(1);
+    }
   });
 
-  const target = positionals[0];
-
-  if (!target) {
-    console.error('Usage: fontaine <path|url> [-o output]');
-    process.exit(1);
-  }
-
-  const result = await analyzeFonts(target);
-
-  if (!result.success) {
-    console.error(`Error: ${result.error.message}`);
-    process.exit(1);
-  }
-
-  const output = formatResult(result.data);
-  if (values.output) {
-    // Logic to write to file
-  } else {
-    console.log(output);
-  }
-}
-
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+program.parse();

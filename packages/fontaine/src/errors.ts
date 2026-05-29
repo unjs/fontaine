@@ -1,30 +1,27 @@
-/**
- * Base error class for all Fontaine operations.
- */
 export class FontaineError extends Error {
-  constructor(message: string) {
+  constructor(message: string, public readonly code: string) {
     super(message);
     this.name = 'FontaineError';
   }
 }
 
-/**
- * Error thrown when font retrieval from local or remote sources fails.
- */
 export class FontaineFetchError extends FontaineError {
-  constructor(url: string, cause?: unknown) {
-    super(`Failed to fetch font from ${url}`);
+  constructor(message: string) {
+    super(message, 'FETCH_ERROR');
     this.name = 'FontaineFetchError';
-    if (cause) this.cause = cause;
   }
 }
 
-/**
- * Error thrown when the retrieved asset does not match expected font characteristics.
- */
-export class FontaineValidationError extends FontaineError {
-  constructor(reason: string) {
-    super(`Font validation failed: ${reason}`);
-    this.name = 'FontaineValidationError';
+export class FontaineAnalysisError extends FontaineError {
+  constructor(message: string) {
+    super(message, 'ANALYSIS_ERROR');
+    this.name = 'FontaineAnalysisError';
+  }
+}
+
+export class FontaineFormatterError extends FontaineError {
+  constructor(message: string) {
+    super(message, 'FORMATTER_ERROR');
+    this.name = 'FontaineFormatterError';
   }
 }
