@@ -1,31 +1,75 @@
 import { readFile } from 'node:fs/promises';
-import { ofetch } from 'ofetch';
-import { isURL } from 'ufo';
-import { FontaineFetchError } from './errors.js';
+import { FetchError } from './errors.js';
+import { validateFont } from './validator.js';
 
-/**
- * Resolves a source identifier into a Uint8Array.
- * Supports remote URLs and local filesystem paths.
- * 
- * @param source - The URL or file path to resolve.
- * @returns A promise resolving to the source buffer.
- * @throws {FontaineFetchError} If the source cannot be retrieved.
- */
-export async function resolveSource(source: string): Promise<Uint8Array> {
-  try {
-    if (isURL(source)) {
-      const response = await ofetch(source, {
-        responseType: 'arrayBuffer',
-      });
-      return new Uint8Array(response as ArrayBuffer);
+export interface SourceResolver {
+  resolve(source: string | Buffer | Uint8Array): Promise<Uint8Array>;
+}
+
+class LocalResolver implements SourceResolver {
+  async resolve(source: string): Promise<Uint8Array> {
+    try {
+      const buffer = await readFile(source);
+      const uint8 = new Uint8Array(buffer);
+      await validateFont(uint8);
+      return uint8;
+    } catch (error) {
+      throw new FetchError(`Failed to read local file: ${source}`, source);
+    }
+  }
+}
+
+class HttpResolver implements SourceResolver {
+  async resolve(source: string): Promise<Uint8Array> {
+    try {
+      const response = await fetch(source);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      
+      const contentType = response.headers.get('Content-Type');
+      const buffer = await response.arrayBuffer();
+      const uint8 = new Uint8Array(buffer);
+      
+      await validateFont(uint8, contentType);
+      return uint8;
+    } catch (error) {
+      throw new FetchError(`Failed to fetch remote font: ${source}`, source);
+    }
+  }
+}
+
+class BufferResolver implements SourceResolver {
+  async resolve(source: Buffer | Uint8Array): Promise<Uint8Array> {
+    const uint8 = source instanceof Uint8Array ? source : new Uint8Array(source);
+    await validateFont(uint8);
+    return uint8;
+  }
+}
+
+export class FontResolver {
+  private resolvers: Map<string, SourceResolver> = new Map();
+
+  constructor() {
+    this.resolvers.set('local', new LocalResolver());
+    this.resolvers.set('http', new HttpResolver());
+    this.resolvers.set('buffer', new BufferResolver());
+  }
+
+  /**
+   * Resolves a font source into a Uint8Array.
+   * 
+   * @example
+   * const resolver = new FontResolver();
+   * const buffer = await resolver.resolve('https://fonts.com/font.woff2');
+   */
+  async resolve(source: string | Buffer | Uint8Array): Promise<Uint8Array> {
+    if (source instanceof Uint8Array || Buffer.isBuffer(source)) {
+      return this.resolvers.get('buffer')!.resolve(source);
     }
 
-    const buffer = await readFile(source);
-    return new Uint8Array(buffer);
-  } catch (error: any) {
-    throw new FontaineFetchError(
-      error.message || 'Failed to resolve font source',
-      error.response?.status
-    );
+    if (source.startsWith('http://') || source.startsWith('https://')) {
+      return this.resolvers.get('http')!.resolve(source);
+    }
+
+    return this.resolvers.get('local')!.resolve(source);
   }
 }

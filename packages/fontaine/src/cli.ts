@@ -1,30 +1,43 @@
 #!/usr/bin/env node
-import { runAnalysisPipeline } from './pipeline.js';
-import { formatMetrics } from './formatter.js';
+import { Fontaine } from './index.js';
+import pc from 'picocolors';
+import ora from 'ora';
 import { FontaineError } from './errors.js';
 
-async function main() {
-  const args = process.argv.slice(2);
-  const source = args[0];
-  const format = (args[1] as 'json' | 'css') || 'json';
+async function run() {
+  const [,, source, cssPath] = process.argv;
 
   if (!source) {
-    console.error('Usage: fontaine <source> [json|css]');
+    console.error(pc.red('Usage: fontaine <source> [css-file]'));
     process.exit(1);
   }
 
+  const fontaine = new Fontaine();
+  const spinner = ora('Processing font asset...').start();
+
   try {
-    const metrics = await runAnalysisPipeline({ source });
-    const output = formatMetrics(metrics, format);
-    process.stdout.write(output + '\n');
-  } catch (error) {
-    if (error instanceof FontaineError) {
-      console.error(`[${error.code}] ${error.message}`);
-      process.exit(error instanceof FontaineFetchError && error.status === 404 ? 44 : 1);
+    if (cssPath) {
+      // Transformation Mode
+      const fs = await import('node:fs/promises');
+      const css = await fs.readFile(cssPath, 'utf-8');
+      const result = await fontaine.transform(source, css);
+      await fs.writeFile(cssPath, result);
+      spinner.succeed(pc.green(`Transformed CSS saved to ${cssPath}`));
+    } else {
+      // Analysis Mode
+      const metrics = await fontaine.analyze(source);
+      spinner.succeed(pc.green('Analysis complete'));
+      console.log(JSON.stringify(metrics, null, 2));
     }
-    console.error('An unexpected error occurred');
+  } catch (error) {
+    spinner.fail(pc.red('Operation failed'));
+    if (error instanceof FontaineError) {
+      console.error(`${pc.bold(error.code)}: ${error.message}`);
+    } else {
+      console.error(pc.red(error instanceof Error ? error.stack : String(error)));
+    }
     process.exit(1);
   }
 }
 
-main().catch(() => process.exit(1));
+run();
