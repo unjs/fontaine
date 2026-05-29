@@ -1,40 +1,39 @@
 /**
- * Base error for all Fontaine-related failures.
- * Used to differentiate tool-specific errors from native runtime errors.
+ * Base error class for all Fontaine-related failures.
  */
 export class FontaineError extends Error {
-  constructor(message: string) {
+  constructor(message: string, public readonly code: string) {
     super(message);
     this.name = 'FontaineError';
   }
 }
 
 /**
- * Triggered when source resolution fails (e.g., 404, Invalid MIME type).
+ * Error thrown when a network request for a font fails.
  */
-export class FetchError extends FontaineError {
-  constructor(message: string, public statusCode?: number) {
-    super(message);
-    this.name = 'FetchError';
+export class FontaineNetworkError extends FontaineError {
+  constructor(message: string, public readonly status?: number) {
+    super(message, 'NETWORK_ERROR');
+    this.name = 'FontaineNetworkError';
   }
 }
 
 /**
- * Triggered when the binary font data cannot be parsed or analyzed.
+ * Error thrown when a local file system operation fails.
  */
-export class AnalysisError extends FontaineError {
+export class FontaineFileSystemError extends FontaineError {
   constructor(message: string) {
-    super(message);
-    this.name = 'AnalysisError';
+    super(message, 'FS_ERROR');
+    this.name = 'FontaineFileSystemError';
   }
 }
 
 /**
- * Triggered when input options fail schema validation.
+ * Error thrown when font analysis fails due to corrupt or unsupported data.
  */
-export class ValidationError extends FontaineError {
+export class FontaineAnalysisError extends FontaineError {
   constructor(message: string) {
-    super(message);
-    this.name = 'ValidationError';
+    super(message, 'ANALYSIS_ERROR');
+    this.name = 'FontaineAnalysisError';
   }
 }

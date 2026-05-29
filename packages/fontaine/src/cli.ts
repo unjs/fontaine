@@ -1,40 +1,32 @@
 #!/usr/bin/env node
-import { cac } from 'cac';
-import { analyze, transform } from './index.js';
-import { FontaineError } from './errors.js';
+import { Command } from 'commander';
+import { analyzeFont, FontaineError } from './index.js';
 
-const cli = cac('fontaine');
+const program = new Command();
 
-cli.command('analyze <source>', 'Analyze a font source')
-  .option('--format <format>', 'Output format (json|css)', { default: 'json' })
+program
+  .name('fontaine')
+  .description('Analyze font metrics and characteristics')
+  .version('0.0.1')
+  .argument('<source>', 'Path or URL to the font file')
+  .option('-j, --json', 'Output results as JSON', false)
   .action(async (source, options) => {
     try {
-      const result = await analyze({ source, format: options.format as 'json' | 'css' });
-      process.stdout.write(result + '\n');
+      const result = await analyzeFont(source, options);
+      if (options.json) {
+        console.log(JSON.stringify(result, null, 2));
+      } else {
+        console.log(result);
+      }
+      process.exit(0);
     } catch (err) {
-      handleError(err);
+      if (err instanceof FontaineError) {
+        console.error(`[${err.code}] ${err.message}`);
+      } else {
+        console.error((err as Error).message);
+      }
+      process.exit(1);
     }
   });
 
-cli.command('transform <input>', 'Transform CSS font declarations')
-  .option('--output <output>', 'Output file path')
-  .action(async (input, options) => {
-    try {
-      const result = await transform({ input, output: options.output });
-      if (!options.output) process.stdout.write(result + '\n');
-    } catch (err) {
-      handleError(err);
-    }
-  });
-
-function handleError(err: unknown) {
-  if (err instanceof FontaineError) {
-    process.stderr.write(`Error: [${err.name}] ${err.message}\n`);
-    process.exit(1);
-  }
-  process.stderr.write(`Unexpected Error: ${err instanceof Error ? err.message : String(err)}\n`);
-  process.exit(1);
-}
-
-cli.help();
-cli.parse();
+program.parse();

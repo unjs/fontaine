@@ -1,48 +1,52 @@
-import { readFileSync } from 'node:fs';
-import ofetch from 'ofetch';
-import { FetchError } from './errors.js';
-
-export interface SourceResolver {
-  resolve(source: string): Promise<Uint8Array>;
-}
+import { ofetch } from 'ofetch';
+import { ufo } from 'ufo';
+import { readFile } from 'node:fs/promises';
+import { FontaineNetworkError, FontaineFileSystemError } from './errors.js';
 
 /**
- * Handles remote font retrieval with strict MIME-type validation.
- * This prevents the analysis engine from attempting to process HTML error pages
- * returned as 200 OK.
+ * Handles retrieval of font data from various protocols (http, https, file).
  */
-export class RemoteResolver implements SourceResolver {
-  async resolve(url: string): Promise<Uint8Array> {
+export class FontResolver {
+  /**
+   * Resolves a source string into a Uint8Array.
+   * 
+   * @param source - The URL or file path to the font.
+   * @throws {FontaineNetworkError} if network request fails.
+   * @throws {FontaineFileSystemError} if file access fails.
+   * @returns A promise resolving to the font data as a Uint8Array.
+   */
+  async resolve(source: string): Promise<Uint8Array> {
+    const url = ufo.stringify(source);
+
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return this.resolveRemote(url);
+    }
+
+    return this.resolveLocal(source);
+  }
+
+  private async resolveRemote(url: string): Promise<Uint8Array> {
     try {
-      const response = await ofetch.raw(url, { responseType: 'arrayBuffer' });
-      const contentType = response.headers.get('content-type');
-
-      if (!contentType || !contentType.startsWith('font/') && !contentType.includes('application/x-font')) {
-        throw new FetchError(`Invalid MIME type: ${contentType}. Expected a font binary.`);
-      }
-
-      return new Uint8Array(response._data);
-    } catch (err) {
-      if (err instanceof FetchError) throw err;
-      throw new FetchError(`Failed to fetch font from ${url}: ${err instanceof Error ? err.message : String(err)}`);
+      const response = await ofetch(url, {
+        responseType: 'arrayBuffer',
+      });
+      return new Uint8Array(response as ArrayBuffer);
+    } catch (err: any) {
+      throw new FontaineNetworkError(
+        `Failed to fetch font from ${url}: ${err.message}`,
+        err.response?.status
+      );
     }
   }
-}
 
-/**
- * Handles local filesystem font retrieval.
- */
-export class LocalResolver implements SourceResolver {
-  async resolve(path: string): Promise<Uint8Array> {
+  private async resolveLocal(path: string): Promise<Uint8Array> {
     try {
-      const buffer = readFileSync(path);
+      const buffer = await readFile(path);
       return new Uint8Array(buffer);
-    } catch (err) {
-      throw new FetchError(`Failed to read local file ${path}: ${err instanceof Error ? err.message : String(err)}`);
+    } catch (err: any) {
+      throw new FontaineFileSystemError(
+        `Failed to read font file at ${path}: ${err.message}`
+      );
     }
   }
-}
-
-export function createResolver(source: string): SourceResolver {
-  return source.startsWith('http') ? new RemoteResolver() : new LocalResolver();
 }

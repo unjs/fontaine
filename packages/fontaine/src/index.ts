@@ -1,20 +1,28 @@
-import { runAnalysis } from './pipeline.js';
-import { transformCSS } from './transform.js';
-import { validateAnalyzeOptions, validateTransformOptions } from './validator.js';
+import { FontResolver } from './resolver.js';
+import { FontaineAnalysisError } from './errors.js';
+import { analyze } from './pipeline.js';
+
+const resolver = new FontResolver();
 
 /**
- * Analyzes a font source and returns the result in the specified format.
- * This is the core programmatic entry point for font metric extraction.
+ * Programmatic entry point for font analysis.
+ * 
+ * @param source - URL or file path to the font.
+ * @param options - Configuration for the analysis pipeline.
+ * @throws {FontaineError} based on the failure mode (Network, FS, Analysis).
+ * @returns The result of the font analysis.
  */
-export async function analyze(options: { source: string; format?: 'json' | 'css' }) {
-  const validated = validateAnalyzeOptions(options);
-  return runAnalysis(validated.source, validated.format);
+export async function analyzeFont(source: string, options: any = {}) {
+  try {
+    const data = await resolver.resolve(source);
+    return await analyze(data, options);
+  } catch (err) {
+    if (err instanceof Error && !(err instanceof FontaineAnalysisError)) {
+      // Wrap unknown errors in AnalysisError if they occur during pipeline
+      throw new FontaineAnalysisError(err.message);
+    }
+    throw err;
+  }
 }
 
-/**
- * Transforms a CSS file by analyzing referenced fonts and injecting overrides.
- */
-export async function transform(options: { input: string; output?: string }) {
-  const validated = validateTransformOptions(options);
-  return transformCSS(validated.input, validated.output);
-}
+export * from './errors.js';
