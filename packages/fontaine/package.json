@@ -20,6 +20,9 @@
     "web-vitals",
     "performance"
   ],
+  "bin": {
+    "fontaine": "./dist/cli.mjs"
+  },
   "sideEffects": false,
   "imports": {
     "#capsize-font-metrics": "./dist/capsize-font-metrics.mjs"
