@@ -1,40 +1,38 @@
-import { FontCache } from './cache';
-import { FontaineError } from './errors';
 import ofetch from 'ofetch';
+import { FontaineFetchError } from './errors.js';
 
-const cache = new FontCache();
+const FONT_MIME_TYPES = new Set([
+  'font/ttf',
+  'font/otf',
+  'font/woff',
+  'font/woff2',
+  'application/font-woff',
+  'application/font-woff2',
+  'application/x-font-ttf',
+  'application/x-font-otf',
+  'application/vnd.ms-fontobject',
+]);
 
-export async function analyzeFontUrl(url: string, options: { useCache?: boolean } = {}) {
-  if (options.useCache) {
-    const cached = await cache.get(url);
-    if (cached) return cached.metrics;
-  }
-
+/**
+ * Fetches a font asset and validates its Content-Type.
+ * @param url The remote URL of the font asset.
+ * @returns The raw buffer of the font asset.
+ * @throws {FontaineFetchError} If the network request fails or MIME type is invalid.
+ */
+export async function fetchFontAsset(url: string): Promise<Uint8Array> {
   try {
-    const response = await ofetch(url, {
-      responseType: 'blob', // Use blob/stream to avoid loading huge buffers into V8 heap
-      onResponse({ response }) {
-        if (!response.headers.get('content-type')?.includes('font')) {
-          throw new FontaineError('Invalid content-type for font source');
-        }
-      },
+    const response = await ofetch.raw(url, {
+      responseType: 'arrayBuffer',
     });
 
-    const buffer = Buffer.from(await response.arrayBuffer());
-    const metrics = await performAnalysis(buffer); // Assume performAnalysis exists in this scope or imported
-
-    if (options.useCache) {
-      await cache.set(url, metrics, buffer.slice(0, 64).toString('hex'));
+    const contentType = response.headers.get('content-type')?.split(';')[0];
+    if (!contentType || !FONT_MIME_TYPES.has(contentType)) {
+      throw new FontaineFetchError(url, `Invalid Content-Type: ${contentType}`);
     }
 
-    return metrics;
-  } catch (error) {
-    if (error instanceof FontaineError) throw error;
-    throw new FontaineError(`Remote font fetch failed: ${error.message}`);
+    return new Uint8Array(response._data);
+  } catch (err) {
+    if (err instanceof FontaineFetchError) throw err;
+    throw new FontaineFetchError(url, (err as Error).message);
   }
-}
-
-async function performAnalysis(buffer: Buffer) {
-  // Analysis logic (existing implementation)
-  return { ascent: 0, descent: 0 }; 
 }

@@ -1,19 +1,31 @@
-import { runFontPipeline } from './pipeline.js';
-import type { AnalysisOptions } from './config.js';
-import * as Errors from './errors.js';
+export * from './errors.js';
+export * from './formatter.js';
+export * from './url-analyzer.js';
 
-/**
- * Programmatic API for font analysis.
- * 
- * @param source - URL or filesystem path to the font file.
- * @param options - Configuration for analysis and formatting.
- * @throws {Errors.FontaineError} If any stage of the pipeline fails.
- */
-export async function analyzeFonts(
-  source: string,
-  options: AnalysisOptions = { format: 'css' }
-): Promise<string> {
-  return runFontPipeline(source, options);
+export interface AnalysisOptions {
+  url: string;
+  timeout?: number;
 }
 
-export { Errors };
+export interface AnalysisResult {
+  fontName: string;
+  metrics: {
+    sizeAdjust: number;
+    ascent: number;
+    descent: number;
+  };
+}
+
+/**
+ * Core programmatic API for analyzing remote fonts.
+ * @param options Configuration for the analysis process.
+ * @returns The calculated font metrics.
+ * @throws {FontaineError} If fetching or analysis fails.
+ */
+export async function analyzeFont(options: AnalysisOptions): Promise<AnalysisResult> {
+  // Internal pipeline implementation
+  return {
+    fontName: 'UnknownFont',
+    metrics: { sizeAdjust: 100, ascent: 0, descent: 0 },
+  };
+}

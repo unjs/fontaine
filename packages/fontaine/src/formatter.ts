@@ -1,43 +1,44 @@
-import type { FontMetrics } from './metrics.js';
+import type { AnalysisResult } from './index.js';
 
 /**
- * Strategy interface for font metric output formatting.
+ * Strategy interface for serializing font analysis results.
  */
 export interface OutputFormatter {
   /**
-   * Formats the analyzed metrics into a string.
-   * 
-   * @param metrics - The metrics result from the analysis phase.
-   * @returns The formatted string representation.
+   * Formats the analysis result into a string representation.
+   * @param result The result of the font analysis.
+   * @returns The formatted output string.
    */
-  format(metrics: FontMetrics): string;
+  format(result: AnalysisResult): string;
 }
 
 /**
- * Formatter that outputs metrics as a JSON string.
+ * Formatter that outputs results as a JSON string.
  */
 export class JsonFormatter implements OutputFormatter {
-  format(metrics: FontMetrics): string {
-    return JSON.stringify(metrics, null, 2);
+  format(result: AnalysisResult): string {
+    return JSON.stringify(result, null, 2);
   }
 }
 
 /**
- * Formatter that outputs metrics as CSS @font-face overrides.
+ * Formatter that outputs results as CSS @font-face overrides.
  */
 export class CssFormatter implements OutputFormatter {
-  format(metrics: FontMetrics): string {
-    return `@font-face {\n  font-family: '${metrics.family}';\n  size-adjust: ${metrics.sizeAdjust}%;\n}`;
+  format(result: AnalysisResult): string {
+    const { fontName, metrics } = result;
+    return `@font-face {\n  font-family: '${fontName}';\n  size-adjust: ${metrics.sizeAdjust}%;\n}`;
   }
 }
 
 /**
- * Factory for retrieving the appropriate formatter based on requested format.
+ * Factory to retrieve the appropriate formatter based on format type.
+ * @param format The desired output format ('json' | 'css').
+ * @returns An implementation of OutputFormatter.
+ * @throws {Error} If the requested format is unsupported.
  */
-export function getFormatter(format: 'json' | 'css'): OutputFormatter {
-  const formatters = {
-    json: new JsonFormatter(),
-    css: new CssFormatter(),
-  };
-  return formatters[format];
+export function getFormatter(format: string): OutputFormatter {
+  if (format === 'json') return new JsonFormatter();
+  if (format === 'css') return new CssFormatter();
+  throw new Error(`Unsupported output format: ${format}`);
 }
