@@ -1,45 +1,36 @@
-import { ofetch } from 'ofetch';
-import { FontaineFetchError, FontaineInvalidContentTypeError } from './errors.js';
 import { readFile } from 'node:fs/promises';
-
-const VALID_FONT_MIME_TYPES = new Set([
-  'font/woff2',
-  'font/woff',
-  'application/font-woff',
-  'application/x-font-ttf',
-  'application/font-otf',
-  'application/x-font-otf',
-]);
+import ofetch from 'ofetch';
+import { FontaineFetchError } from './errors.js';
 
 /**
- * Resolves a source (URL or local path) into an ArrayBuffer.
+ * Resolves a font source from either a local filesystem path or a remote URL.
+ * Validates that the content type is a font asset.
  * 
- * @throws {FontaineFetchError} If the resource is unreachable.
- * @throws {FontaineInvalidContentTypeError} If the response is not a font.
+ * @param source - The local path or URL to the font file.
+ * @returns A Uint8Array containing the font binary data.
+ * @throws {FontaineFetchError} If the source is unreachable or invalid.
  */
-export async function resolveFontSource(source: string): Promise<ArrayBuffer> {
+export async function resolveFontSource(source: string): Promise<Uint8Array> {
   if (source.startsWith('http')) {
     try {
-      const response = await ofetch.raw(source, {
-        responseType: 'arrayBuffer',
-      });
-
-      const contentType = response.headers.get('content-type')?.split(';')[0];
-      if (!contentType || !VALID_FONT_MIME_TYPES.has(contentType)) {
-        throw new FontaineInvalidContentTypeError(contentType);
+      const response = await ofetch.raw(source);
+      const contentType = response.headers.get('content-type') || '';
+      
+      if (!contentType.includes('font') && !contentType.includes('application/octet-stream')) {
+        throw new FontaineFetchError(`Invalid Content-Type: ${contentType}`);
       }
-
-      return response._data as ArrayBuffer;
+      
+      const buffer = await response.blob().then(b => b.arrayBuffer());
+      return new Uint8Array(buffer);
     } catch (err) {
-      if (err instanceof FontaineInvalidContentTypeError) throw err;
       throw new FontaineFetchError(err instanceof Error ? err.message : 'Unknown network error');
     }
   }
 
   try {
     const buffer = await readFile(source);
-    return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+    return new Uint8Array(buffer);
   } catch (err) {
-    throw new FontaineFetchError(err instanceof Error ? err.message : 'Local file read error');
+    throw new FontaineFetchError(err instanceof Error ? err.message : 'File system read error');
   }
 }

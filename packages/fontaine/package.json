@@ -8,7 +8,7 @@
   "bin": {
     "fontaine": "./dist/cli.mjs"
   },
-  "scripts": {
+  "scripts": { "postbuild": "chmod +x dist/cli.js",
     "build": "tsdown src/index.ts src/cli.ts"
   },
   "dependencies": {
