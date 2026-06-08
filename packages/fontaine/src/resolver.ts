@@ -1,36 +1,46 @@
-import { readFile } from 'node:fs/promises';
-import ofetch from 'ofetch';
-import { FontaineFetchError } from './errors.js';
+import fs from 'node:fs/promises';
+import { ofetch } from 'ofetch';
+import { FetchError } from './errors.js';
+import { validateFontMime } from './validator.js';
+
+export interface ResolvedAsset {
+  buffer: ArrayBuffer;
+  mimeType: string;
+}
 
 /**
- * Resolves a font source from either a local filesystem path or a remote URL.
- * Validates that the content type is a font asset.
+ * Resolves a font source (local path or URL) into a common ArrayBuffer.
  * 
- * @param source - The local path or URL to the font file.
- * @returns A Uint8Array containing the font binary data.
- * @throws {FontaineFetchError} If the source is unreachable or invalid.
+ * @param source - The path or URL to the font asset.
+ * @throws {FetchError} If the asset cannot be retrieved.
+ * @throws {ValidationError} If the asset is not a font.
+ * @returns {Promise<ResolvedAsset>} The binary buffer and its mime-type.
  */
-export async function resolveFontSource(source: string): Promise<Uint8Array> {
+export async function resolveFont(source: string): Promise<ResolvedAsset> {
   if (source.startsWith('http')) {
     try {
-      const response = await ofetch.raw(source);
-      const contentType = response.headers.get('content-type') || '';
-      
-      if (!contentType.includes('font') && !contentType.includes('application/octet-stream')) {
-        throw new FontaineFetchError(`Invalid Content-Type: ${contentType}`);
-      }
-      
-      const buffer = await response.blob().then(b => b.arrayBuffer());
-      return new Uint8Array(buffer);
-    } catch (err) {
-      throw new FontaineFetchError(err instanceof Error ? err.message : 'Unknown network error');
+      const response = await ofetch.raw(source, {
+        responseType: 'arrayBuffer',
+      });
+      const mimeType = response.headers.get('content-type') || 'application/octet-stream';
+      validateFontMime(mimeType);
+      return {
+        buffer: response._data,
+        mimeType,
+      };
+    } catch (error: any) {
+      throw new FetchError(source, error.response?.status);
     }
   }
 
   try {
-    const buffer = await readFile(source);
-    return new Uint8Array(buffer);
-  } catch (err) {
-    throw new FontaineFetchError(err instanceof Error ? err.message : 'File system read error');
+    const buffer = await fs.readFile(source);
+    // Local files lack headers; basic extension check or assume valid if passed to analyzer
+    return {
+      buffer: buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
+      mimeType: 'application/octet-stream',
+    };
+  } catch (error) {
+    throw new FetchError(source);
   }
 }

@@ -1,29 +1,39 @@
 /**
- * Base error class for all Fontaine related failures.
+ * Base error class for all Fontaine-related failures.
  */
 export class FontaineError extends Error {
-  constructor(message: string, public readonly code: string) {
+  constructor(message: string) {
     super(message);
     this.name = 'FontaineError';
   }
 }
 
 /**
- * Error thrown when a font source cannot be fetched or read.
+ * Error thrown when font asset retrieval fails.
  */
-export class FontaineFetchError extends FontaineError {
-  constructor(message: string, public readonly statusCode?: number) {
-    super(message, 'FETCH_ERROR');
-    this.name = 'FontaineFetchError';
+export class FetchError extends FontaineError {
+  constructor(url: string, status?: number) {
+    super(`Failed to fetch font asset from ${url}${status ? ` (Status: ${status})` : ''}`);
+    this.name = 'FetchError';
   }
 }
 
 /**
- * Error thrown when the font analysis process fails.
+ * Error thrown when the retrieved asset fails mime-type validation.
  */
-export class FontaineAnalysisError extends FontaineError {
-  constructor(message: string) {
-    super(message, 'ANALYSIS_ERROR');
-    this.name = 'FontaineAnalysisError';
+export class ValidationError extends FontaineError {
+  constructor(mimeType: string) {
+    super(`Invalid asset type: ${mimeType}. Only font/* or application/font-* are permitted.`);
+    this.name = 'ValidationError';
+  }
+}
+
+/**
+ * Error thrown during binary analysis of the font file.
+ */
+export class AnalysisError extends FontaineError {
+  constructor(detail: string) {
+    super(`Font analysis failed: ${detail}`);
+    this.name = 'AnalysisError';
   }
 }

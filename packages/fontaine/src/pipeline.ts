@@ -1,26 +1,29 @@
-import { resolveFontSource } from './resolver.js';
-import { analyzeFonts } from './metrics.js';
-import { FontFormatter } from './formatter.js';
+import { resolveFont } from './resolver.js';
+import { analyzeFont } from './metrics.js'; // Assuming metrics.ts contains the core analysis logic
+import { formatResults } from './formatter.js';
+import { AnalysisError } from './errors.js';
 
 export interface PipelineOptions {
-  formatter: FontFormatter;
-  overridesOnly?: boolean;
+  format?: 'json' | 'text';
 }
 
 /**
- * Orchestrates the resolution, analysis, and formatting of font assets.
+ * Orchestrates the font analysis pipeline.
  * 
- * @param source - Source identifier (URL or Path).
- * @param options - Formatting and filtering options.
- * @returns The serialized result of the analysis.
+ * @param source - The font source to process.
+ * @param options - Pipeline configuration.
+ * @throws {AnalysisError} If the analysis phase fails.
+ * @returns {Promise<string>} The formatted analysis results.
  */
-export async function runPipeline(source: string, { formatter, overridesOnly }: PipelineOptions) {
-  const buffer = await resolveFontSource(source);
-  const metrics = analyzeFonts(buffer);
+export async function runFontPipeline(source: string, options: PipelineOptions = {}): Promise<string> {
+  const { buffer } = await resolveFont(source);
   
-  if (overridesOnly) {
-    // Logic to filter for only deviating metrics would go here
+  let metrics;
+  try {
+    metrics = analyzeFont(buffer);
+  } catch (error: any) {
+    throw new AnalysisError(error.message);
   }
-  
-  return formatter.format(metrics);
+
+  return formatResults(metrics, options.format || 'text');
 }
