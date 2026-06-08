@@ -1,28 +1,19 @@
-import { FontSourceResolver } from './resolver.js';
-import { FontAnalyzer } from './metrics.js';
-import { OutputFormatter } from './formatter.js';
-
-export interface PipelineOptions {
-  formatter: OutputFormatter;
-}
+import { resolveFontSource } from './resolver.js';
+import { analyzeFont } from './metrics.js';
+import { formatMetrics } from './formatter.js';
+import type { AnalysisOptions, FontMetrics } from './config.js';
 
 /**
- * Orchestrates the end-to-end process of resolving, analyzing, and formatting font data.
+ * Core pipeline orchestrating the flow from source to formatted output.
+ * Flow: Source -> Resolver -> ArrayBuffer -> Analyzer -> Metrics -> Formatter -> Output.
+ * 
+ * @throws {FontaineError} Propagates domain-specific errors from pipeline stages.
  */
-export class FontainePipeline {
-  private resolver = new FontSourceResolver();
-  private analyzer = new FontAnalyzer();
-
-  constructor(private { formatter }: PipelineOptions) {}
-
-  /**
-   * Executes the font analysis pipeline.
-   * 
-   * @throws {FontaineError} For any failure in the pipeline.
-   */
-  async run(input: string | Buffer): Promise<string> {
-    const { buffer } = await this.resolver.resolve(input);
-    const metrics = this.analyzer.analyze(buffer);
-    return this.formatter.format(metrics);
-  }
+export async function runFontPipeline(
+  source: string,
+  options: AnalysisOptions
+): Promise<string> {
+  const buffer = await resolveFontSource(source);
+  const metrics = await analyzeFont(buffer);
+  return formatMetrics(metrics, options.format);
 }

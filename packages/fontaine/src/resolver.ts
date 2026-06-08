@@ -1,91 +1,45 @@
-import { readFile } from 'node:fs/promises';
-import ofetch from 'ofetch';
+import { ofetch } from 'ofetch';
 import { FontaineFetchError, FontaineInvalidContentTypeError } from './errors.js';
+import { readFile } from 'node:fs/promises';
 
-export interface FontBuffer {
-  buffer: Buffer;
-  mimeType: string;
-  source: string;
-}
+const VALID_FONT_MIME_TYPES = new Set([
+  'font/woff2',
+  'font/woff',
+  'application/font-woff',
+  'application/x-font-ttf',
+  'application/font-otf',
+  'application/x-font-otf',
+]);
 
 /**
- * Handles resolution of font sources from local paths, URLs, or raw buffers.
+ * Resolves a source (URL or local path) into an ArrayBuffer.
+ * 
+ * @throws {FontaineFetchError} If the resource is unreachable.
+ * @throws {FontaineInvalidContentTypeError} If the response is not a font.
  */
-export class FontSourceResolver {
-  private readonly ALLOWED_MIME_TYPES = [
-    'font/ttf',
-    'font/otf',
-    'font/woff',
-    'font/woff2',
-    'application/x-font-ttf',
-    'application/x-font-otf',
-    'application/font-woff',
-    'application/font-woff2',
-  ];
-
-  /**
-   * Resolves a given input into a standardized FontBuffer.
-   * 
-   * @example
-   * const resolver = new FontSourceResolver();
-   * const font = await resolver.resolve('https://example.com/font.ttf');
-   * 
-   * @throws {FontaineFetchError} If the resource cannot be reached.
-   * @throws {FontaineInvalidContentTypeError} If the resource is not a font.
-   */
-  async resolve(input: string | Buffer): Promise<FontBuffer> {
-    if (Buffer.isBuffer(input)) {
-      return {
-        buffer: input,
-        mimeType: 'application/octet-stream',
-        source: 'buffer',
-      };
-    }
-
-    if (this.isUrl(input)) {
-      return this.resolveUrl(input);
-    }
-
-    return this.resolveLocalFile(input);
-  }
-
-  private isUrl(input: string): boolean {
-    return input.startsWith('http://') || input.startsWith('https://');
-  }
-
-  private async resolveUrl(url: string): Promise<FontBuffer> {
+export async function resolveFontSource(source: string): Promise<ArrayBuffer> {
+  if (source.startsWith('http')) {
     try {
-      const response = await ofetch.raw(url, {
+      const response = await ofetch.raw(source, {
         responseType: 'arrayBuffer',
       });
 
-      const contentType = response.headers.get('content-type')?.split(';')[0] || '';
-
-      if (!this.ALLOWED_MIME_TYPES.includes(contentType)) {
-        throw new FontaineInvalidContentTypeError(url, contentType);
+      const contentType = response.headers.get('content-type')?.split(';')[0];
+      if (!contentType || !VALID_FONT_MIME_TYPES.has(contentType)) {
+        throw new FontaineInvalidContentTypeError(contentType);
       }
 
-      return {
-        buffer: Buffer.from(response._data),
-        mimeType: contentType,
-        source: url,
-      };
-    } catch (error) {
-      if (error instanceof FontaineInvalidContentTypeError) throw error;
-      throw new FontaineFetchError(error instanceof Error ? error.message : 'Unknown network error', url);
+      return response._data as ArrayBuffer;
+    } catch (err) {
+      if (err instanceof FontaineInvalidContentTypeError) throw err;
+      throw new FontaineFetchError(err instanceof Error ? err.message : 'Unknown network error');
     }
   }
 
-  private async resolveLocalFile(path: string): Promise<FontBuffer> {
-    try {
-      const buffer = await readFile(path);
-      return {
-        buffer,
-        mimeType: 'application/octet-stream',
-        source: path,
-      };
-    } catch (error) {
-      throw new FontaineFetchError(error instanceof Error ? error.message : 'File read error', path);
-    }
+  try {
+    const buffer = await readFile(source);
+    return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+  } catch (err) {
+    throw new FontaineFetchError(err instanceof Error ? err.message : 'Local file read error');
   }
 }

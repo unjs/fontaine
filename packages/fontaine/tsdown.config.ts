@@ -8,6 +8,6 @@ export default defineConfig({
   format: 'esm',
   outDir: 'dist',
   banner: {
-    cli: '#!/usr/bin/env node',
+    js: '#!/usr/bin/env node',
   },
 });

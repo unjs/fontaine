@@ -9,31 +9,31 @@ export class FontaineError extends Error {
 }
 
 /**
- * Error thrown when a font resource cannot be retrieved from the provided source.
+ * Thrown when a remote font resource cannot be fetched.
  */
 export class FontaineFetchError extends FontaineError {
-  constructor(message: string, public readonly source: string) {
+  constructor(message: string, public readonly statusCode?: number) {
     super(message, 'FETCH_ERROR');
     this.name = 'FontaineFetchError';
   }
 }
 
 /**
- * Error thrown when the resolved resource does not match expected font MIME types.
+ * Thrown when the fetched resource does not match expected font MIME types.
  */
-export class FontaineInvalidContentTypeError extends FontaineFetchError {
-  constructor(source: string, public readonly contentType: string) {
-    super(`Invalid content type received: ${contentType}`, source);
+export class FontaineInvalidContentTypeError extends FontaineError {
+  constructor(public readonly contentType: string | null) {
+    super(`Invalid content type: ${contentType}. Expected a font MIME type.`, 'INVALID_CONTENT_TYPE');
     this.name = 'FontaineInvalidContentTypeError';
   }
 }
 
 /**
- * Error thrown when the font binary is malformed or cannot be parsed.
+ * Thrown when font metric extraction fails.
  */
-export class FontaineParseError extends FontaineError {
+export class FontaineAnalysisError extends FontaineError {
   constructor(message: string) {
-    super(message, 'PARSE_ERROR');
-    this.name = 'FontaineParseError';
+    super(message, 'ANALYSIS_ERROR');
+    this.name = 'FontaineAnalysisError';
   }
 }

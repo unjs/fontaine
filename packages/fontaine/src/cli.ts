@@ -1,32 +1,28 @@
 #!/usr/bin/env node
-import { FontainePipeline } from './pipeline.js';
-import { JsonFormatter, CssFormatter } from './formatter.js';
-import { FontaineError } from './errors.js';
+import { Command } from 'commander';
+import { analyzeFonts, Errors } from './index.js';
 
-async function main() {
-  const args = process.argv.slice(2);
-  const input = args[0];
-  const format = args.find(arg => arg.startsWith('--format='))?.split('=')[1] || 'json';
+const program = new Command();
 
-  if (!input) {
-    console.error('Usage: fontaine <path|url> [--format=json|css]');
-    process.exit(1);
-  }
-
-  const formatter = format === 'css' ? new CssFormatter() : new JsonFormatter();
-  const pipeline = new FontainePipeline({ formatter });
-
-  try {
-    const result = await pipeline.run(input);
-    process.stdout.write(result + '\n');
-  } catch (error) {
-    if (error instanceof FontaineError) {
-      console.error(`[${error.code}] ${error.message}`);
-    } else {
-      console.error('An unexpected error occurred:', error);
+program
+  .name('fontaine')
+  .description('Extract font metrics and generate override CSS')
+  .version('1.0.0')
+  .argument('<source>', 'Path or URL to the font file')
+  .option('-f, --format <type>', 'Output format (css, json)', 'css')
+  .action(async (source, options) => {
+    try {
+      const result = await analyzeFonts(source, { format: options.format as any });
+      process.stdout.write(result + '\n');
+      process.exit(0);
+    } catch (err) {
+      if (err instanceof Errors.FontaineError) {
+        process.stderr.write(`Error [${err.code}]: ${err.message}\n`);
+      } else {
+        process.stderr.write(`Unexpected Error: ${err instanceof Error ? err.message : String(err)}\n`);
+      }
+      process.exit(1);
     }
-    process.exit(1);
-  }
-}
+  });
 
-main();
+program.parse();
