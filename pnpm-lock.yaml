@@ -70,8 +70,8 @@ importers:
         specifier: ^1.6.1
         version: 1.6.3
       unplugin:
-        specifier: ^2.3.10
-        version: 2.3.11
+        specifier: ^3.0.0
+        version: 3.0.0
     devDependencies:
       '@capsizecss/metrics':
         specifier: 3.6.2
@@ -742,6 +742,7 @@ packages:
   '@angular/animations@20.3.17':
     resolution: {integrity: sha512-KvdgFjCTkOD3WVt4gzmJOoX914eey/Efu2Pb/KUM0Bqp1ZoXiFpI48GCd1b6Ks8JlDBeAfgjtpdSUB2aLnMRZQ==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
+    deprecated: '@angular/animations is deprecated. Use `animate.enter` and `animate.leave` instead.'
     peerDependencies:
       '@angular/core': 20.3.17
 
