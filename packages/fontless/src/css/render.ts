@@ -71,10 +71,15 @@ function renderFontSrc(sources: Exclude<FontSource, string>[]) {
   return sources.map((src) => {
     if ('url' in src) {
       let rendered = `url("${src.url}")`
-      for (const key of ['format', 'tech'] as const) {
-        if (key in src) {
-          rendered += ` ${key}(${src[key]})`
+      if (src.format) {
+        let value = src.format
+        if (!(value in extensionMap) && value !== 'collection') {
+          value = `"${value}"`
         }
+        rendered += ` format(${value})`
+      }
+      if (src.tech) {
+        rendered += ` tech(${src.tech})`
       }
       return rendered
     }

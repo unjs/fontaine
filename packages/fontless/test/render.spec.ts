@@ -36,4 +36,21 @@ describe('rendering @font-face', () => {
       }"
     `)
   })
+  it('should quote unknown src formats', () => {
+    const css = generateFontFace('Inter Variable', {
+      src: [{ url: '/inter-variable.woff2', format: 'woff2-variations' }],
+      display: 'swap',
+      style: 'normal',
+      weight: '100 900',
+    })
+    expect(css).toMatchInlineSnapshot(`
+      "@font-face {
+        font-family: 'Inter Variable';
+        src: url("/inter-variable.woff2") format("woff2-variations");
+        font-display: swap;
+        font-weight: 100 900;
+        font-style: normal;
+      }"
+    `)
+  })
 })
