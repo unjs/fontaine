@@ -43,6 +43,16 @@ Or, with `yarn`
 yarn add -D fontaine
 ```
 
+## CLI usage
+
+You can also run fontaine directly against a CSS file:
+
+```bash
+npx fontaine ./src/styles.css ./dist/styles.css
+```
+
+If the output file is omitted, fontaine writes to `<input>.fontaine.css`.
+
 ## Usage
 
 ```js
