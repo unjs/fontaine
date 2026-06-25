@@ -14,16 +14,16 @@ export interface NormalizeFontDataContext {
   dev: boolean
   renderedFontURLs: Map<string, string>
   assetsBaseURL: string
-  callback?: (filename: string, url: string) => void
+  callback?: (filename: string, url: string) => void | Promise<void>
 }
 
-export function normalizeFontData(context: NormalizeFontDataContext, faces: RawFontFaceData | FontFaceData[]): FontFaceData[] {
+export async function normalizeFontData(context: NormalizeFontDataContext, faces: RawFontFaceData | FontFaceData[]): Promise<FontFaceData[]> {
   const data: FontFaceData[] = []
   for (const face of toArray(faces)) {
     data.push({
       ...face,
       unicodeRange: toArray(face.unicodeRange),
-      src: toArray(face.src).map((src) => {
+      src: await Promise.all(toArray(face.src).map(async (src) => {
         const source = typeof src === 'string' ? parseFont(src) : src
         if ('url' in source && hasProtocol(source.url, { acceptRelative: true })) {
           source.url = source.url.replace(/^\/\//, 'https://')
@@ -42,11 +42,11 @@ export function normalizeFontData(context: NormalizeFontDataContext, faces: RawF
             ? joinRelativeURL(context.assetsBaseURL, file)
             : joinURL(context.assetsBaseURL, file)
 
-          context.callback?.(file, source.url)
+          await context.callback?.(file, source.url)
         }
 
         return source
-      }),
+      })),
     })
   }
   return data
