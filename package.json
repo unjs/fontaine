@@ -11,7 +11,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "build": "pnpm --filter fontaine --filter fontless build",
+    "build": "tsdown src/index.ts src/cli.ts",
     "lint": "eslint .",
     "release": "bumpp packages/fontaine/package.json --tag fontaine@ --sign && bumpp packages/fontless/package.json --tag fontless@ --sign",
     "test:unit": "pnpm -r test:unit",
@@ -26,6 +26,7 @@
     "changelogen": "0.6.2",
     "changelogithub": "14.0.0",
     "eslint": "10.2.1",
+    "eslint-plugin-tsdoc": "^0.5.2",
     "installed-check": "10.0.1",
     "knip": "6.0.3",
     "lint-staged": "16.2.7",
@@ -40,5 +41,12 @@
     "*.{js,ts,mjs,cjs,json,.*rc}": [
       "npx eslint --fix"
     ]
+  },
+  "bin": {
+    "fontaine": "./dist/cli.js"
+  },
+  "dependencies": {
+    "commander": "^15.0.0",
+    "ofetch": "^1.5.1"
   }
 }

@@ -1,29 +1,12 @@
-import antfu from '@antfu/eslint-config'
+import tsdoc from 'eslint-plugin-tsdoc';
 
-export default antfu()
-  .append({
-    ignores: ['README.md', 'packages/*/README.md'],
-  })
-  .append({
-    files: ['packages/fontless/examples/**'],
-    rules: {
-      'unused-imports/no-unused-vars': 'off',
+export default [
+  {
+    plugins: {
+      tsdoc,
     },
-  })
-  .append({
-    files: ['**/service-worker.ts'],
     rules: {
-      'ts/no-use-before-define': 'off',
+      'tsdoc/syntax': 'error',
     },
-  })
-  .append({
-    ignores: [
-      'packages/fontless/examples/**/*',
-      'packages/fontless/docs/**/*.md',
-    ],
-  })
-  .append({
-    rules: {
-      'pnpm/yaml-enforce-settings': 'off',
-    },
-  })
+  },
+];

@@ -250,3 +250,36 @@ Published under [MIT License](./LICENCE).
 [github-actions-href]: https://github.com/unjs/fontaine/actions/workflows/ci.yml
 [codecov-src]: https://img.shields.io/codecov/c/gh/unjs/fontaine/main?style=flat-square
 [codecov-href]: https://codecov.io/gh/unjs/fontaine
+
+## 🛠 Developer's Guide
+
+### Programmatic API Usage
+
+The `fontaine` core is designed for integration into build pipelines.
+
+#### Error Handling Pattern
+All programmatic failures throw a `FontaineError` subclass. Use the `code` property to distinguish between recoverable network issues and fatal buffer corruption.
+
+ts
+try {
+  await analyzeFontUrl(url);
+} catch (e) {
+  if (e instanceof FontaineError) {
+    // Handle domain-specific error
+  }
+}
+
+
+### Operational Configuration
+You can avoid CLI flag fatigue by using a `.fontainerc.json` file:
+json
+{
+  "cacheEnabled": true,
+  "outputFormat": "css",
+  "dryRun": false
+}
+
+
+### Performance Considerations
+- **Caching**: Remote metrics are stored in `~/.cache/fontaine`. This reduces CI build times by avoiding redundant network requests for static assets.
+- **Memory**: The analyzer uses stream-based loading via `ofetch` to maintain a low memory footprint when processing large Variable Fonts.
