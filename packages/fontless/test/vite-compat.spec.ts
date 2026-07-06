@@ -7,8 +7,6 @@ import { build as buildVite8 } from 'vite'
 import { build as buildVite7 } from 'vite7'
 import { afterAll, describe, expect, it } from 'vitest'
 
-type ViteBuild = typeof buildVite8
-
 const root = fileURLToPath(new URL('../examples/vanilla-app', import.meta.url))
 const outDirs: string[] = []
 
@@ -17,8 +15,8 @@ afterAll(async () => {
 })
 
 describe.each([
-  ['vite 8', buildVite8 as ViteBuild],
-  ['vite 7', buildVite7 as ViteBuild],
+  ['vite 8', buildVite8],
+  ['vite 7', buildVite7],
 ])('fontless builds the vanilla-app with %s', (_version, build) => {
   it('should compile', { timeout: 20_000 }, async () => {
     const outDir = await fsp.mkdtemp(join(tmpdir(), 'fontless-vite-compat-'))

@@ -7,7 +7,6 @@ import type { GenericCSSFamily } from './css/parse'
 import type { Awaitable } from './types'
 import { Buffer } from 'node:buffer'
 import { parse, walk } from 'css-tree'
-import { transform as esbuildTransform } from 'esbuild'
 import { transform as lightningCSSTransform } from 'lightningcss'
 import MagicString from 'magic-string'
 
@@ -88,6 +87,27 @@ function shouldSkipDeclaration(
   return !property.startsWith(`--${processCSSVariables}-`)
 }
 
+async function minifyWithEsbuild(declaration: string, options?: ESBuildTransformOptions): Promise<string> {
+  let esbuild: typeof import('esbuild')
+
+  try {
+    esbuild = await import('esbuild')
+  }
+  catch {
+    throw new Error(
+      'fontless: generated CSS minification is using esbuild, but esbuild is not installed. '
+      + 'Install it with `npm add -D esbuild` or enable Lightning CSS in your Vite config.',
+    )
+  }
+
+  return esbuild.transform(declaration, {
+    loader: 'css',
+    charset: 'utf8',
+    minify: true,
+    ...options,
+  }).then(r => r.code || declaration).catch(() => declaration)
+}
+
 export async function transformCSS(options: FontFamilyInjectionPluginOptions, code: string, id: string, opts: { relative?: boolean } = {}): Promise<MagicString> {
   const s = new MagicString(code)
   const ast = parse(code, { positions: true })
@@ -147,12 +167,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
               declaration = result.code.toString() || declaration
             }
             else {
-              declaration = await esbuildTransform(declaration, {
-                loader: 'css',
-                charset: 'utf8',
-                minify: true,
-                ...options.esbuildOptions,
-              }).then(r => r.code || declaration).catch(() => declaration)
+              declaration = await minifyWithEsbuild(declaration, options.esbuildOptions)
             }
           }
           else {
