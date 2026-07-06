@@ -11,6 +11,6 @@
   "devDependencies": {
     "fontless": "latest",
     "typescript": "~5.9.3",
-    "vite": "^7.2.1"
+    "vite": "^8.1.3"
   }
 }
