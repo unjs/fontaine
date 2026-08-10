@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "9.0.0",
-    "bumpp": "11.0.1",
+    "bumpp": "12.2.0",
     "changelogen": "0.6.2",
     "changelogithub": "14.0.0",
     "eslint": "10.8.1",
