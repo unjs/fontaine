@@ -60,7 +60,7 @@
     "unplugin": "^2.3.10"
   },
   "devDependencies": {
-    "@capsizecss/metrics": "3.6.2",
+    "@capsizecss/metrics": "4.2.0",
     "@types/css-tree": "2.3.11",
     "@types/node": "24.10.13",
     "@types/serve-handler": "6.1.4",

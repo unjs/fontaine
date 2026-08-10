@@ -74,8 +74,8 @@ importers:
         version: 2.3.11
     devDependencies:
       '@capsizecss/metrics':
-        specifier: 3.6.2
-        version: 3.6.2
+        specifier: 4.2.0
+        version: 4.2.0
       '@types/css-tree':
         specifier: 2.3.11
         version: 2.3.11
@@ -1544,8 +1544,8 @@ packages:
   '@braintree/sanitize-url@7.1.2':
     resolution: {integrity: sha512-jigsZK+sMF/cuiB7sERuo9V7N9jx+dhmHHnQyDSVdpZwVutaBu7WvNYqMDLSgFgfB30n452TP3vjDAvFC973mA==}
 
-  '@capsizecss/metrics@3.6.2':
-    resolution: {integrity: sha512-5uL1EIhAlfg0dvWsR1DGfqIsyiPBUsD/qlra15B82Ik28BcH7ScYEHLA4F34fZA0KamlpYcappvt2n1pTuDUfw==}
+  '@capsizecss/metrics@4.2.0':
+    resolution: {integrity: sha512-BkLX2NonSAVuHrStmxlRG/PVUxq4uQWeQGPY/G/4pi7GRQt/4A+7RzMWR8m85+0Tv7BsuBpR7JoniMS9QwuVRw==}
 
   '@capsizecss/unpack@4.0.1':
     resolution: {integrity: sha512-CuNiSqg7+e1cO/GjffyMOm5Tt2jUF9CWHHnvQ/UkqvtkGfHdgwEC0wpmq7fkN3gxwpRnrAN0WzO3vREKmNolMQ==}
@@ -14681,7 +14681,7 @@ snapshots:
 
   '@braintree/sanitize-url@7.1.2': {}
 
-  '@capsizecss/metrics@3.6.2': {}
+  '@capsizecss/metrics@4.2.0': {}
 
   '@capsizecss/unpack@4.0.1':
     dependencies:
