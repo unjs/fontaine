@@ -4,6 +4,7 @@ import type { FontFaceData, RemoteFontSource } from 'unifont'
 import type { GenericCSSFamily } from './css/parse'
 import type { Awaitable } from './types'
 import { Buffer } from 'node:buffer'
+import { consola } from 'consola'
 import { parse, walk } from 'css-tree'
 import { transform as lightningCSSTransform } from 'lightningcss'
 import MagicString from 'magic-string'
@@ -12,6 +13,8 @@ import { dirname } from 'pathe'
 import { withLeadingSlash } from 'ufo'
 import { extractEndOfFirstChild, extractFontFamilies, extractGeneric } from './css/parse'
 import { generateFontFace, generateFontFallbacks, relativiseFontSources } from './css/render'
+
+const logger = consola.withTag('fontless')
 
 export interface FontFaceResolution {
   fonts?: FontFaceData[]
@@ -118,7 +121,9 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
               })
               declaration = result.code.toString() || declaration
             }
-            catch {}
+            catch (error) {
+              logger.warn(`Could not minify generated \`@font-face\` in \`${id}\`. Falling back to unminified CSS.`, error)
+            }
           }
           else {
             declaration += '\n'

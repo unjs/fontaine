@@ -32,8 +32,9 @@ describe.each(fixtures)('e2e %s', (fixture) => {
 
     const files = await Array.fromAsync(fsp.glob('**/*', { cwd: outputDir! }))
 
-    const css = files.find(file => file.endsWith('.css'))!
-    const content = await readFile(join(outputDir!, css), 'utf-8')
+    const css = files.find(file => file.endsWith('.css'))
+    expect(css, `no CSS file emitted for ${fixture}`).toBeDefined()
+    const content = await readFile(join(outputDir!, css!), 'utf-8')
     expect(content).toContain('url(/assets/_fonts')
     if (fixture === 'vanilla-app') {
       expect(content).toMatch(/--font-test-variable:\s*"Press Start 2P", "Press Start 2P Fallback: BlinkMacSystemFont", "Press Start 2P Fallback: Segoe UI", "Press Start 2P Fallback: Helvetica Neue", "Press Start 2P Fallback: Arial", "Press Start 2P Fallback: Noto Sans", sans-serif/)
