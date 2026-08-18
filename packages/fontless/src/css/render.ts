@@ -67,14 +67,21 @@ export function parseFont(font: string): RemoteFontSource | { name: string } {
   return { name: font }
 }
 
+// https://drafts.csswg.org/css-fonts-4/#font-format-values
+const fontFormatKeywords = new Set(['collection', 'embedded-opentype', 'opentype', 'svg', 'truetype', 'woff', 'woff2'])
+
 function renderFontSrc(sources: Exclude<FontSource, string>[]) {
   return sources.map((src) => {
     if ('url' in src) {
       let rendered = `url("${src.url}")`
-      for (const key of ['format', 'tech'] as const) {
-        if (key in src) {
-          rendered += ` ${key}(${src[key]})`
-        }
+      // `format()` takes a `<font-format>` keyword, or a string for values outside
+      // that set (such as the legacy `woff2-variations`).
+      if (src.format) {
+        rendered += ` format(${fontFormatKeywords.has(src.format) ? src.format : `"${src.format}"`})`
+      }
+      // `tech()` takes `<font-tech>` keywords only — never a string.
+      if (src.tech) {
+        rendered += ` tech(${src.tech})`
       }
       return rendered
     }
