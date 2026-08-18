@@ -78,8 +78,8 @@ importers:
         specifier: 4.2.0
         version: 4.2.0
       '@types/css-tree':
-        specifier: 2.3.11
-        version: 2.3.11
+        specifier: 3.2.0
+        version: 3.2.0
       '@types/node':
         specifier: 24.13.3
         version: 24.13.3
@@ -163,8 +163,8 @@ importers:
         specifier: 1.62.1
         version: 1.62.1
       '@types/css-tree':
-        specifier: 2.3.11
-        version: 2.3.11
+        specifier: 3.2.0
+        version: 3.2.0
       '@vitest/coverage-v8':
         specifier: 4.1.10
         version: 4.1.10(vitest@4.1.10)
@@ -5697,8 +5697,8 @@ packages:
   '@types/connect@3.4.38':
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
 
-  '@types/css-tree@2.3.11':
-    resolution: {integrity: sha512-aEokibJOI77uIlqoBOkVbaQGC9zII0A+JH1kcTNKW2CwyYWD8KM6qdo+4c77wD3wZOQfJuNWAr9M4hdk+YhDIg==}
+  '@types/css-tree@3.2.0':
+    resolution: {integrity: sha512-J5KXmk6BFIepOT7280FdFyNs4c5fh0Uee0otjKEvzchrRs38Ii9qminqc4ds0L19X8Zd/rT+brR9jkBthygjWw==}
 
   '@types/d3-array@3.2.2':
     resolution: {integrity: sha512-hOLWVbm7uRza0BYXpIIW5pxfrKe0W+D5lrFiAEYR+pb6w3N2SwSMaJbXdUfSEv+dT4MfHBLtn5js0LAWaO6otw==}
@@ -17960,7 +17960,7 @@ snapshots:
     dependencies:
       '@types/node': 24.13.3
 
-  '@types/css-tree@2.3.11': {}
+  '@types/css-tree@3.2.0': {}
 
   '@types/d3-array@3.2.2': {}
 
