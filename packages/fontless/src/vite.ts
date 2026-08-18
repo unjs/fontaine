@@ -12,7 +12,7 @@ import { defaultOptions } from './defaults'
 import { resolveProviders } from './providers'
 import { createResolver } from './resolve'
 import { storage } from './storage'
-import { resolveMinifyCssEsbuildOptions, transformCSS } from './utils'
+import { transformCSS } from './utils'
 
 // Copied from @tailwindcss-vite
 const CSS_LANG_QUERY_RE = /&lang\.css/
@@ -72,13 +72,8 @@ export function fontless(_options?: FontlessOptions): Plugin {
         },
       }
 
-      if (!cssTransformOptions.dev) {
-        if (config.css.lightningcss) {
-          cssTransformOptions.lightningcssOptions = config.css.lightningcss
-        }
-        else if (config.esbuild) {
-          cssTransformOptions.esbuildOptions = defu(cssTransformOptions.esbuildOptions, resolveMinifyCssEsbuildOptions(config.esbuild))
-        }
+      if (!cssTransformOptions.dev && config.css.lightningcss) {
+        cssTransformOptions.lightningcssOptions = config.css.lightningcss as FontFamilyInjectionPluginOptions['lightningcssOptions']
       }
     },
     configureServer(server) {

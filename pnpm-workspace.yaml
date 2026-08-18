@@ -8,6 +8,7 @@ packages:
 
 overrides:
   '@nuxt/fonts>fontaine': latest
+  '@nuxt/fonts>fontless': latest
   fontaine: 'workspace:*'
   fontless: 'workspace:*'
   unstorage: 1.17.4

@@ -10,8 +10,8 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "nuxt": "^4.2.0",
-    "shadcn-docs-nuxt": "^1.1.4",
+    "nuxt": "^4.5.2",
+    "shadcn-docs-nuxt": "^1.2.2",
     "tailwindcss": "^4.1.17",
     "tailwindcss-animate": "^1.0.7",
     "vue": "^3.5.21",
