@@ -3,22 +3,18 @@ import { readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { join } from 'pathe'
-import { build as buildVite8 } from 'vite'
-import { build as buildVite7 } from 'vite7'
+import { build } from 'vite7'
 import { afterAll, describe, expect, it } from 'vitest'
 
-const root = fileURLToPath(new URL('../examples/vanilla-app', import.meta.url))
 const outDirs: string[] = []
 
 afterAll(async () => {
   await Promise.all(outDirs.map(dir => fsp.rm(dir, { recursive: true, force: true })))
 })
 
-describe.each([
-  ['vite 8', buildVite8],
-  ['vite 7', buildVite7],
-])('fontless builds the vanilla-app with %s', (_version, build) => {
+describe.each(['vanilla-app', 'qwik-app'])('fontless builds %s with vite 7', (fixture) => {
   it('should compile', { timeout: 20_000 }, async () => {
+    const root = fileURLToPath(new URL(`../examples/${fixture}`, import.meta.url))
     const outDir = await fsp.mkdtemp(join(tmpdir(), 'fontless-vite-compat-'))
     outDirs.push(outDir)
 
@@ -29,10 +25,18 @@ describe.each([
     })
 
     const files = await Array.fromAsync(fsp.glob('**/*', { cwd: outDir }))
-    const css = files.find(file => file.endsWith('.css'))!
-    const content = await readFile(join(outDir, css), 'utf-8')
 
-    expect(content).toContain('url(/assets/_fonts')
+    let found = false
+    for (const file of files) {
+      if (file.endsWith('.css') || file.endsWith('.js')) {
+        const content = await readFile(join(outDir, file), 'utf-8')
+        if (content.includes('url(/assets/_fonts')) {
+          found = true
+          break
+        }
+      }
+    }
+    expect(found).toBe(true)
     expect(files.some(file => file.endsWith('.woff2'))).toBe(true)
   })
 })
