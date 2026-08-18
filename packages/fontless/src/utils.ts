@@ -1,8 +1,6 @@
 import type { CssNode, StyleSheet } from 'css-tree'
-import type { TransformOptions as ESBuildTransformOptions } from 'esbuild'
 import type { TransformOptions as LightningCSSTransformOptions } from 'lightningcss'
 import type { FontFaceData, RemoteFontSource } from 'unifont'
-import type { ESBuildOptions } from 'vite'
 import type { GenericCSSFamily } from './css/parse'
 import type { Awaitable } from './types'
 import { Buffer } from 'node:buffer'
@@ -21,37 +19,12 @@ export interface FontFaceResolution {
 }
 
 export interface FontFamilyInjectionPluginOptions {
-  esbuildOptions?: ESBuildTransformOptions
   lightningcssOptions?: Partial<LightningCSSTransformOptions<any>>
   resolveFontFace: (fontFamily: string, fallbackOptions?: { fallbacks: string[], generic?: GenericCSSFamily }) => Awaitable<undefined | FontFaceResolution>
   dev: boolean
   processCSSVariables?: boolean | 'font-prefixed-only' | (string & {})
   shouldPreload: (fontFamily: string, font: FontFaceData) => boolean
   fontsToPreload: Map<string, Set<string>>
-}
-
-// Inlined from https://github.com/vitejs/vite/blob/main/packages/vite/src/node/plugins/css.ts#L1824-L1849
-export function resolveMinifyCssEsbuildOptions(options: ESBuildOptions): ESBuildTransformOptions {
-  const base: ESBuildTransformOptions = {
-    charset: options.charset ?? 'utf8',
-    logLevel: options.logLevel,
-    logLimit: options.logLimit,
-    logOverride: options.logOverride,
-    legalComments: options.legalComments,
-    // added by this module
-    target: options.target ?? 'chrome',
-  }
-
-  if (options.minifyIdentifiers != null || options.minifySyntax != null || options.minifyWhitespace != null) {
-    return {
-      ...base,
-      minifyIdentifiers: options.minifyIdentifiers ?? true,
-      minifySyntax: options.minifySyntax ?? true,
-      minifyWhitespace: options.minifyWhitespace ?? true,
-    }
-  }
-
-  return { ...base, minify: true }
 }
 
 function findSafeInsertionIndex(ast: CssNode): number {
@@ -85,27 +58,6 @@ function shouldSkipDeclaration(
   if (processCSSVariables === true)
     return !property.startsWith('--')
   return !property.startsWith(`--${processCSSVariables}-`)
-}
-
-async function minifyWithEsbuild(declaration: string, options?: ESBuildTransformOptions): Promise<string> {
-  let esbuild: typeof import('esbuild')
-
-  try {
-    esbuild = await import('esbuild')
-  }
-  catch {
-    throw new Error(
-      'fontless: generated CSS minification is using esbuild, but esbuild is not installed. '
-      + 'Install it with `npm add -D esbuild` or enable Lightning CSS in your Vite config.',
-    )
-  }
-
-  return esbuild.transform(declaration, {
-    loader: 'css',
-    charset: 'utf8',
-    minify: true,
-    ...options,
-  }).then(r => r.code || declaration).catch(() => declaration)
 }
 
 export async function transformCSS(options: FontFamilyInjectionPluginOptions, code: string, id: string, opts: { relative?: boolean } = {}): Promise<MagicString> {
@@ -156,7 +108,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
         if (!injectedDeclarations.has(declaration)) {
           injectedDeclarations.add(declaration)
           if (!options.dev) {
-            if (options.lightningcssOptions) {
+            try {
               const result = lightningCSSTransform({
                 filename: id,
                 code: Buffer.from(declaration),
@@ -166,9 +118,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
               })
               declaration = result.code.toString() || declaration
             }
-            else {
-              declaration = await minifyWithEsbuild(declaration, options.esbuildOptions)
-            }
+            catch {}
           }
           else {
             declaration += '\n'

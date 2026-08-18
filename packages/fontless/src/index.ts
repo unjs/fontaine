@@ -24,7 +24,7 @@ export type {
   ProviderFontDetails,
 } from './types'
 
-export { resolveMinifyCssEsbuildOptions, transformCSS } from './utils'
+export { transformCSS } from './utils'
 export type { FontFamilyInjectionPluginOptions } from './utils'
 
 export { fontless } from './vite'
