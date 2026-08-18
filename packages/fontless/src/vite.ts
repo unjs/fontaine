@@ -73,7 +73,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
       }
 
       if (!cssTransformOptions.dev && config.css.lightningcss) {
-        cssTransformOptions.lightningcssOptions = config.css.lightningcss
+        cssTransformOptions.lightningcssOptions = config.css.lightningcss as FontFamilyInjectionPluginOptions['lightningcssOptions']
       }
     },
     configureServer(server) {

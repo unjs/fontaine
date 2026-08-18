@@ -137,7 +137,7 @@ importers:
         specifier: ^2.6.1
         version: 2.7.0
       lightningcss:
-        specifier: ^1.30.2
+        specifier: ^1.33.0
         version: 1.33.0
       magic-string:
         specifier: ^0.30.21
