@@ -81,7 +81,7 @@
     "tsdown": "0.20.3",
     "typescript": "6.0.2",
     "vite": "8.2.1",
-    "vite7": "npm:vite@7.3.6",
+    "vite7": "npm:vite@8.2.1",
     "vitest": "4.1.10"
   }
 }
