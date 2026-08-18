@@ -54,7 +54,7 @@
     "@capsizecss/unpack": "^4.0.0",
     "css-tree": "^3.1.0",
     "magic-regexp": "^0.11.0",
-    "magic-string": "^0.30.21",
+    "magic-string": "^1.0.0",
     "pathe": "^2.0.3",
     "ufo": "^1.6.1",
     "unplugin": "^2.3.10"
