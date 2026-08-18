@@ -26,7 +26,7 @@
     "changelogen": "0.6.2",
     "changelogithub": "15.0.4",
     "eslint": "10.8.1",
-    "installed-check": "10.0.1",
+    "installed-check": "11.0.0",
     "knip": "6.32.2",
     "lint-staged": "17.3.0",
     "pkg-pr-new": "0.0.88",
