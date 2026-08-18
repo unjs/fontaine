@@ -29,7 +29,7 @@
     "@types/node": "22.19.0",
     "fontless": "latest",
     "typescript": "5.9.3",
-    "vite": "^7.3.2",
+    "vite": "^7.3.6",
     "vite-tsconfig-paths": "^5.1.4"
   }
 }
