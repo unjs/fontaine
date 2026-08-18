@@ -37,7 +37,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">=18.12.0"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
     "build": "tsdown",
@@ -57,7 +57,7 @@
     "magic-string": "^1.0.0",
     "pathe": "^2.0.3",
     "ufo": "^1.6.1",
-    "unplugin": "^2.3.10"
+    "unplugin": "^3.0.0"
   },
   "devDependencies": {
     "@capsizecss/metrics": "4.2.0",
