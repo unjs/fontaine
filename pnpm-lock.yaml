@@ -71,8 +71,8 @@ importers:
         specifier: ^1.6.1
         version: 1.6.4
       unplugin:
-        specifier: ^2.3.10
-        version: 2.3.11
+        specifier: ^3.0.0
+        version: 3.3.0(esbuild@0.28.2)(rolldown@1.2.4)(rollup@4.62.2)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(less@4.4.0)(sass@1.90.0)(terser@5.46.0)(yaml@2.9.0))(webpack@5.105.0(@swc/core@1.16.0(@swc/helpers@0.5.19))(esbuild@0.28.2))
     devDependencies:
       '@capsizecss/metrics':
         specifier: 4.2.0
