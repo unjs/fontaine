@@ -18,6 +18,24 @@ describe('createFontlessStorage', () => {
     expect(await readdir(join(dir, 'node_modules/.cache/fontless/meta'))).toEqual(['key'])
   })
 
+  it('should fall back to a node_modules cache directory when no cacheDir is given', async () => {
+    const root = await scratchDir()
+    const storage = createFontlessStorage(undefined, { root })
+
+    await storage.setItem('key', 'value')
+
+    expect(await readdir(join(root, 'node_modules/.cache/fontless/meta'))).toEqual(['key'])
+  })
+
+  it('should accept an absolute directory without a root', async () => {
+    const dir = await scratchDir()
+    const storage = createFontlessStorage(dir)
+
+    await storage.setItem('key', 'value')
+
+    expect(await readdir(dir)).toEqual(['key'])
+  })
+
   it('should write to a custom directory resolved from the root', async () => {
     const root = await scratchDir()
     const storage = createFontlessStorage('.cache/fonts', { root })
