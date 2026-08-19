@@ -1,3 +1,4 @@
+import type { InlineConfig } from 'vite'
 import { promises as fsp } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -14,28 +15,111 @@ afterAll(async () => {
   await Promise.all(outDirs.map(dir => fsp.rm(dir, { recursive: true, force: true })))
 })
 
-it('should prefix font URLs with the configured base', { timeout: 20_000 }, async () => {
+async function buildApp({ plugins = [], ...config }: Omit<InlineConfig, 'root' | 'configFile' | 'logLevel'>) {
   const outDir = await fsp.mkdtemp(join(tmpdir(), 'fontless-base-'))
   outDirs.push(outDir)
 
   await build({
+    ...config,
     root,
-    base: '/build/',
     configFile: false,
     logLevel: 'silent',
-    plugins: [fontless({ families: [{ name: 'Poppins', preload: true }] })],
-    build: { outDir, emptyOutDir: true },
+    plugins: [fontless({ families: [{ name: 'Poppins', preload: true }] }), plugins],
+    build: { ...config.build, outDir, emptyOutDir: true },
   })
 
   const files = await Array.fromAsync(fsp.glob('**/*', { cwd: outDir }))
+  const read = (file: string) => readFile(join(outDir, file), 'utf-8')
 
-  const css = files.find(file => file.endsWith('.css'))!
-  expect(await readFile(join(outDir, css), 'utf-8')).toContain('url(/build/assets/_fonts')
+  return {
+    outDir,
+    files,
+    fonts: files.filter(file => file.startsWith('assets/_fonts/')),
+    css: await read(files.find(file => file.endsWith('.css'))!),
+    html: await read(files.find(file => file.endsWith('.html'))!),
+  }
+}
 
-  const html = files.find(file => file.endsWith('.html'))!
-  expect(await readFile(join(outDir, html), 'utf-8')).toContain('href="/build/assets/_fonts')
+it.each(['./', ''])('should emit font URLs relative to the CSS chunk for base %s', { timeout: 20_000 }, async (base) => {
+  const { outDir, css, fonts } = await buildApp({ base })
 
-  expect(files.some(file => file.startsWith('assets/_fonts/') && file.endsWith('.woff2'))).toBe(true)
+  const urls = [...css.matchAll(/url\((\.[^)]+\.woff2)\)/g)].map(([, url]) => url!)
+  expect(urls.length).toBeGreaterThan(0)
+
+  for (const url of urls) {
+    expect(fonts).toContain(join('assets', url))
+    expect((await fsp.stat(join(outDir, 'assets', url))).size).toBeGreaterThan(0)
+  }
+})
+
+it('should reuse fonts referenced from more than one stylesheet', { timeout: 20_000 }, async () => {
+  const extraCSS = '.extra { font-family: "Poppins", sans-serif; }'
+  const { outDir, css, fonts } = await buildApp({
+    plugins: [{
+      name: 'extra-css',
+      resolveId: id => id === 'virtual:extra.css' ? '\0virtual:extra.css' : undefined,
+      load: id => id === '\0virtual:extra.css' ? extraCSS : undefined,
+      transform: (code, id) => id.endsWith('main.ts') ? `import 'virtual:extra.css'\n${code}` : undefined,
+    }],
+  })
+
+  expect(css).toContain('.extra{')
+
+  const urls = new Set([...css.matchAll(/url\((\/assets\/_fonts\/[^)]+\.woff2)\)/g)].map(([, url]) => url!.slice(1)))
+  expect(urls.size).toBeGreaterThan(0)
+  expect(fonts).toEqual(expect.arrayContaining([...urls]))
+
+  for (const file of urls) {
+    expect((await fsp.stat(join(outDir, file))).size).toBeGreaterThan(0)
+  }
+})
+
+it('should apply experimental.renderBuiltUrl to font URLs', { timeout: 20_000 }, async () => {
+  const { css, html } = await buildApp({
+    experimental: {
+      renderBuiltUrl(filename, { hostType }) {
+        return filename.includes('_fonts') ? `https://cdn.example.com/${filename}` : { relative: hostType !== 'html' }
+      },
+    },
+  })
+
+  expect(css).toContain('url(https://cdn.example.com/assets/_fonts')
+  expect(css).not.toContain('url(/assets/_fonts')
+  expect(html).toContain('href="https://cdn.example.com/assets/_fonts')
+})
+
+it('should honour renderBuiltUrl returning a relative URL for fonts', { timeout: 20_000 }, async () => {
+  const { outDir, css, fonts } = await buildApp({
+    experimental: { renderBuiltUrl: () => ({ relative: true }) },
+  })
+
+  const urls = [...css.matchAll(/url\((\.[^)]+\.woff2)\)/g)].map(([, url]) => url!)
+  expect(urls.length).toBeGreaterThan(0)
+
+  for (const url of urls) {
+    expect(fonts).toContain(join('assets', url))
+    expect((await fsp.stat(join(outDir, 'assets', url))).size).toBeGreaterThan(0)
+  }
+})
+
+it('should prefix font URLs with the configured base', { timeout: 20_000 }, async () => {
+  const { css, html, fonts } = await buildApp({ base: '/build/' })
+
+  expect(css).toContain('url(/build/assets/_fonts')
+  expect(html).toContain('href="/build/assets/_fonts')
+  expect(fonts.some(file => file.endsWith('.woff2'))).toBe(true)
+})
+
+it('should emit font URLs from the server root by default', { timeout: 20_000 }, async () => {
+  const { outDir, css, fonts } = await buildApp({})
+
+  const urls = [...css.matchAll(/url\((\/assets\/_fonts\/[^)]+\.woff2)\)/g)].map(([, url]) => url!)
+  expect(urls.length).toBeGreaterThan(0)
+
+  for (const url of urls) {
+    expect(fonts).toContain(url.slice(1))
+    expect((await fsp.stat(join(outDir, url))).size).toBeGreaterThan(0)
+  }
 })
 
 it.each(['/', '/build/'])('should serve fonts under base %s in dev', { timeout: 20_000 }, async (base) => {
