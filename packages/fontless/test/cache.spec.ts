@@ -52,6 +52,6 @@ describe('cache option', () => {
     const root = await createFixture()
     await buildFixture(root, false)
 
-    expect(await readdir(root)).toEqual(['dist', 'index.html', 'style.css'])
+    expect((await readdir(root)).sort()).toEqual(['dist', 'index.html', 'style.css'])
   })
 })
