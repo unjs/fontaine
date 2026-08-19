@@ -49,7 +49,11 @@ export function fontless(_options?: FontlessOptions): Plugin {
     if (cached) {
       return cached
     }
-    const res = await fetch(url).then(r => r.arrayBuffer()).then(r => Buffer.from(r))
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Could not fetch font from \`${url}\` (${response.status} ${response.statusText}).`)
+    }
+    const res = Buffer.from(await response.arrayBuffer())
     await storage.setItemRaw(key, res)
     return res
   }
@@ -129,14 +133,8 @@ export function fontless(_options?: FontlessOptions): Plugin {
             next()
             return
           }
-          const key = `data:fonts:${filename}`
-          let data = await storage.getItemRaw<Buffer>(key)
-          if (!data) {
-            data = await fetch(url).then(r => r.arrayBuffer()).then(r => Buffer.from(r))
-            await storage.setItemRaw(key, data)
-          }
           res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
-          res.end(data)
+          res.end(await loadFont(filename, url))
         }
         catch (e) {
           next(e)

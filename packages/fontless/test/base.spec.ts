@@ -1,6 +1,8 @@
 import type { InlineConfig } from 'vite'
+import type { FontlessOptions } from '../src/types'
 import { promises as fsp } from 'node:fs'
 import { readFile } from 'node:fs/promises'
+import { createServer as createHTTPServer } from 'node:http'
 import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { join } from 'pathe'
@@ -15,7 +17,7 @@ afterAll(async () => {
   await Promise.all(outDirs.map(dir => fsp.rm(dir, { recursive: true, force: true })))
 })
 
-async function buildApp({ plugins = [], ...config }: Omit<InlineConfig, 'root' | 'configFile' | 'logLevel'>) {
+async function buildApp({ plugins = [], ...config }: Omit<InlineConfig, 'root' | 'configFile' | 'logLevel'>, fontlessOptions: FontlessOptions = { families: [{ name: 'Poppins', preload: true }] }) {
   const outDir = await fsp.mkdtemp(join(tmpdir(), 'fontless-base-'))
   outDirs.push(outDir)
 
@@ -24,7 +26,7 @@ async function buildApp({ plugins = [], ...config }: Omit<InlineConfig, 'root' |
     root,
     configFile: false,
     logLevel: 'silent',
-    plugins: [fontless({ families: [{ name: 'Poppins', preload: true }] }), plugins],
+    plugins: [fontless(fontlessOptions), plugins],
     build: { ...config.build, outDir, emptyOutDir: true },
   })
 
@@ -155,5 +157,23 @@ it.each(['/', '/build/'])('should serve fonts under base %s in dev', { timeout: 
   }
   finally {
     await server.close()
+  }
+})
+
+it('should fail the build if a font cannot be downloaded', { timeout: 20_000 }, async () => {
+  const server = createHTTPServer((_req, res) => {
+    res.statusCode = 404
+    res.end('Not Found')
+  }).listen(0, '127.0.0.1')
+  await new Promise(resolve => server.once('listening', resolve))
+  const { port } = server.address() as { port: number }
+
+  try {
+    await expect(buildApp({}, {
+      families: [{ name: 'Poppins', src: `http://127.0.0.1:${port}/missing.woff2` }],
+    })).rejects.toThrow(/404/)
+  }
+  finally {
+    server.close()
   }
 })
