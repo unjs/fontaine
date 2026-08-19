@@ -6,7 +6,7 @@ import type { FontFamilyInjectionPluginOptions } from './utils'
 import { Buffer } from 'node:buffer'
 import { readFile } from 'node:fs/promises'
 import { defu } from 'defu'
-import { joinURL } from 'ufo'
+import { hasProtocol, joinURL } from 'ufo'
 import { normalizeFontData } from './assets'
 import { defaultOptions } from './defaults'
 import { resolveProviders } from './providers'
@@ -37,6 +37,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
         dev: config.mode === 'development',
         renderedFontURLs: new Map<string, string>(),
         assetsBaseURL: options.assets?.prefix || joinURL('/', config.build.assetsDir, '_fonts'),
+        baseURL: config.base.startsWith('/') || hasProtocol(config.base) ? config.base : '/',
       }
 
       const alias = Array.isArray(config.resolve.alias) ? {} : config.resolve.alias
@@ -82,7 +83,9 @@ export function fontless(_options?: FontlessOptions): Plugin {
     configureServer(server) {
       // serve font assets via middleware during dev
       // based on https://github.com/nuxt/fonts/blob/e7f537a0357896d34be9c17031b3178fb4e79042/src/assets.ts#L30
-      server.middlewares.use(assetContext.assetsBaseURL, async (req, res, next) => {
+      // Connect middlewares see the full request path, including `base`
+      const mountPath = joinURL(assetContext.baseURL || '/', assetContext.assetsBaseURL)
+      server.middlewares.use(mountPath, async (req, res, next) => {
         try {
           const filename = req.url!.slice(1)
           const url = assetContext.renderedFontURLs.get(filename)
