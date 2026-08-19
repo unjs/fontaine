@@ -1,4 +1,5 @@
 import type { FontFaceData, GoogleFamilyOptions, GoogleiconsFamilyOptions, LocalFontSource, Provider, ProviderFactory, providers, RemoteFontSource, ResolveFontOptions } from 'unifont'
+import type { Storage, StorageValue } from 'unstorage'
 
 import type { GenericCSSFamily } from './css/parse'
 
@@ -119,6 +120,16 @@ export interface FontlessOptions {
     npm?: ProviderOption
     [key: string]: ProviderOption | undefined
   }
+  /**
+   * Configure how font metadata and downloaded font files are cached between builds.
+   *
+   * - a string or `{ dir }`: cache to this directory (relative paths are resolved from the Vite root)
+   * - an `unstorage` instance: cache with your own driver
+   * - `false`: disable persistent caching (an in-memory cache is used instead)
+   *
+   * By default, fonts are cached in `node_modules/.cache/fontless/meta`, next to Vite's own cache directory.
+   */
+  cache?: false | string | { dir?: string } | Storage<StorageValue>
   /** Configure the way font assets are exposed */
   assets?: {
     /**

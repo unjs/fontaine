@@ -11,7 +11,7 @@ import { normalizeFontData } from './assets'
 import { defaultOptions } from './defaults'
 import { resolveProviders } from './providers'
 import { createResolver } from './resolve'
-import { storage } from './storage'
+import { createFontlessStorage } from './storage'
 import { transformCSS } from './utils'
 
 // Copied from @tailwindcss-vite
@@ -25,11 +25,14 @@ export function fontless(_options?: FontlessOptions): Plugin {
 
   let cssTransformOptions: FontFamilyInjectionPluginOptions
   let assetContext: NormalizeFontDataContext
+  let storage: ReturnType<typeof createFontlessStorage>
 
   return {
     name: 'vite-plugin-fontless',
     apply: (_config, env) => !env.isPreview,
     async configResolved(config) {
+      storage = createFontlessStorage(_options?.cache, { root: config.root, cacheDir: config.cacheDir })
+
       assetContext = {
         dev: config.mode === 'development',
         renderedFontURLs: new Map<string, string>(),
