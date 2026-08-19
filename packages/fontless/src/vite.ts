@@ -83,7 +83,9 @@ export function fontless(_options?: FontlessOptions): Plugin {
     configureServer(server) {
       // serve font assets via middleware during dev
       // based on https://github.com/nuxt/fonts/blob/e7f537a0357896d34be9c17031b3178fb4e79042/src/assets.ts#L30
-      server.middlewares.use(assetContext.assetsBaseURL, async (req, res, next) => {
+      // Connect middlewares see the full request path, including `base`
+      const mountPath = joinURL(assetContext.baseURL || '/', assetContext.assetsBaseURL)
+      server.middlewares.use(mountPath, async (req, res, next) => {
         try {
           const filename = req.url!.slice(1)
           const url = assetContext.renderedFontURLs.get(filename)
