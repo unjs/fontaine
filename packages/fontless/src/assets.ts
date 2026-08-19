@@ -14,6 +14,11 @@ export interface NormalizeFontDataContext {
   dev: boolean
   renderedFontURLs: Map<string, string>
   assetsBaseURL: string
+  /**
+   * Public URL prefix that `assetsBaseURL` is served under, i.e. Vite's `base`.
+   * @default '/'
+   */
+  baseURL?: string
   callback?: (filename: string, url: string) => void
 }
 
@@ -38,9 +43,10 @@ export function normalizeFontData(context: NormalizeFontDataContext, faces: RawF
           context.renderedFontURLs.set(file, source.url)
           source.originalURL = source.url
 
+          const baseURL = context.baseURL || '/'
           source.url = context.dev
-            ? joinRelativeURL(context.assetsBaseURL, file)
-            : joinURL(context.assetsBaseURL, file)
+            ? joinRelativeURL(baseURL, context.assetsBaseURL, file)
+            : joinURL(baseURL, context.assetsBaseURL, file)
 
           context.callback?.(file, source.url)
         }

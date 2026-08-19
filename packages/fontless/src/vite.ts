@@ -6,7 +6,7 @@ import type { FontFamilyInjectionPluginOptions } from './utils'
 import { Buffer } from 'node:buffer'
 import { readFile } from 'node:fs/promises'
 import { defu } from 'defu'
-import { joinURL } from 'ufo'
+import { hasProtocol, joinURL } from 'ufo'
 import { normalizeFontData } from './assets'
 import { defaultOptions } from './defaults'
 import { resolveProviders } from './providers'
@@ -37,6 +37,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
         dev: config.mode === 'development',
         renderedFontURLs: new Map<string, string>(),
         assetsBaseURL: options.assets?.prefix || joinURL('/', config.build.assetsDir, '_fonts'),
+        baseURL: config.base.startsWith('/') || hasProtocol(config.base) ? config.base : '/',
       }
 
       const alias = Array.isArray(config.resolve.alias) ? {} : config.resolve.alias
