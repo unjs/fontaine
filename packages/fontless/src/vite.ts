@@ -3,6 +3,7 @@ import type { NormalizeFontDataContext } from './assets'
 import type { FontlessOptions } from './types'
 import type { FontFamilyInjectionPluginOptions } from './utils'
 
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { Buffer } from 'node:buffer'
 import { readFile } from 'node:fs/promises'
 import { defu } from 'defu'
@@ -18,6 +19,8 @@ import { transformCSS } from './utils'
 const CSS_LANG_QUERY_RE = /&lang\.css/
 const INLINE_STYLE_ID_RE = /[?&]index=\d+\.css$/
 // Copied from vue-bundle-renderer utils
+const EMPTY_SOURCE = new Uint8Array()
+
 const CSS_EXTENSIONS_RE = /\.(?:css|scss|sass|postcss|pcss|less|stylus|styl)(?:\?[^.]+)?$/
 
 export function fontless(_options?: FontlessOptions): Plugin {
@@ -26,6 +29,34 @@ export function fontless(_options?: FontlessOptions): Plugin {
   let cssTransformOptions: FontFamilyInjectionPluginOptions
   let assetContext: NormalizeFontDataContext
   let storage: ReturnType<typeof createFontlessStorage>
+
+  // `emit` is only available while a CSS module is being transformed, as it needs that
+  // transform's plugin context to emit into the right environment's bundle.
+  const buildContext = new AsyncLocalStorage<{ emit: (file: string) => string }>()
+
+  // Output file names of emitted fonts, mapped back to their key in `renderedFontURLs`
+  const fontFiles = new Map<string, string>()
+  function fontFileName(file: string) {
+    const fileName = joinURL(assetContext.assetsBaseURL, file).slice(1)
+    fontFiles.set(fileName, file)
+    return fileName
+  }
+
+  async function loadFont(file: string, url: string): Promise<Buffer> {
+    const key = `data:fonts:${file}`
+    // Use storage to cache the font data between builds
+    const cached = await storage.getItemRaw<Buffer>(key)
+    if (cached) {
+      return cached
+    }
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Could not fetch font from \`${url}\` (${response.status} ${response.statusText}).`)
+    }
+    const res = Buffer.from(await response.arrayBuffer())
+    await storage.setItemRaw(key, res)
+    return res
+  }
 
   return {
     name: 'vite-plugin-fontless',
@@ -37,7 +68,16 @@ export function fontless(_options?: FontlessOptions): Plugin {
         dev: config.mode === 'development',
         renderedFontURLs: new Map<string, string>(),
         assetsBaseURL: options.assets?.prefix || joinURL('/', config.build.assetsDir, '_fonts'),
+        // A relative base (`''` or `'./'`) cannot be resolved from a URL in CSS served
+        // during dev, where every stylesheet is requested from its own path, so fall back
+        // to the server root. During build the URL is resolved by Vite instead (see
+        // `resolveAssetURL` below), which handles relative bases correctly.
         baseURL: config.base.startsWith('/') || hasProtocol(config.base) ? config.base : '/',
+        // During build, hand fonts to Vite's asset pipeline rather than writing literal
+        // URLs, so `base`, a relative base and `experimental.renderBuiltUrl` all apply.
+        resolveAssetURL: config.command === 'build'
+          ? file => buildContext.getStore()?.emit(file)
+          : undefined,
       }
 
       const alias = Array.isArray(config.resolve.alias) ? {} : config.resolve.alias
@@ -93,14 +133,8 @@ export function fontless(_options?: FontlessOptions): Plugin {
             next()
             return
           }
-          const key = `data:fonts:${filename}`
-          let data = await storage.getItemRaw<Buffer>(key)
-          if (!data) {
-            data = await fetch(url).then(r => r.arrayBuffer()).then(r => Buffer.from(r))
-            await storage.setItemRaw(key, data)
-          }
           res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
-          res.end(data)
+          res.end(await loadFont(filename, url))
         }
         catch (e) {
           next(e)
@@ -118,7 +152,15 @@ export function fontless(_options?: FontlessOptions): Plugin {
         },
       },
       async handler(code, id) {
-        const s = await transformCSS(cssTransformOptions, code, id)
+        // Font data is downloaded in `generateBundle`; rolldown requires a source up front
+        // and has no `setAssetSource`, so emit a placeholder and fill it in there
+        const emit = (file: string) => `__VITE_ASSET__${this.emitFile({
+          type: 'asset',
+          fileName: fontFileName(file),
+          source: EMPTY_SOURCE,
+        })}__`
+
+        const s = await buildContext.run({ emit }, () => transformCSS(cssTransformOptions, code, id))
 
         if (s.hasChanged()) {
           return {
@@ -128,24 +170,17 @@ export function fontless(_options?: FontlessOptions): Plugin {
         }
       },
     },
-    async generateBundle() {
-      for (const [filename, url] of assetContext.renderedFontURLs) {
-        const key = `data:fonts:${filename}`
-        // Use storage to cache the font data between builds
-        let res = await storage.getItemRaw(key)
-        if (!res) {
-          res = await fetch(url)
-            .then(r => r.arrayBuffer())
-            .then(r => Buffer.from(r))
-
-          await storage.setItemRaw(key, res)
+    async generateBundle(_options, bundle) {
+      await Promise.all(Object.values(bundle).map(async (output) => {
+        if (output.type !== 'asset') {
+          return
         }
-        this.emitFile({
-          type: 'asset',
-          fileName: joinURL(assetContext.assetsBaseURL, filename).slice(1),
-          source: res,
-        })
-      }
+        const file = fontFiles.get(output.fileName)
+        const url = file && assetContext.renderedFontURLs.get(file)
+        if (url) {
+          output.source = await loadFont(file, url)
+        }
+      }))
     },
     transformIndexHtml: {
       handler() {
