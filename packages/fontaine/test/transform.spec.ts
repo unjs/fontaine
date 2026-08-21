@@ -288,6 +288,37 @@ describe('fontaine transform', () => {
     expect(result).toContain('font-family: "Poppins fallback"')
   })
 
+  it('should strip line comments from imported SCSS files', async () => {
+    const scssFilename = fileURLToPath(new URL('./test.scss', import.meta.url))
+    const result = await transform(`
+      @import "./fixtures/imported-with-comments.scss";
+      .foo {
+        font-family: Poppins;
+      }
+    `, {}, scssFilename)
+    expect(result).toContain('font-family: "Poppins fallback"')
+  })
+
+  it('should ignore `@import`s gated behind a non-`supports` function', async () => {
+    const cssFilename = fileURLToPath(new URL('./test.css', import.meta.url))
+    const result = await transform(`
+      @import url("./fixtures/imported.css") layer(base);
+      .foo {
+        font-family: Poppins;
+      }
+    `, {}, cssFilename)
+    expect(result).toContain('font-family: "Poppins fallback"')
+  })
+
+  it('should ignore font-family declarations that cannot be parsed as a value', async () => {
+    const result = await transform(`
+      .foo {
+        font-family: ~broken~;
+      }
+    `, {})
+    expect(result).toBeUndefined()
+  })
+
   it('should resolve `~`-prefixed imports in SCSS files with line comments', async () => {
     const scssFilename = fileURLToPath(new URL('./fixtures/with-comments.scss', import.meta.url))
     const scss = await readFile(scssFilename, 'utf-8')

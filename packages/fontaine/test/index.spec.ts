@@ -241,6 +241,31 @@ describe('parseFontFace', () => {
     )).toStrictEqual([])
   })
 
+  it('should ignore at-rules without a block', () => {
+    expect(parseFontFace(`@font-face;`)).toStrictEqual([])
+  })
+
+  it('should ignore generic families declared in font-family', () => {
+    expect(parseFontFace(
+      `@font-face {
+        font-family: sans-serif;
+        src: url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
+      }`,
+    )).toStrictEqual([])
+  })
+
+  it('should ignore font properties that cannot be parsed as a value', () => {
+    const [result] = parseFontFace(
+      `@font-face {
+        font-family: Roboto;
+        font-weight: ~broken~;
+        src: url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
+      }`,
+    )
+
+    expect(result?.properties).toStrictEqual({})
+  })
+
   it('should handle sources with parentheses', () => {
     expect(parseFontFace(
       `@font-face {

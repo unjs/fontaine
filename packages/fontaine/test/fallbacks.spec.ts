@@ -69,6 +69,25 @@ describe('fallbacks module', () => {
       expect(result).toEqual(DEFAULT_CATEGORY_FALLBACKS['sans-serif'])
     })
 
+    it('should fall back to sans-serif for a category with no preset', () => {
+      const result = resolveCategoryFallbacks({
+        fontFamily: 'Segoe Script',
+        fallbacks: {},
+        metrics: { category: 'fangsong' },
+      })
+      expect(result).toEqual(DEFAULT_CATEGORY_FALLBACKS['sans-serif'])
+    })
+
+    it('should ignore category overrides set to undefined', () => {
+      const result = resolveCategoryFallbacks({
+        fontFamily: 'Lora',
+        fallbacks: {},
+        metrics: { category: 'serif' },
+        categoryFallbacks: { serif: undefined },
+      })
+      expect(result).toEqual(DEFAULT_CATEGORY_FALLBACKS.serif)
+    })
+
     it('should prioritize per-family overrides over category fallbacks', () => {
       const result = resolveCategoryFallbacks({
         fontFamily: 'Lora',

@@ -299,7 +299,7 @@ export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransfo
             if (this.atrule && this.atrule.name === 'font-face')
               return
             if (node.value.type !== 'Value')
-            /* v8 ignore next */ return
+              return
 
             for (const child of node.value.children) {
               let family: string | undefined

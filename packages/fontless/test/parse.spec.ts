@@ -2,7 +2,7 @@ import { parse, walk } from 'css-tree'
 import { describe, expect, it } from 'vitest'
 
 import { transformCSS } from '../src'
-import { extractFontFamilies } from '../src/css/parse'
+import { addLocalFallbacks, extractFontFamilies } from '../src/css/parse'
 
 describe('parsing', () => {
   it('should add declarations for `font-family`', async () => {
@@ -415,3 +415,33 @@ async function transformLightningCSS(css: string) {
   }, css, 'some-id')
   return result?.toString()
 }
+
+describe('addLocalFallbacks', () => {
+  const localNames = (data: Parameters<typeof addLocalFallbacks>[1]) =>
+    addLocalFallbacks('Inter', data)[0]!.src.filter(src => 'name' in src).map(src => (src as { name: string }).name)
+
+  it('should add a variable local font for a weight range', () => {
+    expect(localNames([{ weight: [400, 700], src: [{ url: '/inter.woff2' }] }])).toEqual(['Inter Variable'])
+  })
+
+  it('should include the style in the variable local font name', () => {
+    expect(localNames([{ weight: [400, 700], style: 'italic', src: [{ url: '/inter.woff2' }] }]))
+      .toEqual(['Inter Variable Italic'])
+  })
+
+  it('should add a bare family name alongside the regular weight', () => {
+    expect(localNames([{ weight: 400, src: [{ url: '/inter.woff2' }] }])).toEqual(['Inter Regular', 'Inter'])
+  })
+
+  it('should not add a bare family name for other weights', () => {
+    expect(localNames([{ weight: 700, style: 'italic', src: [{ url: '/inter.woff2' }] }])).toEqual(['Inter Bold Italic'])
+  })
+
+  it('should ignore unmapped weights and styles', () => {
+    expect(localNames([{ weight: 'bolder', style: 'unknown', src: [{ url: '/inter.woff2' }] }])).toEqual([])
+  })
+
+  it('should leave faces that already start with a local source untouched', () => {
+    expect(localNames([{ weight: 400, src: [{ name: 'Inter Var' }, { url: '/inter.woff2' }] }])).toEqual(['Inter Var'])
+  })
+})

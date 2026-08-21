@@ -1,6 +1,6 @@
 import { fromUrl } from '@capsizecss/unpack'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { readMetrics } from '../src/metrics'
+import { getMetricsForFamily, readMetrics } from '../src/metrics'
 
 const mockFont = {
   ascent: 2000,
@@ -44,5 +44,13 @@ describe('readMetrics', () => {
     results.forEach((result) => {
       expect(result).toEqual(mockFont)
     })
+  })
+
+  it('should return null for a source already cached as having no metrics', async () => {
+    const source = 'Definitely Not A Real Font Family'
+
+    expect(await getMetricsForFamily(source)).toBeNull()
+    expect(await readMetrics(source)).toBeNull()
+    expect(fromUrl).not.toHaveBeenCalled()
   })
 })

@@ -95,14 +95,14 @@ function fontaine(options: FontainePostcssOptions): Plugin {
         // family, so fallbacks are generated from the first source we can read.
         for (const { family, source: url, properties } of parseFontFace(rule.toString())) {
           const source = url && withoutQueryOrFragment(url)
-          if (!supportedExtensions.some(e => source?.endsWith(e)))
+          if (!source || !supportedExtensions.some(e => source.endsWith(e)))
             continue
 
           if (skipFontFaceGeneration(fallbackName(family)))
             continue
 
           const metrics: FontFaceMetrics | null = (await getMetricsForFamily(family))
-            || (source ? await readMetricsForSource(source, originatingFile(rule, result), resolvePath).catch(() => null) : null)
+            || await readMetricsForSource(source, originatingFile(rule, result), resolvePath).catch(() => null)
 
           if (!metrics)
             continue
@@ -148,8 +148,9 @@ function fontaine(options: FontainePostcssOptions): Plugin {
           return
 
         const value = parse(decl.value, { context: 'value', positions: true })
+        /* v8 ignore next 2 -- `value` context always yields a Value node or throws */
         if (value.type !== 'Value')
-        /* v8 ignore next */ return
+          return
 
         for (const child of value.children) {
           let family: string | undefined

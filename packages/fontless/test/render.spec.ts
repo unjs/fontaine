@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { generateFontFace, parseFont } from '../src/css/render'
+import { generateFontFace, parseFont, relativiseFontSources } from '../src/css/render'
 
 describe('rendering @font-face', () => {
   it('should add declarations for `font-family`', () => {
@@ -62,6 +62,15 @@ describe('rendering @font-face', () => {
       }"
     `)
   })
+  it('should render feature and variation settings', () => {
+    const css = generateFontFace('Inter', {
+      src: [{ url: '/inter.woff2' }],
+      featureSettings: '"cv11" 1',
+      variationSettings: '"opsz" 32',
+    })
+    expect(css).toContain('font-feature-settings: "cv11" 1;')
+    expect(css).toContain('font-variation-settings: "opsz" 32;')
+  })
   it('should render `tech()` as an unquoted keyword', () => {
     const css = generateFontFace('Trickster', {
       src: [{ url: '/trickster.otf', format: 'opentype', tech: 'color-COLRv1' }],
@@ -73,5 +82,19 @@ describe('rendering @font-face', () => {
         font-display: swap;
       }"
     `)
+  })
+})
+
+describe('relativiseFontSources', () => {
+  it('should rewrite root-relative URLs relative to the stylesheet', () => {
+    const font = relativiseFontSources({ src: [{ url: '/assets/_fonts/inter.woff2' }] }, '/css')
+
+    expect(font.src).toEqual([{ url: '../assets/_fonts/inter.woff2' }])
+  })
+
+  it('should leave local and already-relative sources untouched', () => {
+    const src = [{ name: 'Inter Var' }, { url: './inter.woff2' }, { url: 'https://cdn.example.com/inter.woff2' }]
+
+    expect(relativiseFontSources({ src }, '/css').src).toEqual(src)
   })
 })

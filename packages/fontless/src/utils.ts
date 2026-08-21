@@ -72,14 +72,14 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
 
   const promises = [] as Promise<unknown>[]
 
-  async function addFontFaceDeclaration(fontFamily: string, fallbackOptions?: {
+  async function addFontFaceDeclaration(fontFamily: string, fallbackOptions: {
     generic?: GenericCSSFamily
     fallbacks: string[]
     index: number
   }) {
     const result = await options.resolveFontFace(fontFamily, {
-      generic: fallbackOptions?.generic,
-      fallbacks: fallbackOptions?.fallbacks || [],
+      generic: fallbackOptions.generic,
+      fallbacks: fallbackOptions.fallbacks,
     }) || {}
 
     if (!result.fonts || result.fonts.length === 0)
@@ -120,7 +120,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
                 sourceMap: false,
                 ...options.lightningcssOptions,
               })
-              declaration = result.code.toString() || declaration
+              declaration = result.code.toString()
             }
             catch (error) {
               logger.warn(`Could not minify generated \`@font-face\` in \`${id}\`. Falling back to unminified CSS.`, error)

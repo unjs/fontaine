@@ -64,6 +64,31 @@ describe('normalizeFontData', () => {
     expect(context.renderedFontURLs.size).toBe(0)
   })
 
+  it('should hash the whole URL when it has no filename', () => {
+    const context = createContext()
+    normalizeFontData(context, { src: [{ url: 'https://fonts.example.com/', format: 'woff2' }] })
+    normalizeFontData(context, { src: [{ url: 'https://other.example.com/', format: 'woff2' }] })
+
+    const files = [...context.renderedFontURLs.keys()]
+    expect(files).toHaveLength(2)
+    expect(files[0]).not.toBe(files[1])
+    expect(files.every(file => file.endsWith('.woff2'))).toBe(true)
+  })
+
+  it('should derive the extension from the format when the URL has none', () => {
+    const context = createContext()
+    normalizeFontData(context, { src: [{ url: 'https://fonts.example.com/font', format: 'woff2' }] })
+
+    expect([...context.renderedFontURLs.keys()][0]).toMatch(/\.woff2$/)
+  })
+
+  it('should emit no extension when neither the URL nor the format provides one', () => {
+    const context = createContext()
+    normalizeFontData(context, { src: [{ url: 'https://fonts.example.com/font', format: 'unknown-format' }] })
+
+    expect([...context.renderedFontURLs.keys()][0]).not.toContain('.')
+  })
+
   it('should normalise unicode ranges to an array', () => {
     const [face] = normalizeFontData(createContext(), { src: 'Some Local Font', unicodeRange: 'U+0000-00FF' })
     expect(face!.unicodeRange).toEqual(['U+0000-00FF'])

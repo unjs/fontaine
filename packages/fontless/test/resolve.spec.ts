@@ -15,6 +15,19 @@ function createMockProviderFn(
   }) as Provider
 }
 
+// Provider that resolves to no fonts at all
+function createEmptyProvider(name: string, result?: { fonts: FontFaceData[], provider?: string | undefined }): () => Provider {
+  return () => createMockProviderFn(name, async () => result as any)
+}
+
+function createLogger() {
+  const warnings: string[] = []
+  return {
+    warnings,
+    logger: { warn: (message: string) => void warnings.push(message) } as any,
+  }
+}
+
 // Simple mock provider that tracks calls
 function createTrackingProvider(name: string): { provider: () => Provider, calls: Array<{ family: string, options: unknown }> } {
   const calls: Array<{ family: string, options: unknown }> = []
@@ -369,6 +382,203 @@ describe('createResolver', () => {
       await resolver('Inter')
 
       expect(googleCalls).toHaveLength(1)
+    })
+  })
+
+  describe('provider registration', () => {
+    it('should drop providers disabled via the `providers` option', async () => {
+      const { provider: google, calls: googleCalls } = createTrackingProvider('google')
+      const { provider: npm, calls: npmCalls } = createTrackingProvider('npm')
+
+      const resolver = await createResolver({
+        options: { providers: { google, npm: false } },
+        providers: { google, npm },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      await resolver('Inter')
+
+      expect(googleCalls).toHaveLength(1)
+      expect(npmCalls).toHaveLength(0)
+    })
+
+    it('should drop every provider but the one named by `provider`', async () => {
+      const { provider: google, calls: googleCalls } = createTrackingProvider('google')
+      const { provider: npm, calls: npmCalls } = createTrackingProvider('npm')
+
+      const resolver = await createResolver({
+        options: { provider: 'npm', providers: { google, npm } },
+        providers: { google, npm },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      await resolver('Inter')
+
+      expect(npmCalls).toHaveLength(1)
+      expect(googleCalls).toHaveLength(0)
+    })
+
+    it('should throw when every provider has been disabled', async () => {
+      const { provider: google } = createTrackingProvider('google')
+
+      await expect(createResolver({
+        options: { providers: { google: false } },
+        providers: { google },
+        normalizeFontData: defaultNormalizeFontData,
+      })).rejects.toThrow('At least one font provider must be configured')
+    })
+
+    it('should ignore unknown providers listed in `priority`', async () => {
+      const { provider: google, calls: googleCalls } = createTrackingProvider('google')
+
+      const resolver = await createResolver({
+        options: { priority: ['google', 'nonexistent'], providers: { google } },
+        providers: { google },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      await resolver('Inter')
+
+      expect(googleCalls).toHaveLength(1)
+    })
+  })
+
+  describe('fallbacks', () => {
+    it('should apply a global fallbacks array to every generic family', async () => {
+      const { provider } = createTrackingProvider('test')
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider }, defaults: { fallbacks: ['Arial'] } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      const result = await resolver('Inter', undefined, { fallbacks: [], generic: 'serif' })
+
+      expect(result?.fallbacks).toEqual(['Arial'])
+    })
+
+    it('should skip local fallbacks when disabled', async () => {
+      const { provider } = createTrackingProvider('test')
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider }, experimental: { disableLocalFallbacks: true } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      const result = await resolver('Inter')
+
+      expect(result?.fonts?.every(font => font.src.every(src => 'url' in src))).toBe(true)
+    })
+  })
+
+  describe('override options', () => {
+    it('should stringify weights and pass styles and subsets from the override', async () => {
+      const { provider, calls } = createTrackingProvider('test')
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      await resolver('Inter', {
+        name: 'Inter',
+        weights: [400, 700],
+        styles: ['italic'],
+        subsets: ['cyrillic'],
+      })
+
+      expect(calls[0]?.options).toMatchObject({
+        weights: ['400', '700'],
+        styles: ['italic'],
+        subsets: ['cyrillic'],
+      })
+    })
+
+    it('should warn and fall back to default providers for an unknown provider', async () => {
+      const { provider, calls } = createTrackingProvider('test')
+      const { logger, warnings } = createLogger()
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+        logger,
+      })
+
+      await resolver('Inter', { name: 'Inter', provider: 'nonexistent' })
+
+      expect(warnings[0]).toContain('Unknown provider `nonexistent`')
+      expect(calls).toHaveLength(1)
+    })
+
+    it('should warn when an explicit provider produces no font faces', async () => {
+      const provider = createEmptyProvider('test', { fonts: [] })
+      const { logger, warnings } = createLogger()
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+        logger,
+      })
+
+      const result = await resolver('Inter', { name: 'Inter', provider: 'test' })
+
+      expect(result).toBeUndefined()
+      expect(warnings[0]).toContain('Could not produce font face declaration from `test`')
+    })
+
+    it('should warn when an override produces no font faces', async () => {
+      const provider = createEmptyProvider('test', { fonts: [] })
+      const { logger, warnings } = createLogger()
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+        logger,
+      })
+
+      const result = await resolver('Inter', { name: 'Inter', weights: [400] })
+
+      expect(result).toBeUndefined()
+      expect(warnings[0]).toContain('Could not produce font face declaration for `Inter` with override')
+    })
+
+    it('should return undefined without warning when no provider resolves the family', async () => {
+      const provider = createEmptyProvider('test')
+      const { logger, warnings } = createLogger()
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+        logger,
+      })
+
+      expect(await resolver('Inter')).toBeUndefined()
+      expect(warnings).toEqual([])
+    })
+  })
+
+  describe('exposeFont', () => {
+    it('should report `unknown` when the resolving provider is not named', async () => {
+      const provider = createEmptyProvider('test', { fonts: [{ src: [{ url: '/font.woff2' }] }], provider: undefined })
+      const exposed: Array<{ provider?: string }> = []
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+        exposeFont: font => void exposed.push(font as { provider?: string }),
+      })
+
+      await resolver('Inter')
+
+      expect(exposed[0]?.provider).toBe('unknown')
     })
   })
 })

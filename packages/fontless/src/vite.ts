@@ -29,7 +29,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   const options = defu(_options, defaultOptions satisfies FontlessOptions) as FontlessOptions
 
   let cssTransformOptions: FontFamilyInjectionPluginOptions
-  let assetContext: NormalizeFontDataContext
+  let assetContext: NormalizeFontDataContext & { baseURL: string }
   let command: 'build' | 'serve'
   let server: ViteDevServer | undefined
   const RUNTIME_NAME = 'fontless/runtime'
@@ -104,10 +104,13 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
           ? file => buildContext.getStore()?.emit(file)
           : undefined,
         callback: (file, url) => {
-          publicFontURLs.set(url, joinURL(assetContext.baseURL || '/', assetContext.assetsBaseURL, file))
+          publicFontURLs.set(url, joinURL(assetContext.baseURL, assetContext.assetsBaseURL, file))
         },
       }
 
+      // A resolved config always normalises `resolve.alias` to an array, which jiti cannot
+      // consume; the object form is only reachable via a hand-built config object.
+      /* v8 ignore next */
       const alias = Array.isArray(config.resolve.alias) ? {} : config.resolve.alias
       const providers = await resolveProviders(options.providers, { root: config.root, alias })
 
@@ -163,7 +166,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       // based on https://github.com/nuxt/fonts/blob/e7f537a0357896d34be9c17031b3178fb4e79042/src/assets.ts#L30
       server = server_
       // Connect middlewares see the full request path, including `base`
-      const mountPath = joinURL(assetContext.baseURL || '/', assetContext.assetsBaseURL)
+      const mountPath = joinURL(assetContext.baseURL, assetContext.assetsBaseURL)
       server.middlewares.use(mountPath, async (req, res, next) => {
         try {
           const filename = req.url!.slice(1)

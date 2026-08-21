@@ -18,7 +18,13 @@ export default defineConfig({
     },
     dir: 'test',
     coverage: {
-      include: ['src'],
+      thresholds: {
+        branches: 100,
+        functions: 100,
+        lines: 100,
+        statements: 100,
+      },
+      include: ['src/**/*.ts'],
       reporter: ['text', 'json', 'html'],
     },
   },

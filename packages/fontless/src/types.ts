@@ -116,7 +116,8 @@ export interface FontlessOptions {
      * @default ['woff2']
      */
     formats: FontFormat[]
-    fallbacks?: Partial<Record<GenericCSSFamily, string[]>>
+    /** An array applies to every generic family, overriding the per-category defaults. */
+    fallbacks?: string[] | Partial<Record<GenericCSSFamily, string[]>>
   }>
   providers?: {
     adobe?: ProviderOption

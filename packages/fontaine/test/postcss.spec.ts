@@ -288,6 +288,30 @@ describe('fontaine postcss plugin', () => {
     expect(fromFile).toHaveBeenCalledWith(fileURLToPath(new URL('./fixtures/my.woff2', import.meta.url)))
   })
 
+  it('should resolve font paths against the stylesheet when the source map has no mapping for the rule', async () => {
+    // @ts-expect-error not typed as mock
+    fromFile.mockReset()
+
+    const entry = fileURLToPath(new URL('./main.css', import.meta.url))
+    const prev = JSON.stringify({
+      version: 3,
+      file: 'main.css',
+      sources: ['fixtures/_fonts.scss'],
+      names: [],
+      mappings: '',
+    })
+
+    await postcss([fontaine({ fallbacks: ['Arial'] })])
+      .process(`
+        @font-face {
+          font-family: "Unknown Family";
+          src: url('./fixtures/my.woff2') format('woff2');
+        }
+      `, { from: entry, map: { prev, inline: false } })
+
+    expect(fromFile).toHaveBeenCalledWith(fileURLToPath(new URL('./fixtures/my.woff2', import.meta.url)))
+  })
+
   it('should not generate `@font-face` rules when no fallback has metrics', async () => {
     const result = await process(`
       @font-face {

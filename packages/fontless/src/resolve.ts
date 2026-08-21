@@ -124,8 +124,8 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
           : defaults
         const result = await unifont.resolveFont(fontFamily, resolveOptions as typeof defaults, [override.provider])
         // Rewrite font source URLs to be proxied/local URLs
-        const fonts = normalizeFontData(result?.fonts || [])
-        if (!fonts.length || !result) {
+        const fonts = normalizeFontData(result.fonts)
+        if (!fonts.length) {
           logger.warn(`Could not produce font face declaration from \`${override.provider}\` for font family \`${fontFamily}\`.`)
           return
         }
@@ -152,26 +152,26 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
       : defaults
 
     const result = await unifont.resolveFont(fontFamily, resolveOptions as typeof defaults, [...prioritisedProviders])
-    if (result) {
-      // Rewrite font source URLs to be proxied/local URLs
-      const fonts = normalizeFontData(result.fonts)
-      if (fonts.length > 0) {
-        const fontsWithLocalFallbacks = addFallbacks(fontFamily, fonts)
-        // TODO: expose provider name in result
-        exposeFont({
-          type: 'auto',
-          fontFamily,
-          provider: result.provider || 'unknown',
-          fonts: fontsWithLocalFallbacks,
-        })
-        return {
-          fallbacks: defaults.fallbacks,
-          fonts: fontsWithLocalFallbacks,
-        }
-      }
+    // Rewrite font source URLs to be proxied/local URLs
+    const fonts = normalizeFontData(result.fonts)
+    if (fonts.length === 0) {
       if (override) {
         logger.warn(`Could not produce font face declaration for \`${fontFamily}\` with override.`)
       }
+      return
+    }
+
+    const fontsWithLocalFallbacks = addFallbacks(fontFamily, fonts)
+    // TODO: expose provider name in result
+    exposeFont({
+      type: 'auto',
+      fontFamily,
+      provider: result.provider || 'unknown',
+      fonts: fontsWithLocalFallbacks,
+    })
+    return {
+      fallbacks: defaults.fallbacks,
+      fonts: fontsWithLocalFallbacks,
     }
   }
 }
