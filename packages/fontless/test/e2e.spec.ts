@@ -18,6 +18,8 @@ describe.each(fixtures)('e2e %s', (fixture) => {
   it('should compile', { timeout: 20_000 }, async () => {
     const root = fileURLToPath(new URL(`../examples/${fixture}`, import.meta.url))
     let outputDir: string
+    const cwd = process.cwd()
+    process.chdir(root)
     await build({
       root,
       plugins: [
@@ -28,14 +30,14 @@ describe.each(fixtures)('e2e %s', (fixture) => {
           },
         },
       ],
-    })
+    }).finally(() => process.chdir(cwd))
 
     const files = await Array.fromAsync(fsp.glob('**/*', { cwd: outputDir! }))
 
     const css = files.find(file => file.endsWith('.css'))
     expect(css, `no CSS file emitted for ${fixture}`).toBeDefined()
     const content = await readFile(join(outputDir!, css!), 'utf-8')
-    expect(content).toContain('url(/assets/_fonts')
+    expect(content).toMatch(/url\((?:\.\.\/)*\/?assets\/_fonts/)
     if (fixture === 'vanilla-app') {
       expect(content).toMatch(/--font-test-variable:\s*"Press Start 2P", "Press Start 2P Fallback: BlinkMacSystemFont", "Press Start 2P Fallback: Segoe UI", "Press Start 2P Fallback: Helvetica Neue", "Press Start 2P Fallback: Arial", "Press Start 2P Fallback: Noto Sans", sans-serif/)
       const html = files.find(file => file.endsWith('.html'))!
