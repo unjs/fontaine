@@ -13,7 +13,6 @@
   "scripts": {
     "build": "pnpm --filter fontaine --filter fontless build",
     "lint": "eslint .",
-    "release": "bumpp packages/fontaine/package.json --tag fontaine@ --sign && bumpp packages/fontless/package.json --tag fontless@ --sign",
     "test:unit": "pnpm -r test:unit",
     "test:types": "pnpm -r test:types",
     "test:knip": "knip",
@@ -22,9 +21,6 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "9.3.0",
-    "bumpp": "12.2.1",
-    "changelogen": "0.6.2",
-    "changelogithub": "15.0.4",
     "eslint": "10.8.1",
     "installed-check": "11.0.0",
     "knip": "6.32.2",
