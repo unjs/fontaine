@@ -20,10 +20,10 @@ const QUOTES_RE = createRegExp(
   ['g'],
 )
 
-export const withoutQuotes = (str: string) => str.trim().replace(QUOTES_RE, '')
+export const withoutQuotes = (str: string): string => str.trim().replace(QUOTES_RE, '')
 
 // https://developer.mozilla.org/en-US/docs/Web/CSS/font-family
-const genericCSSFamilies = new Set([
+export const genericCSSFamilies: Set<string> = new Set([
   'serif',
   'sans-serif',
   'monospace',
@@ -159,7 +159,9 @@ interface FallbackOptions {
 export type FontFaceMetrics = Pick<
   Font,
   'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'
->
+> & {
+  category?: string
+}
 
 /**
  * Generates a CSS `@font-face' declaration for a font, taking fallback and resizing into account.

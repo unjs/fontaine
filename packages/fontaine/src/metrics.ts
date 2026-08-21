@@ -2,20 +2,24 @@ import type { Font } from '@capsizecss/unpack'
 import type { FontFaceMetrics } from './css'
 
 import { fileURLToPath } from 'node:url'
-import { fromFile, fromUrl } from '@capsizecss/unpack'
+import { fromUrl } from '@capsizecss/unpack'
+import { fromFile } from '@capsizecss/unpack/fs'
 import { parseURL } from 'ufo'
 
 import { withoutQuotes } from './css'
 
 const metricCache: Record<string, FontFaceMetrics | null> = {}
 
-function filterRequiredMetrics({ ascent, descent, lineGap, unitsPerEm, xWidthAvg }: Pick<Font, 'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'>) {
+type RequiredFontMetrics = Pick<Font, 'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'> & { category?: string }
+
+function filterRequiredMetrics(font: RequiredFontMetrics): FontFaceMetrics {
   return {
-    ascent,
-    descent,
-    lineGap,
-    unitsPerEm,
-    xWidthAvg,
+    ascent: font.ascent,
+    descent: font.descent,
+    lineGap: font.lineGap,
+    unitsPerEm: font.unitsPerEm,
+    xWidthAvg: font.xWidthAvg,
+    category: font.category,
   }
 }
 
@@ -25,11 +29,11 @@ function filterRequiredMetrics({ ascent, descent, lineGap, unitsPerEm, xWidthAvg
  * @returns {Promise<FontFaceMetrics | null>} - A promise that resolves with the filtered font metrics or null if not found. See {@link FontFaceMetrics}.
  * @async
  */
-export async function getMetricsForFamily(family: string) {
+export async function getMetricsForFamily(family: string): Promise<FontFaceMetrics | null> {
   family = withoutQuotes(family)
 
   if (family in metricCache)
-    return metricCache[family]
+    return metricCache[family] ?? null
 
   try {
     const name = fontFamilyToCamelCase(family)
@@ -61,11 +65,11 @@ const urlRequestCache = new Map<string, Promise<Font>>()
  * @returns {Promise<FontFaceMetrics | null>} - A promise that resolves to the filtered font metrics or null if the source cannot be processed.
  * @async
  */
-export async function readMetrics(_source: URL | string) {
+export async function readMetrics(_source: URL | string): Promise<FontFaceMetrics | null> {
   const source = typeof _source !== 'string' && 'href' in _source ? _source.href : _source
 
   if (source in metricCache)
-    return metricCache[source]
+    return metricCache[source] ?? null
 
   const { protocol } = parseURL(source)
   if (!protocol)

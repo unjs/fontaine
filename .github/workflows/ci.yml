@@ -7,15 +7,16 @@ on:
   push:
     branches:
       - main
+  merge_group:
 
 jobs:
   lint:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: corepack enable
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: lts/*
           cache: pnpm
@@ -39,9 +40,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: corepack enable
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: lts/*
           cache: pnpm
@@ -59,7 +60,7 @@ jobs:
         run: pnpm test:unit --coverage
 
       - name: 🟩 Coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 

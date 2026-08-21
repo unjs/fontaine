@@ -1,13 +1,11 @@
 import type { CssNode, StyleSheet } from 'css-tree'
-import type { TransformOptions as ESBuildTransformOptions } from 'esbuild'
 import type { TransformOptions as LightningCSSTransformOptions } from 'lightningcss'
 import type { FontFaceData, RemoteFontSource } from 'unifont'
-import type { ESBuildOptions } from 'vite'
 import type { GenericCSSFamily } from './css/parse'
 import type { Awaitable } from './types'
 import { Buffer } from 'node:buffer'
+import { consola } from 'consola'
 import { parse, walk } from 'css-tree'
-import { transform as esbuildTransform } from 'esbuild'
 import { transform as lightningCSSTransform } from 'lightningcss'
 import MagicString from 'magic-string'
 
@@ -16,43 +14,20 @@ import { withLeadingSlash } from 'ufo'
 import { extractEndOfFirstChild, extractFontFamilies, extractGeneric } from './css/parse'
 import { generateFontFace, generateFontFallbacks, relativiseFontSources } from './css/render'
 
+const logger = consola.withTag('fontless')
+
 export interface FontFaceResolution {
   fonts?: FontFaceData[]
   fallbacks?: string[]
 }
 
 export interface FontFamilyInjectionPluginOptions {
-  esbuildOptions?: ESBuildTransformOptions
   lightningcssOptions?: Partial<LightningCSSTransformOptions<any>>
   resolveFontFace: (fontFamily: string, fallbackOptions?: { fallbacks: string[], generic?: GenericCSSFamily }) => Awaitable<undefined | FontFaceResolution>
   dev: boolean
-  processCSSVariables?: boolean | 'font-prefixed-only'
-  shouldPreload: (fontFamily: string, font: FontFaceData) => boolean
+  processCSSVariables?: boolean | 'font-prefixed-only' | (string & {})
+  selectFontsToPreload?: (fontFamily: string, fonts: FontFaceData[]) => FontFaceData[]
   fontsToPreload: Map<string, Set<string>>
-}
-
-// Inlined from https://github.com/vitejs/vite/blob/main/packages/vite/src/node/plugins/css.ts#L1824-L1849
-export function resolveMinifyCssEsbuildOptions(options: ESBuildOptions): ESBuildTransformOptions {
-  const base: ESBuildTransformOptions = {
-    charset: options.charset ?? 'utf8',
-    logLevel: options.logLevel,
-    logLimit: options.logLimit,
-    logOverride: options.logOverride,
-    legalComments: options.legalComments,
-    // added by this module
-    target: options.target ?? 'chrome',
-  }
-
-  if (options.minifyIdentifiers != null || options.minifySyntax != null || options.minifyWhitespace != null) {
-    return {
-      ...base,
-      minifyIdentifiers: options.minifyIdentifiers ?? true,
-      minifySyntax: options.minifySyntax ?? true,
-      minifyWhitespace: options.minifyWhitespace ?? true,
-    }
-  }
-
-  return { ...base, minify: true }
 }
 
 function findSafeInsertionIndex(ast: CssNode): number {
@@ -70,7 +45,25 @@ function findSafeInsertionIndex(ast: CssNode): number {
   return safeIndex
 }
 
-export async function transformCSS(options: FontFamilyInjectionPluginOptions, code: string, id: string, opts: { relative?: boolean } = {}) {
+function shouldSkipDeclaration(
+  property: string,
+  processCSSVariables: FontFamilyInjectionPluginOptions['processCSSVariables'],
+  atRuleName?: string,
+): boolean {
+  if (atRuleName === 'font-face')
+    return true
+  if (property === 'font-family' || property === 'font')
+    return false
+  if (!processCSSVariables)
+    return true
+  if (processCSSVariables === 'font-prefixed-only')
+    return !property.startsWith('--font')
+  if (processCSSVariables === true)
+    return !property.startsWith('--')
+  return !property.startsWith(`--${processCSSVariables}-`)
+}
+
+export async function transformCSS(options: FontFamilyInjectionPluginOptions, code: string, id: string, opts: { relative?: boolean } = {}): Promise<MagicString> {
   const s = new MagicString(code)
   const ast = parse(code, { positions: true })
 
@@ -95,9 +88,10 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
     const fallbackMap = result.fallbacks?.map(f => ({ font: f, name: `${fontFamily} Fallback: ${f}` })) || []
     let insertFontFamilies = false
 
-    const [topPriorityFont] = result.fonts.sort((a, b) => (a.meta?.priority || 0) - (b.meta?.priority || 0))
-    if (topPriorityFont && options.shouldPreload(fontFamily, topPriorityFont)) {
-      const fontToPreload = topPriorityFont.src.find((s): s is RemoteFontSource => 'url' in s)?.url
+    result.fonts.sort((a, b) => (a.meta?.priority || 0) - (b.meta?.priority || 0))
+    const fontsToPreload = options.selectFontsToPreload?.(fontFamily, result.fonts) ?? []
+    for (const font of fontsToPreload) {
+      const fontToPreload = font.src.find((s): s is RemoteFontSource => 'url' in s)?.url
       if (fontToPreload) {
         const urls = options.fontsToPreload.get(id) || new Set()
         options.fontsToPreload.set(id, urls.add(fontToPreload))
@@ -118,7 +112,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
         if (!injectedDeclarations.has(declaration)) {
           injectedDeclarations.add(declaration)
           if (!options.dev) {
-            if (options.lightningcssOptions) {
+            try {
               const result = lightningCSSTransform({
                 filename: id,
                 code: Buffer.from(declaration),
@@ -128,13 +122,8 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
               })
               declaration = result.code.toString() || declaration
             }
-            else {
-              declaration = await esbuildTransform(declaration, {
-                loader: 'css',
-                charset: 'utf8',
-                minify: true,
-                ...options.esbuildOptions,
-              }).then(r => r.code || declaration).catch(() => declaration)
+            catch (error) {
+              logger.warn(`Could not minify generated \`@font-face\` in \`${id}\`. Falling back to unminified CSS.`, error)
             }
           }
           else {
@@ -183,12 +172,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
     walk(node, {
       visit: 'Declaration',
       enter(node) {
-        if ((
-          (node.property !== 'font-family' && node.property !== 'font')
-          && (options.processCSSVariables === false
-            || (options.processCSSVariables === 'font-prefixed-only' && !node.property.startsWith('--font'))
-            || (options.processCSSVariables === true && !node.property.startsWith('--'))))
-          || this.atrule?.name === 'font-face') {
+        if (shouldSkipDeclaration(node.property, options.processCSSVariables, this.atrule?.name)) {
           return
         }
 

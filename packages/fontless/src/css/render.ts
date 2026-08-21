@@ -4,7 +4,7 @@ import { generateFontFace as generateFallbackFontFace, getMetricsForFamily, read
 import { extname, relative } from 'pathe'
 import { hasProtocol } from 'ufo'
 
-export function generateFontFace(family: string, font: FontFaceData) {
+export function generateFontFace(family: string, font: FontFaceData): string {
   return [
     '@font-face {',
     `  font-family: '${family}';`,
@@ -20,7 +20,7 @@ export function generateFontFace(family: string, font: FontFaceData) {
   ].filter(Boolean).join('\n')
 }
 
-export async function generateFontFallbacks(family: string, data: FontFaceData, fallbacks?: Array<{ name: string, font: string }>) {
+export async function generateFontFallbacks(family: string, data: FontFaceData, fallbacks?: Array<{ name: string, font: string }>): Promise<string[]> {
   if (!fallbacks?.length)
     return []
 
@@ -49,9 +49,9 @@ const formatMap: Record<string, string> = {
   svg: 'svg',
 }
 const extensionMap = Object.fromEntries(Object.entries(formatMap).map(([key, value]) => [value, key]))
-export const formatToExtension = (format?: string) => format && format in extensionMap ? `.${extensionMap[format]}` : undefined
+export const formatToExtension = (format?: string): string | undefined => format && format in extensionMap ? `.${extensionMap[format]}` : undefined
 
-export function parseFont(font: string) {
+export function parseFont(font: string): RemoteFontSource | { name: string } {
   // render as `url("url/to/font") format("woff2")`
   if (font.startsWith('/') || hasProtocol(font)) {
     const extension = extname(font).slice(1)
@@ -67,14 +67,21 @@ export function parseFont(font: string) {
   return { name: font }
 }
 
+// https://drafts.csswg.org/css-fonts-4/#font-format-values
+const fontFormatKeywords = new Set(['collection', 'embedded-opentype', 'opentype', 'svg', 'truetype', 'woff', 'woff2'])
+
 function renderFontSrc(sources: Exclude<FontSource, string>[]) {
   return sources.map((src) => {
     if ('url' in src) {
       let rendered = `url("${src.url}")`
-      for (const key of ['format', 'tech'] as const) {
-        if (key in src) {
-          rendered += ` ${key}(${src[key]})`
-        }
+      // `format()` takes a `<font-format>` keyword, or a string for values outside
+      // that set (such as the legacy `woff2-variations`).
+      if (src.format) {
+        rendered += ` format(${fontFormatKeywords.has(src.format) ? src.format : `"${src.format}"`})`
+      }
+      // `tech()` takes `<font-tech>` keywords only — never a string.
+      if (src.tech) {
+        rendered += ` tech(${src.tech})`
       }
       return rendered
     }
@@ -82,7 +89,7 @@ function renderFontSrc(sources: Exclude<FontSource, string>[]) {
   }).join(', ')
 }
 
-export function relativiseFontSources(font: FontFaceData, relativeTo: string) {
+export function relativiseFontSources(font: FontFaceData, relativeTo: string): FontFaceData {
   return {
     ...font,
     src: font.src.map((source) => {

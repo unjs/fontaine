@@ -46,6 +46,7 @@ describe('getMetricsForFamily', () => {
     expect(metrics).toMatchInlineSnapshot(`
       {
         "ascent": 1968,
+        "category": "sans-serif",
         "descent": -546,
         "lineGap": 0,
         "unitsPerEm": 2000,
@@ -80,6 +81,7 @@ describe('getMetricsForFamily', () => {
     expect(metrics).toMatchInlineSnapshot(`
       {
         "ascent": 1025,
+        "category": "monospace",
         "descent": -275,
         "lineGap": 0,
         "unitsPerEm": 1000,
@@ -128,6 +130,7 @@ describe('readMetrics', () => {
     expect(metrics).toMatchInlineSnapshot(`
       {
         "ascent": 1050,
+        "category": undefined,
         "descent": -350,
         "lineGap": 100,
         "unitsPerEm": 1000,
@@ -147,6 +150,7 @@ describe('readMetrics', () => {
     expect(metrics).toMatchInlineSnapshot(`
       {
         "ascent": 1050,
+        "category": undefined,
         "descent": -350,
         "lineGap": 100,
         "unitsPerEm": 1000,

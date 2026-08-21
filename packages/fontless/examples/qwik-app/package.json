@@ -19,23 +19,17 @@
     "deploy": "echo 'Run \"npm run qwik add\" to install a server adapter'",
     "dev": "vite --mode ssr --port 5173",
     "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
-    "x-lint": "eslint \"src/**/*.ts*\"",
     "preview": "qwik build preview && vite preview --open --port 5173",
     "start": "vite --open --mode ssr",
     "qwik": "qwik"
   },
   "devDependencies": {
-    "@qwik.dev/core": "^2.0.0-beta.9",
-    "@qwik.dev/router": "^2.0.0-beta.9",
-    "@types/eslint": "8.56.12",
-    "@types/node": "20.19.17",
-    "@typescript-eslint/eslint-plugin": "7.18.0",
-    "@typescript-eslint/parser": "7.18.0",
-    "eslint": "8.57.0",
-    "eslint-plugin-qwik": "^2.0.0-beta.10",
+    "@qwik.dev/core": "^2.0.0-beta.13",
+    "@qwik.dev/router": "^2.0.0-beta.13",
+    "@types/node": "22.19.0",
     "fontless": "latest",
-    "typescript": "5.9.2",
-    "vite": "^7.1.7",
-    "vite-tsconfig-paths": "^4.3.2"
+    "typescript": "5.9.3",
+    "vite": "^7.3.6",
+    "vite-tsconfig-paths": "^5.1.4"
   }
 }
