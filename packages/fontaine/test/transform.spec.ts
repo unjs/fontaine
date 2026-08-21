@@ -143,6 +143,42 @@ describe('fontaine transform', () => {
     expect(fromFile).toHaveBeenCalledWith(fileURLToPath(new URL('./my.ttf', import.meta.url)))
   })
 
+  it('should generate @font-face rules for fonts pulled in via CSS `@import`', async () => {
+    const cssFilename = fileURLToPath(new URL('./test.css', import.meta.url))
+    expect(await transform(`
+      @import "./fixtures/imported.css";
+      .foo {
+        font-family: Poppins;
+      }
+    `, {}, cssFilename))
+      .toMatchInlineSnapshot(`
+        "@import "./fixtures/imported.css";
+        @font-face {
+          font-family: "Poppins fallback";
+          src: local("Segoe UI");
+          size-adjust: 112.7753%;
+          ascent-override: 93.1055%;
+          descent-override: 31.0352%;
+          line-gap-override: 8.8672%;
+          font-weight: 400;
+        }
+
+        @font-face {
+          font-family: "Poppins fallback";
+          src: local("Arial");
+          size-adjust: 112.1577%;
+          ascent-override: 93.6182%;
+          descent-override: 31.2061%;
+          line-gap-override: 8.916%;
+          font-weight: 400;
+        }
+
+        .foo {
+          font-family: Poppins, "Poppins fallback";
+        }"
+      `)
+  })
+
   it('should ignore unsupported extensions', async () => {
     // @ts-expect-error not typed as mock
     fromFile.mockReset()

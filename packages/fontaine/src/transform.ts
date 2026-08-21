@@ -1,5 +1,8 @@
+import type { CssNode } from 'css-tree'
 import type { FontCategory } from './fallbacks'
-import { pathToFileURL } from 'node:url'
+import { readFile } from 'node:fs/promises'
+import { createRequire } from 'node:module'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parse, walk } from 'css-tree'
 import { anyOf, char, createRegExp, exactly, oneOrMore } from 'magic-regexp'
 import MagicString from 'magic-string'
@@ -81,6 +84,44 @@ const RELATIVE_RE = createRegExp(
   exactly('.').or('..').and(anyOf('/', '\\')).at.lineStart(),
 )
 
+interface CssImport {
+  specifier: string
+  end: number
+}
+
+function extractCssImports(ast: CssNode): CssImport[] {
+  const imports: CssImport[] = []
+  walk(ast, {
+    visit: 'Atrule',
+    enter(node) {
+      if (node.name !== 'import' || !node.prelude)
+        return
+      walk(node.prelude, (child) => {
+        let specifier: string | undefined
+        if (child.type === 'String')
+          specifier = withoutQuotes(child.value)
+        else if (child.type === 'Url')
+          specifier = withoutQuotes(child.value)
+        if (specifier && !specifier.startsWith('http:') && !specifier.startsWith('https:') && !specifier.startsWith('data:')) {
+          imports.push({ specifier: specifier.replace(/[?#].*$/, ''), end: node.loc!.end.offset })
+        }
+      })
+    },
+  })
+  return imports
+}
+
+function resolveCssImport(specifier: string, importer: string): string | undefined {
+  try {
+    if (RELATIVE_RE.test(specifier) || isAbsolute(specifier))
+      return fileURLToPath(new URL(specifier, pathToFileURL(importer)))
+    return createRequire(importer).resolve(specifier)
+  }
+  catch {
+    return undefined
+  }
+}
+
 /**
  * Transforms CSS files to include font fallbacks.
  *
@@ -111,16 +152,48 @@ export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransfo
       },
       async handler(code, id) {
         const s = new MagicString(code)
+        const inserted = new Set<string>()
 
         const ast = parse(code, { positions: true })
 
-        for (const { family, source, index, properties } of parseFontFace(ast)) {
+        const fontFaces = parseFontFace(ast).map(face => ({ ...face, importer: id, prefix: '' }))
+
+        if (isAbsolute(id)) {
+          const imports = extractCssImports(ast)
+          const insertionIndex = imports.length ? Math.max(...imports.map(i => i.end)) : 0
+          const seen = new Set([id])
+          const queue = imports.map(i => ({ specifier: i.specifier, importer: id, depth: 0 }))
+
+          while (queue.length) {
+            const { specifier, importer, depth } = queue.shift()!
+            const resolved = resolveCssImport(specifier, importer)
+            if (!resolved || seen.has(resolved) || !CSS_RE.test(resolved))
+              continue
+            seen.add(resolved)
+
+            const importedCss = await readFile(resolved, 'utf-8').catch(() => null)
+            if (importedCss === null)
+              continue
+
+            const importedAst = parse(importedCss, { positions: true })
+            for (const face of parseFontFace(importedAst)) {
+              fontFaces.push({ ...face, index: insertionIndex, importer: resolved, prefix: '\n' })
+            }
+            if (depth < 5) {
+              for (const nested of extractCssImports(importedAst)) {
+                queue.push({ specifier: nested.specifier, importer: resolved, depth: depth + 1 })
+              }
+            }
+          }
+        }
+
+        for (const { family, source, index, properties, importer, prefix } of fontFaces) {
           if (!supportedExtensions.some(e => source?.endsWith(e)))
             continue
           if (skipFontFaceGeneration(fallbackName(family)))
             continue
 
-          const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsFromId(source, id).catch(() => null)))
+          const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsFromId(source, importer).catch(() => null)))
 
           /* v8 ignore next 2 */
           if (!metrics)
@@ -147,8 +220,13 @@ export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransfo
               metrics: fallbackMetrics,
               ...properties,
             })
+            const key = `${index}:${fontFace}`
+            if (inserted.has(key))
+              continue
+            inserted.add(key)
+
             cssContext.value += fontFace
-            s.appendLeft(index, fontFace)
+            s.appendLeft(index, prefix + fontFace)
           }
         }
 
