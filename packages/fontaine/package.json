@@ -45,7 +45,7 @@
     "demo": "vite dev playground",
     "demo:dev": "pnpm demo --config test/vite.config.mjs",
     "lint": "eslint .",
-    "prepublishOnly": "pnpm lint && pnpm test",
+    "prepack": "pnpm build",
     "test": "pnpm test:unit && pnpm test:types",
     "test:types": "tsc --noEmit",
     "test:unit": "vitest run"

@@ -2,44 +2,108 @@ name: release
 
 on:
   push:
-    tags:
-      - 'fontless@*'
-      - 'fontaine@*'
+    branches: [main]
+  pull_request:
+    types: [closed]
+    branches: [main]
+  # this is required to trigger releases when the release PR is merged, to
+  # rerun a release if needed, or to cut a prerelease (run from the default
+  # branch with `prerelease` set)
+  workflow_dispatch:
+    inputs:
+      prerelease:
+        description: 'Cut a prerelease instead of a normal release, e.g. `beta`, `rc`, or `0`'
+        required: false
+        default: ''
+      releases:
+        description: Publish payload emitted by uppt/release; leave empty when rerunning a publish by hand
+        required: false
+        default: ''
+
+permissions: {}
 
 jobs:
-  release:
+  pr:
+    if: |
+      !github.event.repository.fork
+      && (
+        (
+          github.event_name == 'push'
+          && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        ) || (
+          github.event_name == 'workflow_dispatch'
+          && !startsWith(github.ref, 'refs/tags/')
+        )
+      )
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      id-token: write
+      contents: write # push the release branch and delete superseded ones
+      pull-requests: write # create a release PR, update its body, close superseded PRs
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: danielroe/uppt/pr@8c636eeb6b4e5ed784935a1ddf409cff530add82 # v0.6.0
         with:
-          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: ${{ inputs.prerelease }}
+          mode: independent
+          packages: |
+            packages/*
 
-      - run: corepack enable
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+  release:
+    if: |
+      github.event_name == 'pull_request'
+      && github.event.pull_request.merged == true
+      && startsWith(github.event.pull_request.head.ref, 'release/')
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && !github.event.repository.fork
+    runs-on: ubuntu-latest
+    concurrency:
+      group: release-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    permissions:
+      contents: write # push the `<name>@X.Y.Z` tags and create the GitHub release
+      actions: write # chained dispatch of the publish run
+    steps:
+      - uses: danielroe/uppt/release@8c636eeb6b4e5ed784935a1ddf409cff530add82 # v0.6.0
         with:
-          node-version: lts/*
-          cache: pnpm
-          registry-url: 'https://registry.npmjs.org'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          mode: independent
+          packages: |
+            packages/*
 
-      - name: 📦 Install dependencies
-        run: pnpm install
+  pack:
+    if: |
+      github.event_name == 'workflow_dispatch'
+      && (startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/tags/release-'))
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pack-${{ github.ref }}
+      cancel-in-progress: false
+    permissions: {}
+    outputs:
+      files: ${{ steps.pack.outputs.files }}
+    steps:
+      - id: pack
+        uses: danielroe/uppt/pack@8c636eeb6b4e5ed784935a1ddf409cff530add82 # v0.6.0
+        with:
+          releases: ${{ inputs.releases }}
+          packages: |
+            packages/*
 
-      - name: 🛠 Build project
-        run: pnpm build
-
-      - name: 📦 Release fontaine
-        if: startsWith(github.ref, 'refs/tags/fontaine@')
-        run: pnpm publish --no-git-checks
-        working-directory: packages/fontaine
-
-      - name: 📦 Release fontless
-        if: startsWith(github.ref, 'refs/tags/fontless@')
-        run: pnpm publish --no-git-checks
-        working-directory: packages/fontless
-
-      - run: pnpm changelogithub
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  publish:
+    if: |
+      github.event_name == 'workflow_dispatch'
+      && (startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/tags/release-'))
+      && needs.pack.outputs.files != '[]'
+    needs: pack
+    runs-on: ubuntu-latest
+    concurrency:
+      group: publish-${{ github.ref }}
+      cancel-in-progress: false
+    permissions:
+      id-token: write # OIDC claim for npm trusted publisher
+    environment: npm # must match the trusted-publisher entry on npmjs.com
+    steps:
+      - uses: danielroe/uppt/publish@8c636eeb6b4e5ed784935a1ddf409cff530add82 # v0.6.0
+        with:
+          files: ${{ needs.pack.outputs.files }}
+          releases: ${{ inputs.releases }}
