@@ -68,8 +68,13 @@ describe(`e2e ${RSC_FIXTURE}`, () => {
     buildPromise ??= (async () => {
       const cwd = process.cwd()
       process.chdir(root)
-      const builder = await createBuilder({ root })
-      await builder.buildApp().finally(() => process.chdir(cwd))
+      try {
+        const builder = await createBuilder({ root })
+        await builder.buildApp()
+      }
+      finally {
+        process.chdir(cwd)
+      }
       return Array.fromAsync(fsp.glob('**/*', { cwd: outputDir }))
     })()
     return buildPromise

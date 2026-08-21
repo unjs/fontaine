@@ -44,8 +44,8 @@ test.describe('build react-router', () => {
   let baseURL: string
 
   test.beforeAll(async () => {
-    cli = runCli({ command: 'pnpm build', cwd: 'examples/react-router-app' })
-    await cli.done
+    const build = runCli({ command: 'pnpm build', cwd: 'examples/react-router-app' })
+    expect(await build.done).toBe(0)
     cli = runCli({ command: 'pnpm start', cwd: 'examples/react-router-app' })
     const port = await cli.findPort()
     baseURL = `http://localhost:${port}`
@@ -87,7 +87,7 @@ test.describe('build sveltekit', () => {
 
   test.beforeAll(async () => {
     const build = runCli({ command: 'pnpm build', cwd: 'examples/sveltekit-app' })
-    await build.done
+    expect(await build.done).toBe(0)
     cli = runCli({ command: 'pnpm preview', cwd: 'examples/sveltekit-app' })
     const port = await cli.findPort()
     baseURL = `http://localhost:${port}`
