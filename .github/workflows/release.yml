@@ -40,7 +40,7 @@ jobs:
       contents: write # push the release branch and delete superseded ones
       pull-requests: write # create a release PR, update its body, close superseded PRs
     steps:
-      - uses: danielroe/uppt/pr@eab9f223931c3dc20162c4bc45450ae0beb6884f # v0.6.1
+      - uses: danielroe/uppt/pr@3ebfa461eb9c99cddc94ce2009835638a134bd3b # v0.6.2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: ${{ inputs.prerelease }}
@@ -63,7 +63,7 @@ jobs:
       contents: write # push the `<name>@X.Y.Z` tags and create the GitHub release
       actions: write # chained dispatch of the publish run
     steps:
-      - uses: danielroe/uppt/release@eab9f223931c3dc20162c4bc45450ae0beb6884f # v0.6.1
+      - uses: danielroe/uppt/release@3ebfa461eb9c99cddc94ce2009835638a134bd3b # v0.6.2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           mode: independent
@@ -83,7 +83,7 @@ jobs:
       files: ${{ steps.pack.outputs.files }}
     steps:
       - id: pack
-        uses: danielroe/uppt/pack@eab9f223931c3dc20162c4bc45450ae0beb6884f # v0.6.1
+        uses: danielroe/uppt/pack@3ebfa461eb9c99cddc94ce2009835638a134bd3b # v0.6.2
         with:
           releases: ${{ inputs.releases }}
           packages: |
@@ -103,7 +103,7 @@ jobs:
       id-token: write # OIDC claim for npm trusted publisher
     environment: npm # must match the trusted-publisher entry on npmjs.com
     steps:
-      - uses: danielroe/uppt/publish@eab9f223931c3dc20162c4bc45450ae0beb6884f # v0.6.1
+      - uses: danielroe/uppt/publish@3ebfa461eb9c99cddc94ce2009835638a134bd3b # v0.6.2
         with:
           files: ${{ needs.pack.outputs.files }}
           releases: ${{ inputs.releases }}
