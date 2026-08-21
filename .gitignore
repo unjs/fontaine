@@ -8,3 +8,7 @@ coverage
 *.env*
 .husky
 test-results
+
+# fixture package for bare-specifier resolution tests
+!packages/fontaine/test/fixtures/node_modules
+!packages/fontaine/test/fixtures/node_modules/**
