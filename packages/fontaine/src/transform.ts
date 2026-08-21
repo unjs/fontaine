@@ -4,10 +4,11 @@ import { readFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parse, walk } from 'css-tree'
-import { anyOf, char, createRegExp, exactly, oneOrMore } from 'magic-regexp'
+import { anyOf, char, charIn, createRegExp, exactly, oneOrMore } from 'magic-regexp'
 import MagicString from 'magic-string'
 
 import { isAbsolute } from 'pathe'
+import { hasProtocol } from 'ufo'
 import { createUnplugin } from 'unplugin'
 import { generateFallbackName, generateFontFace, parseFontFace, withoutQuotes } from './css'
 import { resolveCategoryFallbacks } from './fallbacks'
@@ -83,6 +84,18 @@ const CSS_RE = createRegExp(
 const RELATIVE_RE = createRegExp(
   exactly('.').or('..').and(anyOf('/', '\\')).at.lineStart(),
 )
+
+const QUERY_OR_FRAGMENT_RE = createRegExp(
+  charIn('?#').and(oneOrMore(char).optionally()).at.lineEnd(),
+)
+
+/**
+ * Whether a CSS URL is resolved relative to the stylesheet that declared it, as opposed to
+ * the document root (`/font.woff2`) or an external location (`https:`, `//`, `data:`).
+ */
+function isStylesheetRelative(source: string) {
+  return !hasProtocol(source, { acceptRelative: true }) && !isAbsolute(source)
+}
 
 interface CssImport {
   specifier: string
@@ -206,7 +219,7 @@ export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransfo
   const skipFontFaceGeneration = options.skipFontFaceGeneration || (() => false)
 
   function readMetricsFromId(path: string, importer: string) {
-    const resolvedPath = isAbsolute(importer) && RELATIVE_RE.test(path)
+    const resolvedPath = isAbsolute(importer) && isStylesheetRelative(path)
       ? new URL(path, pathToFileURL(importer))
       : resolvePath(path)
     return readMetrics(resolvedPath)
@@ -254,7 +267,8 @@ export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransfo
           }
         }
 
-        for (const { family, source, index, properties, importer, prefix } of fontFaces) {
+        for (const { family, source: rawSource, index, properties, importer, prefix } of fontFaces) {
+          const source = rawSource?.replace(QUERY_OR_FRAGMENT_RE, '')
           if (!supportedExtensions.some(e => source?.endsWith(e)))
             continue
           if (skipFontFaceGeneration(fallbackName(family)))
