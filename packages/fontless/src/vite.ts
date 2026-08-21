@@ -1,9 +1,9 @@
-import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
+import type { Plugin, ViteDevServer } from 'vite'
 import type { NormalizeFontDataContext } from './assets'
 import type { LinkAttributes } from './runtime'
 import type { FontlessOptions } from './types'
-
 import type { FontFamilyInjectionPluginOptions } from './utils'
+
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { Buffer } from 'node:buffer'
 import { readFile } from 'node:fs/promises'
@@ -30,7 +30,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
 
   let cssTransformOptions: FontFamilyInjectionPluginOptions
   let assetContext: NormalizeFontDataContext
-  let resolvedConfig: ResolvedConfig
+  let command: 'build' | 'serve'
   let server: ViteDevServer | undefined
   const RUNTIME_NAME = 'fontless/runtime'
   let storage: ReturnType<typeof createFontlessStorage>
@@ -63,8 +63,17 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
     return res
   }
 
-  function getPreloads(): LinkAttributes[] {
-    const hrefs = [...cssTransformOptions.fontsToPreload.values()].flatMap(v => [...v])
+  // URLs of emitted fonts as the browser will request them, keyed by the URL that was
+  // written into the generated CSS. During build the latter is a per-environment asset
+  // placeholder, which cannot be rendered into a server bundle: the placeholder's
+  // reference id belongs to whichever environment emitted the font.
+  const publicFontURLs = new Map<string, string>()
+
+  function getPreloadHrefs() {
+    return [...cssTransformOptions.fontsToPreload.values()].flatMap(v => [...v])
+  }
+
+  function toPreloadLinks(hrefs: string[]): LinkAttributes[] {
     return hrefs.map(href => ({
       rel: 'preload',
       as: 'font',
@@ -77,7 +86,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
     name: 'vite-plugin-fontless',
     apply: (_config, env) => !env.isPreview,
     async configResolved(config) {
-      resolvedConfig = config
+      command = config.command
       storage = createFontlessStorage(_options?.cache, { root: config.root, cacheDir: config.cacheDir })
 
       assetContext = {
@@ -94,6 +103,9 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         resolveAssetURL: config.command === 'build'
           ? file => buildContext.getStore()?.emit(file)
           : undefined,
+        callback: (file, url) => {
+          publicFontURLs.set(url, joinURL(assetContext.baseURL || '/', assetContext.assetsBaseURL, file))
+        },
       }
 
       const alias = Array.isArray(config.resolve.alias) ? {} : config.resolve.alias
@@ -192,7 +204,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         if (s.hasChanged()) {
           // invalidate virtual module to ensure fresh preloads list during dev
           if (server) {
-            invalidateModuleByid(server, `\0${RUNTIME_NAME}`)
+            invalidateModuleById(server, `\0${RUNTIME_NAME}`)
           }
           return {
             code: s.toString(),
@@ -217,7 +229,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       handler() {
         // Preload doesn't work on initial rendering during dev since `fontsToPreload`
         // is empty before css is transformed.
-        return getPreloads().map(attrs => ({
+        return toPreloadLinks(getPreloadHrefs()).map(attrs => ({
           tag: 'link',
           attrs: attrs as unknown as Record<string, string>,
         }))
@@ -225,21 +237,19 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
     },
   }
 
+  function getRuntimePreloads(): LinkAttributes[] {
+    return toPreloadLinks(getPreloadHrefs().map(href => publicFontURLs.get(href) ?? href))
+  }
+
   const RUNTIME_PLACEHOLDER = '__FONTLESS_RUNTIME_BUILD_PLACEHOLDER__'
   const runtimePlugin: Plugin = {
     name: 'fontless-runtime',
-    config() {
-      return {
-        ssr: {
-          // ensure 'fontless/runtime' is loaded through vite
-          noExternal: ['fontless'],
-        },
-      }
-    },
     configEnvironment() {
       return {
         resolve: {
-          noExternal: ['fontless'],
+          // an externalised import would bypass `resolveId` below and load the
+          // published stub, which has no preloads in it
+          noExternal: [RUNTIME_NAME],
         },
       }
     },
@@ -257,25 +267,28 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         if (id === `\0${RUNTIME_NAME}`) {
           // during build, postpone replacement until `renderChunk`
           // to ensure fonts are collected through css transform
-          if (resolvedConfig.command === 'build') {
+          if (command === 'build') {
             return `export const { preloads } = ${RUNTIME_PLACEHOLDER}`
           }
-          return `export const { preloads } = ${JSON.stringify({ preloads: getPreloads() })}`
+          return `export const { preloads } = ${JSON.stringify({ preloads: getRuntimePreloads() })}`
         }
       },
     },
-    renderChunk(code, _chunk) {
-      if (code.includes(RUNTIME_PLACEHOLDER)) {
-        const s = new MagicString(code)
-        s.replaceAll(
-          RUNTIME_PLACEHOLDER,
-          JSON.stringify({ preloads: getPreloads() }),
-        )
-        return {
-          code: s.toString(),
-          map: s.generateMap({ hires: 'boundary' }),
+    renderChunk: {
+      order: 'pre',
+      handler(code) {
+        if (code.includes(RUNTIME_PLACEHOLDER)) {
+          const s = new MagicString(code)
+          s.replaceAll(
+            RUNTIME_PLACEHOLDER,
+            JSON.stringify({ preloads: getRuntimePreloads() }),
+          )
+          return {
+            code: s.toString(),
+            map: s.generateMap({ hires: 'boundary' }),
+          }
         }
-      }
+      },
     },
   }
 
@@ -285,7 +298,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   ]
 }
 
-function invalidateModuleByid(server: ViteDevServer, id: string) {
+function invalidateModuleById(server: ViteDevServer, id: string) {
   for (const environment of Object.values(server.environments)) {
     const mod = environment.moduleGraph.getModuleById(id)
     if (mod) {
