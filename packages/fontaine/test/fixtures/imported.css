@@ -1,0 +1,5 @@
+@font-face {
+  font-family: Poppins;
+  src: url('./poppins.woff2') format('woff2'), url('./poppins.woff') format('woff');
+  font-weight: 400;
+}

@@ -1,11 +1,16 @@
-import { pathToFileURL } from 'node:url'
+import type { CssNode } from 'css-tree'
+import type { FontCategory } from './fallbacks'
+import { readFile } from 'node:fs/promises'
+import { createRequire } from 'node:module'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parse, walk } from 'css-tree'
 import { anyOf, char, createRegExp, exactly, oneOrMore } from 'magic-regexp'
 import MagicString from 'magic-string'
-import { isAbsolute } from 'pathe'
 
+import { isAbsolute } from 'pathe'
 import { createUnplugin } from 'unplugin'
 import { generateFallbackName, generateFontFace, parseFontFace, withoutQuotes } from './css'
+import { resolveCategoryFallbacks } from './fallbacks'
 import { getMetricsForFamily, readMetrics } from './metrics'
 
 export interface FontaineTransformOptions {
@@ -27,6 +32,14 @@ export interface FontaineTransformOptions {
    * or an object where keys are font family names and values are arrays of fallback font families.
    */
   fallbacks: string[] | Record<string, string[]>
+
+  /**
+   * Category-specific fallback font stacks.
+   * When a font's category is detected (serif, sans-serif, monospace, etc.),
+   * these fallbacks will be used if no explicit per-family override is provided.
+   * @optional
+   */
+  categoryFallbacks?: Partial<Record<FontCategory, string[]>>
 
   /**
    * Function to resolve a given path to a valid URL or local path.
@@ -71,26 +84,126 @@ const RELATIVE_RE = createRegExp(
   exactly('.').or('..').and(anyOf('/', '\\')).at.lineStart(),
 )
 
+interface CssImport {
+  specifier: string
+  end: number
+}
+
+const SCSS_RE = createRegExp(
+  exactly('.')
+    .and(anyOf('sass', 'scss'))
+    .and(exactly('?').and(oneOrMore(char)).optionally())
+    .at.lineEnd(),
+)
+
+/**
+ * Replaces `//` line comments with spaces, preserving offsets.
+ *
+ * css-tree has no SCSS mode and bails on the first `//` comment, parsing the
+ * remainder of the file as a single `Raw` node, which hides every at-rule that
+ * follows it.
+ */
+function blankLineComments(code: string): string {
+  let result = ''
+  let index = 0
+
+  while (index < code.length) {
+    const char = code[index]!
+
+    if (char === '"' || char === '\'') {
+      const end = code.indexOf(char, index + 1)
+      const stop = end === -1 ? code.length : end + 1
+      result += code.slice(index, stop)
+      index = stop
+      continue
+    }
+
+    if (char === '/' && code[index + 1] === '*') {
+      const end = code.indexOf('*/', index + 2)
+      const stop = end === -1 ? code.length : end + 2
+      result += code.slice(index, stop)
+      index = stop
+      continue
+    }
+
+    // `url(...)` is unquoted, so its `//` must not be treated as a comment
+    if ((char === 'u' || char === 'U') && /^url\(/i.test(code.slice(index, index + 4))) {
+      const end = code.indexOf(')', index)
+      const stop = end === -1 ? code.length : end + 1
+      result += code.slice(index, stop)
+      index = stop
+      continue
+    }
+
+    if (char === '/' && code[index + 1] === '/') {
+      const newline = code.indexOf('\n', index)
+      const stop = newline === -1 ? code.length : newline
+      result += ' '.repeat(stop - index)
+      index = stop
+      continue
+    }
+
+    result += char
+    index++
+  }
+
+  return result
+}
+
+function extractCssImports(ast: CssNode): CssImport[] {
+  const imports: CssImport[] = []
+  walk(ast, {
+    visit: 'Atrule',
+    enter(node) {
+      if (node.name !== 'import' || node.prelude?.type !== 'AtrulePrelude')
+        return
+
+      let specifier: string | undefined
+      let conditional = false
+      for (const child of node.prelude.children) {
+        if (child.type === 'String' || child.type === 'Url') {
+          specifier ||= withoutQuotes(child.value)
+        }
+        else if (child.type === 'MediaQueryList' || (child.type === 'Function' && child.name.toLowerCase() === 'supports')) {
+          // Fallback rules generated from a conditionally-imported file would
+          // apply unconditionally, so skip media- and supports-gated imports.
+          conditional = true
+        }
+      }
+
+      if (specifier && !conditional && !specifier.startsWith('http:') && !specifier.startsWith('https:') && !specifier.startsWith('data:')) {
+        imports.push({ specifier: specifier.replace(/[?#].*$/, ''), end: node.loc!.end.offset })
+      }
+    },
+  })
+  return imports
+}
+
+function resolveCssImport(specifier: string, importer: string): string | undefined {
+  try {
+    if (RELATIVE_RE.test(specifier) || isAbsolute(specifier))
+      return fileURLToPath(new URL(specifier, pathToFileURL(importer)))
+    // `~` prefixes a bare specifier in the webpack/sass-loader convention
+    return createRequire(importer).resolve(specifier.replace(/^~/, ''))
+  }
+  catch {
+    return undefined
+  }
+}
+
 /**
  * Transforms CSS files to include font fallbacks.
  *
  * @param options - The transformation options. See {@link FontaineTransformOptions}.
  * @returns The unplugin instance.
  */
-export const FontaineTransform = createUnplugin((options: FontaineTransformOptions) => {
+export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransformOptions>> = createUnplugin((options: FontaineTransformOptions) => {
   const cssContext = (options.css = options.css || {})
   cssContext.value = ''
   const resolvePath = options.resolvePath || (id => id)
   const fallbackName = options.fallbackName || options.overrideName || generateFallbackName
 
   const skipFontFaceGeneration = options.skipFontFaceGeneration || (() => false)
-
-  function getFallbacksForFamily(family: string): string[] {
-    if (Array.isArray(options.fallbacks)) {
-      return options.fallbacks
-    }
-    return options.fallbacks[family] || []
-  }
 
   function readMetricsFromId(path: string, importer: string) {
     const resolvedPath = isAbsolute(importer) && RELATIVE_RE.test(path)
@@ -108,22 +221,57 @@ export const FontaineTransform = createUnplugin((options: FontaineTransformOptio
       },
       async handler(code, id) {
         const s = new MagicString(code)
+        const inserted = new Set<string>()
 
-        const ast = parse(code, { positions: true })
+        const ast = parse(SCSS_RE.test(id) ? blankLineComments(code) : code, { positions: true })
 
-        for (const { family, source, index, properties } of parseFontFace(ast)) {
+        const fontFaces = parseFontFace(ast).map(face => ({ ...face, importer: id, prefix: '' }))
+
+        if (isAbsolute(id)) {
+          const imports = extractCssImports(ast)
+          const insertionIndex = imports.length ? Math.max(...imports.map(i => i.end)) : 0
+          const seen = new Set([id])
+          const queue = imports.map(i => ({ specifier: i.specifier, importer: id }))
+
+          while (queue.length) {
+            const { specifier, importer } = queue.shift()!
+            const resolved = resolveCssImport(specifier, importer)
+            if (!resolved || seen.has(resolved) || !CSS_RE.test(resolved))
+              continue
+            seen.add(resolved)
+
+            const importedCss = await readFile(resolved, 'utf-8').catch(() => null)
+            if (importedCss === null)
+              continue
+
+            const importedAst = parse(SCSS_RE.test(resolved) ? blankLineComments(importedCss) : importedCss, { positions: true })
+            for (const face of parseFontFace(importedAst)) {
+              fontFaces.push({ ...face, index: insertionIndex, importer: resolved, prefix: '\n' })
+            }
+            for (const nested of extractCssImports(importedAst)) {
+              queue.push({ specifier: nested.specifier, importer: resolved })
+            }
+          }
+        }
+
+        for (const { family, source, index, properties, importer, prefix } of fontFaces) {
           if (!supportedExtensions.some(e => source?.endsWith(e)))
             continue
           if (skipFontFaceGeneration(fallbackName(family)))
             continue
 
-          const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsFromId(source, id).catch(() => null)))
+          const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsFromId(source, importer).catch(() => null)))
 
           /* v8 ignore next 2 */
           if (!metrics)
             continue
 
-          const familyFallbacks = getFallbacksForFamily(family)
+          const familyFallbacks = resolveCategoryFallbacks({
+            fontFamily: family,
+            fallbacks: options.fallbacks,
+            metrics,
+            categoryFallbacks: options.categoryFallbacks,
+          })
 
           // Iterate backwards: Browsers will use the last working font-face in the stylesheet
           for (let i = familyFallbacks.length - 1; i >= 0; i--) {
@@ -139,8 +287,13 @@ export const FontaineTransform = createUnplugin((options: FontaineTransformOptio
               metrics: fallbackMetrics,
               ...properties,
             })
+            const key = `${index}:${fontFace}`
+            if (inserted.has(key))
+              continue
+            inserted.add(key)
+
             cssContext.value += fontFace
-            s.appendLeft(index, fontFace)
+            s.appendLeft(index, prefix + fontFace)
           }
         }
 
