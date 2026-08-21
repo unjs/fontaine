@@ -46,6 +46,10 @@ describe.each(fixtures)('e2e %s', (fixture) => {
     if (fixture === 'tailwind') {
       expect(content).toMatch(/--font-sans:\s*"Geist", "Geist Fallback: BlinkMacSystemFont", "Geist Fallback: Segoe UI", "Geist Fallback: Helvetica Neue", "Geist Fallback: Arial", "Geist Fallback: Noto Sans",\s*sans-serif/)
       expect(content).toContain('format("woff2")')
+      const html = files.find(file => file.endsWith('.html'))!
+      const htmlContent = await readFile(join(outputDir!, html), 'utf-8')
+      expect(htmlContent).toContain('rel="preload" as="font"')
+      expect(htmlContent).toContain('.woff2"')
     }
 
     const font = files.find(file => file.endsWith('.woff2'))

@@ -257,7 +257,6 @@ describe('custom prefix for processCSSVariables', () => {
     const result = await transformCSS({
       dev: true,
       processCSSVariables: prefix,
-      shouldPreload: () => true,
       fontsToPreload: new Map(),
       resolveFontFace: (family, options) => ({
         fonts: [{ src: [{ url: `/${family.toLowerCase().replace(/\W/g, '-')}.woff2`, format: 'woff2' }] }],
@@ -371,7 +370,6 @@ describe('lightningcss integration', () => {
     const result = await transformCSS({
       dev: true,
       processCSSVariables: true,
-      shouldPreload: () => true,
       fontsToPreload: new Map(),
       lightningcssOptions: { minify: false },
       resolveFontFace: (family, options) => ({
@@ -395,7 +393,6 @@ async function transform(css: string) {
   const result = await transformCSS({
     dev: true,
     processCSSVariables: true,
-    shouldPreload: () => true,
     fontsToPreload: new Map(),
     resolveFontFace: (family, options) => ({
       fonts: [{ src: [{ url: `/${slugify(family)}.woff2`, format: 'woff2' }] }],
@@ -409,7 +406,6 @@ async function transformLightningCSS(css: string) {
   const result = await transformCSS({
     dev: false,
     processCSSVariables: true,
-    shouldPreload: () => true,
     fontsToPreload: new Map(),
     lightningcssOptions: { minify: true },
     resolveFontFace: (family, options) => ({
