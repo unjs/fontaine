@@ -89,6 +89,67 @@ interface CssImport {
   end: number
 }
 
+const SCSS_RE = createRegExp(
+  exactly('.')
+    .and(anyOf('sass', 'scss'))
+    .and(exactly('?').and(oneOrMore(char)).optionally())
+    .at.lineEnd(),
+)
+
+/**
+ * Replaces `//` line comments with spaces, preserving offsets.
+ *
+ * css-tree has no SCSS mode and bails on the first `//` comment, parsing the
+ * remainder of the file as a single `Raw` node, which hides every at-rule that
+ * follows it.
+ */
+function blankLineComments(code: string): string {
+  let result = ''
+  let index = 0
+
+  while (index < code.length) {
+    const char = code[index]!
+
+    if (char === '"' || char === '\'') {
+      const end = code.indexOf(char, index + 1)
+      const stop = end === -1 ? code.length : end + 1
+      result += code.slice(index, stop)
+      index = stop
+      continue
+    }
+
+    if (char === '/' && code[index + 1] === '*') {
+      const end = code.indexOf('*/', index + 2)
+      const stop = end === -1 ? code.length : end + 2
+      result += code.slice(index, stop)
+      index = stop
+      continue
+    }
+
+    // `url(...)` is unquoted, so its `//` must not be treated as a comment
+    if ((char === 'u' || char === 'U') && /^url\(/i.test(code.slice(index, index + 4))) {
+      const end = code.indexOf(')', index)
+      const stop = end === -1 ? code.length : end + 1
+      result += code.slice(index, stop)
+      index = stop
+      continue
+    }
+
+    if (char === '/' && code[index + 1] === '/') {
+      const newline = code.indexOf('\n', index)
+      const stop = newline === -1 ? code.length : newline
+      result += ' '.repeat(stop - index)
+      index = stop
+      continue
+    }
+
+    result += char
+    index++
+  }
+
+  return result
+}
+
 function extractCssImports(ast: CssNode): CssImport[] {
   const imports: CssImport[] = []
   walk(ast, {
@@ -122,7 +183,8 @@ function resolveCssImport(specifier: string, importer: string): string | undefin
   try {
     if (RELATIVE_RE.test(specifier) || isAbsolute(specifier))
       return fileURLToPath(new URL(specifier, pathToFileURL(importer)))
-    return createRequire(importer).resolve(specifier)
+    // `~` prefixes a bare specifier in the webpack/sass-loader convention
+    return createRequire(importer).resolve(specifier.replace(/^~/, ''))
   }
   catch {
     return undefined
@@ -161,7 +223,7 @@ export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransfo
         const s = new MagicString(code)
         const inserted = new Set<string>()
 
-        const ast = parse(code, { positions: true })
+        const ast = parse(SCSS_RE.test(id) ? blankLineComments(code) : code, { positions: true })
 
         const fontFaces = parseFontFace(ast).map(face => ({ ...face, importer: id, prefix: '' }))
 
@@ -182,7 +244,7 @@ export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransfo
             if (importedCss === null)
               continue
 
-            const importedAst = parse(importedCss, { positions: true })
+            const importedAst = parse(SCSS_RE.test(resolved) ? blankLineComments(importedCss) : importedCss, { positions: true })
             for (const face of parseFontFace(importedAst)) {
               fontFaces.push({ ...face, index: insertionIndex, importer: resolved, prefix: '\n' })
             }

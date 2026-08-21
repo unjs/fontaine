@@ -1,5 +1,6 @@
 import type { RollupPlugin } from 'unplugin'
 import type { FontaineTransformOptions } from '../src/transform'
+import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { fromUrl } from '@capsizecss/unpack'
 import { fromFile } from '@capsizecss/unpack/fs'
@@ -188,6 +189,70 @@ describe('fontaine transform', () => {
       }
     `, {}, cssFilename)
     expect(result).toContain('font-family: "Poppins fallback"')
+  })
+
+  it('should resolve `~`-prefixed imports in SCSS files with line comments', async () => {
+    const scssFilename = fileURLToPath(new URL('./fixtures/with-comments.scss', import.meta.url))
+    const scss = await readFile(scssFilename, 'utf-8')
+    expect(await transform(scss, {}, scssFilename))
+      .toMatchInlineSnapshot(`
+        "// [Poppins Variable]
+        @import "~@fake-fontsource/dm-sans";
+        @font-face {
+          font-family: "Poppins fallback";
+          src: local("Segoe UI");
+          size-adjust: 112.7753%;
+          ascent-override: 93.1055%;
+          descent-override: 31.0352%;
+          line-gap-override: 8.8672%;
+          font-weight: 400;
+        }
+
+        @font-face {
+          font-family: "Poppins fallback";
+          src: local("Arial");
+          size-adjust: 112.1577%;
+          ascent-override: 93.6182%;
+          descent-override: 31.2061%;
+          line-gap-override: 8.916%;
+          font-weight: 400;
+        }
+
+        // url(https://example.com/not-a-comment.css)
+        .foo {
+          font-family: Poppins, "Poppins fallback";
+        }"
+      `)
+  })
+
+  it('should not treat `//` inside strings, comments or `url()` as a line comment', async () => {
+    expect(await transform(`
+      /* https://example.com/block.css */
+      .foo {
+        background: url(https://example.com/a.png);
+        content: 'https://example.com';
+        font-family: Poppins;
+      }
+    `, {}, 'test.scss'))
+      .toMatchInlineSnapshot(`
+        "/* https://example.com/block.css */
+        .foo {
+          background: url(https://example.com/a.png);
+          content: 'https://example.com';
+          font-family: Poppins, "Poppins fallback";
+        }"
+      `)
+  })
+
+  it('should tolerate unterminated strings, comments and `url()` in SCSS', async () => {
+    expect(await transform(`.foo { font-family: Poppins; } /* unterminated`, {}, 'test.scss'))
+      .toContain('"Poppins fallback"')
+    expect(await transform(`.foo { font-family: Poppins; } // trailing`, {}, 'test.scss'))
+      .toContain('"Poppins fallback"')
+    expect(await transform(`.foo { font-family: Poppins; background: url(unterminated`, {}, 'test.scss'))
+      .toContain('"Poppins fallback"')
+    expect(await transform(`.foo { font-family: Poppins; content: 'unterminated`, {}, 'test.scss'))
+      .toContain('"Poppins fallback"')
   })
 
   it('should ignore conditional, remote and unresolvable CSS `@import`s', async () => {
