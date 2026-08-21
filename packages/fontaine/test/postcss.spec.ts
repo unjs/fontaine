@@ -245,18 +245,61 @@ describe('fontaine postcss plugin', () => {
     `)).not.toContain('size-adjust')
   })
 
-  it('should not read metrics from a font path it cannot resolve', async () => {
+  it('should read metrics from a bare relative font path', async () => {
     // @ts-expect-error not typed as mock
     fromFile.mockReset()
 
-    expect(await process(`
+    await process(`
       @font-face {
         font-family: "Unknown Family";
-        src: url('my.woff2') format('woff2');
+        src: url('fonts/my.woff2') format('woff2');
       }
-    `, {}, fileURLToPath(new URL('./test.css', import.meta.url)))).not.toContain('size-adjust')
+    `, {}, fileURLToPath(new URL('./test.css', import.meta.url)))
+
+    expect(fromFile).toHaveBeenCalledWith(fileURLToPath(new URL('./fonts/my.woff2', import.meta.url)))
+  })
+
+  it('should not resolve root-relative or external font paths against the stylesheet', async () => {
+    // @ts-expect-error not typed as mock
+    fromFile.mockReset()
+
+    const from = fileURLToPath(new URL('./test.css', import.meta.url))
+    for (const url of ['/fonts/my.woff2', '//example.com/my.woff2', 'https://example.com/my.woff2']) {
+      await process(`
+        @font-face {
+          font-family: "Unknown Family";
+          src: url('${url}') format('woff2');
+        }
+      `, {}, from)
+    }
 
     expect(fromFile).not.toHaveBeenCalled()
+  })
+
+  it('should ignore query strings and fragments when reading metrics', async () => {
+    // @ts-expect-error not typed as mock
+    fromFile.mockReset()
+
+    await process(`
+      @font-face {
+        font-family: "Unknown Family";
+        src: url('./my.woff2?v=1#iefix') format('woff2');
+      }
+    `, {}, fileURLToPath(new URL('./test.css', import.meta.url)))
+
+    expect(fromFile).toHaveBeenCalledWith(fileURLToPath(new URL('./my.woff2', import.meta.url)))
+  })
+
+  it('should generate one set of fallbacks for a rule with multiple sources', async () => {
+    const result = await process(`
+      @font-face {
+        font-family: Poppins;
+        src: url('poppins.woff2') format('woff2'), url('poppins.woff') format('woff');
+      }
+    `)
+
+    expect(result.match(/local\("Segoe UI"\)/g)).toHaveLength(1)
+    expect(result.match(/local\("Arial"\)/g)).toHaveLength(1)
   })
 
   it('should support a custom `fallbackName`', async () => {

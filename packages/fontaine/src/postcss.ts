@@ -3,8 +3,9 @@ import type { FontFaceMetrics } from './css'
 import type { FontCategory } from './fallbacks'
 import { pathToFileURL } from 'node:url'
 import { parse } from 'css-tree'
-import { anyOf, createRegExp, exactly } from 'magic-regexp'
+import { char, charIn, createRegExp, oneOrMore } from 'magic-regexp'
 import { isAbsolute } from 'pathe'
+import { hasProtocol } from 'ufo'
 import { generateFallbackName, generateFontFace, genericCSSFamilies, parseFontFace, withoutQuotes } from './css'
 import { resolveCategoryFallbacks } from './fallbacks'
 import { getMetricsForFamily, readMetrics } from './metrics'
@@ -54,9 +55,17 @@ const supportedExtensions = ['woff2', 'woff', 'ttf']
 // https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_cascade/Value_processing#css-wide_keywords
 const cssWideKeywords = new Set(['inherit', 'initial', 'revert', 'revert-layer', 'unset'])
 
-const RELATIVE_RE = createRegExp(
-  exactly('.').or('..').and(anyOf('/', '\\')).at.lineStart(),
+const QUERY_OR_FRAGMENT_RE = createRegExp(
+  charIn('?#').and(oneOrMore(char).optionally()).at.lineEnd(),
 )
+
+/**
+ * Whether a CSS URL is resolved relative to the stylesheet that declared it, as opposed to
+ * the document root (`/font.woff2`) or an external location (`https:`, `//`, `data:`).
+ */
+function isStylesheetRelative(source: string) {
+  return !hasProtocol(source, { acceptRelative: true }) && !isAbsolute(source)
+}
 
 /**
  * Resolves the file a node originated from, consulting any upstream source map so that
@@ -95,7 +104,7 @@ function fontaine(options: FontainePostcssOptions): Plugin {
   const skipFontFaceGeneration = options.skipFontFaceGeneration || (() => false)
 
   function readMetricsFromId(path: string, importer: string | undefined) {
-    const resolvedPath = importer && isAbsolute(importer) && RELATIVE_RE.test(path)
+    const resolvedPath = importer && isAbsolute(importer) && isStylesheetRelative(path)
       ? new URL(path, pathToFileURL(importer))
       : resolvePath(path)
     return readMetrics(resolvedPath)
@@ -108,7 +117,10 @@ function fontaine(options: FontainePostcssOptions): Plugin {
       root.walkAtRules(/^font-face$/i, rule => void fontFaces.push(rule))
 
       for (const rule of fontFaces) {
-        for (const { family, source, properties } of parseFontFace(rule.toString())) {
+        // `parseFontFace` yields an entry per `src` URL, but a rule declares a single
+        // family, so fallbacks are generated from the first source we can read.
+        for (const { family, source: url, properties } of parseFontFace(rule.toString())) {
+          const source = url?.replace(QUERY_OR_FRAGMENT_RE, '')
           if (!supportedExtensions.some(e => source?.endsWith(e)))
             continue
 
@@ -153,6 +165,7 @@ function fontaine(options: FontainePostcssOptions): Plugin {
           rule.raws.before = '\n'
           generated.first!.raws.before = before
           rule.before(generated)
+          break
         }
       }
 
