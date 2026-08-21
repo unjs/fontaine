@@ -2,7 +2,7 @@ import type { AtRule, Declaration, Node, Plugin, Result } from 'postcss'
 import type { FontFaceMetrics } from './css'
 import type { FontCategory } from './fallbacks'
 import { parse } from 'css-tree'
-import { generateFallbackName, generateFontFace, genericCSSFamilies, parseFontFace, withoutQueryOrFragment, withoutQuotes } from './css'
+import { cssWideKeywords, generateFallbackName, generateFontFace, genericCSSFamilies, parseFontFace, withoutQueryOrFragment, withoutQuotes } from './css'
 import { resolveCategoryFallbacks } from './fallbacks'
 import { getMetricsForFamily, readMetricsForSource } from './metrics'
 
@@ -47,9 +47,6 @@ export interface FontainePostcssOptions {
 }
 
 const supportedExtensions = ['woff2', 'woff', 'ttf']
-
-// https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_cascade/Value_processing#css-wide_keywords
-const cssWideKeywords = new Set(['inherit', 'initial', 'revert', 'revert-layer', 'unset'])
 
 /**
  * Resolves the file a node originated from, consulting any upstream source map so that

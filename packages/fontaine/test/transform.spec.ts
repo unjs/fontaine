@@ -41,6 +41,17 @@ describe('fontaine transform', () => {
       `)
   })
 
+  it('should not add fallbacks for generic families or CSS-wide keywords', async () => {
+    for (const value of ['sans-serif', 'monospace', 'system-ui', 'inherit', 'initial', 'unset', 'revert', 'revert-layer']) {
+      expect(await transform(`.foo { font-family: ${value}; }`)).toBeUndefined()
+    }
+  })
+
+  it('should add a fallback for a real family followed by a generic family', async () => {
+    expect(await transform('.foo { font-family: Poppins, sans-serif; }'))
+      .toMatchInlineSnapshot(`".foo { font-family: Poppins, "Poppins fallback", sans-serif; }"`)
+  })
+
   it('should add additional @font-face declarations', async () => {
     expect(await transform(`
       @font-face {
