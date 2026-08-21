@@ -16,7 +16,7 @@ on:
         required: false
         default: ''
       releases:
-        description: 'Publish payload emitted by uppt/release; leave empty when rerunning a publish by hand'
+        description: Publish payload emitted by uppt/release; leave empty when rerunning a publish by hand
         required: false
         default: ''
 
@@ -37,8 +37,8 @@ jobs:
       )
     runs-on: ubuntu-latest
     permissions:
-      contents: write       # push the release branch and delete superseded ones
-      pull-requests: write  # create a release PR, update its body, close superseded PRs
+      contents: write # push the release branch and delete superseded ones
+      pull-requests: write # create a release PR, update its body, close superseded PRs
     steps:
       - uses: danielroe/uppt/pr@8c636eeb6b4e5ed784935a1ddf409cff530add82 # v0.6.0
         with:
@@ -60,8 +60,8 @@ jobs:
       group: release-${{ github.event.pull_request.number }}
       cancel-in-progress: false
     permissions:
-      contents: write       # push the `<name>@X.Y.Z` tags and create the GitHub release
-      actions: write        # chained dispatch of the publish run
+      contents: write # push the `<name>@X.Y.Z` tags and create the GitHub release
+      actions: write # chained dispatch of the publish run
     steps:
       - uses: danielroe/uppt/release@8c636eeb6b4e5ed784935a1ddf409cff530add82 # v0.6.0
         with:
@@ -100,8 +100,8 @@ jobs:
       group: publish-${{ github.ref }}
       cancel-in-progress: false
     permissions:
-      id-token: write       # OIDC claim for npm trusted publisher
-    environment: npm        # must match the trusted-publisher entry on npmjs.com
+      id-token: write # OIDC claim for npm trusted publisher
+    environment: npm # must match the trusted-publisher entry on npmjs.com
     steps:
       - uses: danielroe/uppt/publish@8c636eeb6b4e5ed784935a1ddf409cff530add82 # v0.6.0
         with:
