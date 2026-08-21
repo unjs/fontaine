@@ -33,10 +33,6 @@ describe('transformCSS preload selection', () => {
     expect(await transform({})).toEqual([])
   })
 
-  it('preloads the top priority font with `shouldPreload`', async () => {
-    expect(await transform({ shouldPreload: () => true })).toEqual(['/font-top.woff2'])
-  })
-
   it('passes all fonts, sorted by priority, to `selectFontsToPreload`', async () => {
     const received: string[][] = []
     const urls = await transform({
@@ -47,13 +43,6 @@ describe('transformCSS preload selection', () => {
     })
     expect(received).toEqual([['top', 'latin', 'greek']])
     expect(urls).toEqual(['/font-greek.woff2'])
-  })
-
-  it('ignores deprecated `shouldPreload` when `selectFontsToPreload` is provided', async () => {
-    expect(await transform({
-      shouldPreload: () => true,
-      selectFontsToPreload: () => [],
-    })).toEqual([])
   })
 })
 

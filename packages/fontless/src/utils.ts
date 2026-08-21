@@ -26,8 +26,6 @@ export interface FontFamilyInjectionPluginOptions {
   resolveFontFace: (fontFamily: string, fallbackOptions?: { fallbacks: string[], generic?: GenericCSSFamily }) => Awaitable<undefined | FontFaceResolution>
   dev: boolean
   processCSSVariables?: boolean | 'font-prefixed-only' | (string & {})
-  /** @deprecated use `selectFontsToPreload` instead */
-  shouldPreload?: (fontFamily: string, font: FontFaceData) => boolean
   selectFontsToPreload?: (fontFamily: string, fonts: FontFaceData[]) => FontFaceData[]
   fontsToPreload: Map<string, Set<string>>
 }
@@ -91,9 +89,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
     let insertFontFamilies = false
 
     result.fonts.sort((a, b) => (a.meta?.priority || 0) - (b.meta?.priority || 0))
-    const fontsToPreload = options.selectFontsToPreload
-      ? options.selectFontsToPreload(fontFamily, result.fonts)
-      : result.fonts.slice(0, 1).filter(font => options.shouldPreload?.(fontFamily, font))
+    const fontsToPreload = options.selectFontsToPreload?.(fontFamily, result.fonts) ?? []
     for (const font of fontsToPreload) {
       const fontToPreload = font.src.find((s): s is RemoteFontSource => 'url' in s)?.url
       if (fontToPreload) {
