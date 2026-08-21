@@ -17,7 +17,7 @@
     "test:types": "pnpm -r test:types",
     "test:knip": "knip",
     "test:versions": "installed-check -d --ignore=vite --workspace-ignore='packages/fontless/examples/*' --workspace-ignore='packages/fontless/docs'",
-    "postinstall": "simple-git-hooks install && pnpm --filter fontaine build"
+    "postinstall": "simple-git-hooks install && pnpm build"
   },
   "devDependencies": {
     "@antfu/eslint-config": "9.3.0",
