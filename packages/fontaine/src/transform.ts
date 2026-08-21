@@ -94,18 +94,25 @@ function extractCssImports(ast: CssNode): CssImport[] {
   walk(ast, {
     visit: 'Atrule',
     enter(node) {
-      if (node.name !== 'import' || !node.prelude)
+      if (node.name !== 'import' || node.prelude?.type !== 'AtrulePrelude')
         return
-      walk(node.prelude, (child) => {
-        let specifier: string | undefined
-        if (child.type === 'String')
-          specifier = withoutQuotes(child.value)
-        else if (child.type === 'Url')
-          specifier = withoutQuotes(child.value)
-        if (specifier && !specifier.startsWith('http:') && !specifier.startsWith('https:') && !specifier.startsWith('data:')) {
-          imports.push({ specifier: specifier.replace(/[?#].*$/, ''), end: node.loc!.end.offset })
+
+      let specifier: string | undefined
+      let conditional = false
+      for (const child of node.prelude.children) {
+        if (child.type === 'String' || child.type === 'Url') {
+          specifier ||= withoutQuotes(child.value)
         }
-      })
+        else if (child.type === 'MediaQueryList' || (child.type === 'Function' && child.name.toLowerCase() === 'supports')) {
+          // Fallback rules generated from a conditionally-imported file would
+          // apply unconditionally, so skip media- and supports-gated imports.
+          conditional = true
+        }
+      }
+
+      if (specifier && !conditional && !specifier.startsWith('http:') && !specifier.startsWith('https:') && !specifier.startsWith('data:')) {
+        imports.push({ specifier: specifier.replace(/[?#].*$/, ''), end: node.loc!.end.offset })
+      }
     },
   })
   return imports
@@ -162,10 +169,10 @@ export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransfo
           const imports = extractCssImports(ast)
           const insertionIndex = imports.length ? Math.max(...imports.map(i => i.end)) : 0
           const seen = new Set([id])
-          const queue = imports.map(i => ({ specifier: i.specifier, importer: id, depth: 0 }))
+          const queue = imports.map(i => ({ specifier: i.specifier, importer: id }))
 
           while (queue.length) {
-            const { specifier, importer, depth } = queue.shift()!
+            const { specifier, importer } = queue.shift()!
             const resolved = resolveCssImport(specifier, importer)
             if (!resolved || seen.has(resolved) || !CSS_RE.test(resolved))
               continue
@@ -179,10 +186,8 @@ export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransfo
             for (const face of parseFontFace(importedAst)) {
               fontFaces.push({ ...face, index: insertionIndex, importer: resolved, prefix: '\n' })
             }
-            if (depth < 5) {
-              for (const nested of extractCssImports(importedAst)) {
-                queue.push({ specifier: nested.specifier, importer: resolved, depth: depth + 1 })
-              }
+            for (const nested of extractCssImports(importedAst)) {
+              queue.push({ specifier: nested.specifier, importer: resolved })
             }
           }
         }

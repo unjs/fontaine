@@ -179,6 +179,33 @@ describe('fontaine transform', () => {
       `)
   })
 
+  it('should follow nested and circular CSS `@import`s without looping', async () => {
+    const cssFilename = fileURLToPath(new URL('./test.css', import.meta.url))
+    const result = await transform(`
+      @import "./fixtures/nested.css";
+      .foo {
+        font-family: Poppins;
+      }
+    `, {}, cssFilename)
+    expect(result).toContain('font-family: "Poppins fallback"')
+  })
+
+  it('should ignore conditional, remote and unresolvable CSS `@import`s', async () => {
+    const cssFilename = fileURLToPath(new URL('./test.css', import.meta.url))
+    const result = await transform(`
+      @import "./fixtures/imported.css" screen and (max-width: 600px);
+      @import "./fixtures/imported.css" supports(display: flex);
+      @import url("https://example.com/font.css");
+      @import "./fixtures/missing.css";
+      @import "@missing/pkg/font.css";
+      @import "magic-string";
+      .foo {
+        font-family: Poppins;
+      }
+    `, {}, cssFilename)
+    expect(result).not.toContain('@font-face')
+  })
+
   it('should ignore unsupported extensions', async () => {
     // @ts-expect-error not typed as mock
     fromFile.mockReset()
