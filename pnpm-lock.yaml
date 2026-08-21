@@ -86,6 +86,9 @@ importers:
       get-port-please:
         specifier: 3.2.0
         version: 3.2.0
+      postcss:
+        specifier: 8.5.26
+        version: 8.5.26
       serve-handler:
         specifier: 6.1.7
         version: 6.1.7
