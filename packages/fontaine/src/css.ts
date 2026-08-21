@@ -23,7 +23,7 @@ const QUOTES_RE = createRegExp(
 export const withoutQuotes = (str: string): string => str.trim().replace(QUOTES_RE, '')
 
 // https://developer.mozilla.org/en-US/docs/Web/CSS/font-family
-const genericCSSFamilies = new Set([
+export const genericCSSFamilies: Set<string> = new Set([
   'serif',
   'sans-serif',
   'monospace',

@@ -28,6 +28,16 @@
     ".": {
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
+    },
+    "./postcss": {
+      "import": {
+        "types": "./dist/postcss.d.mts",
+        "default": "./dist/postcss.mjs"
+      },
+      "require": {
+        "types": "./dist/postcss.d.cts",
+        "default": "./dist/postcss.cjs"
+      }
     }
   },
   "main": "./dist/index.cjs",
@@ -50,6 +60,14 @@
     "test:types": "tsc --noEmit",
     "test:unit": "vitest run"
   },
+  "peerDependencies": {
+    "postcss": "^8.4.31"
+  },
+  "peerDependenciesMeta": {
+    "postcss": {
+      "optional": true
+    }
+  },
   "dependencies": {
     "@capsizecss/unpack": "^4.0.0",
     "css-tree": "^3.1.0",
@@ -67,6 +85,7 @@
     "@vitest/coverage-v8": "4.1.11",
     "eslint": "10.8.1",
     "get-port-please": "3.2.0",
+    "postcss": "8.5.26",
     "serve-handler": "6.1.7",
     "tsdown": "0.22.14",
     "typescript": "6.0.3",
