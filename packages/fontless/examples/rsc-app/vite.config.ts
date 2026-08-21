@@ -7,7 +7,11 @@ export default defineConfig({
   plugins: [
     react(),
     rsc(),
-    fontless(),
+    fontless({
+      defaults: {
+        preload: true,
+      },
+    }),
   ],
   environments: {
     rsc: {

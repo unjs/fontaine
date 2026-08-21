@@ -3,5 +3,12 @@ import { fontless } from 'fontless'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  plugins: [sveltekit(), fontless()],
+  plugins: [
+    sveltekit(),
+    fontless({
+      defaults: {
+        preload: true,
+      },
+    }),
+  ],
 })

@@ -13,7 +13,8 @@ type ChildProcessWithEvents = ChildProcess & {
 
 interface RunCliReturn {
   proc: ChildProcess
-  done: Promise<void>
+  /** Resolves with the child's exit code when it terminates. */
+  done: Promise<number | null>
   findPort: () => Promise<number>
   kill: () => void
   stdout: () => string
@@ -38,13 +39,13 @@ export function runCli(options: { command: string, label?: string } & SpawnOptio
     // eslint-disable-next-line no-console
     console.log(styleText('magenta', label), data.toString())
   })
-  const done = new Promise<void>((resolve) => {
+  const done = new Promise<number | null>((resolve) => {
     child.on('exit', (code) => {
       if (code !== 0 && code !== 143 && process.platform !== 'win32') {
         // eslint-disable-next-line no-console
         console.log(styleText('magenta', `${label}`), `exit code ${code}`)
       }
-      resolve()
+      resolve(code)
     })
   })
 

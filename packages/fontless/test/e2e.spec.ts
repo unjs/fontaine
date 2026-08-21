@@ -60,15 +60,28 @@ describe.each(fixtures)('e2e %s', (fixture) => {
 })
 
 describe(`e2e ${RSC_FIXTURE}`, () => {
-  it('should emit each font only into the environment whose CSS references it', { timeout: 60_000 }, async () => {
-    const root = fileURLToPath(new URL(`../examples/${RSC_FIXTURE}`, import.meta.url))
-    const cwd = process.cwd()
-    process.chdir(root)
-    const builder = await createBuilder({ root })
-    await builder.buildApp().finally(() => process.chdir(cwd))
+  const root = fileURLToPath(new URL(`../examples/${RSC_FIXTURE}`, import.meta.url))
+  const outputDir = resolve(root, 'dist')
 
-    const outputDir = resolve(root, 'dist')
-    const files = await Array.fromAsync(fsp.glob('**/*', { cwd: outputDir }))
+  let buildPromise: Promise<string[]> | undefined
+  function buildFixture() {
+    buildPromise ??= (async () => {
+      const cwd = process.cwd()
+      process.chdir(root)
+      try {
+        const builder = await createBuilder({ root })
+        await builder.buildApp()
+      }
+      finally {
+        process.chdir(cwd)
+      }
+      return Array.fromAsync(fsp.glob('**/*', { cwd: outputDir }))
+    })()
+    return buildPromise
+  }
+
+  it('should emit each font only into the environment whose CSS references it', { timeout: 60_000 }, async () => {
+    const files = await buildFixture()
 
     const environments = ['client', 'ssr', 'rsc']
     const emitted: Record<string, Set<string>> = {}
@@ -107,6 +120,23 @@ describe(`e2e ${RSC_FIXTURE}`, () => {
     for (const file of files.filter(file => file.endsWith('.woff2'))) {
       const { size } = await fsp.stat(join(outputDir, file))
       expect(size, `${file} was emitted as an empty placeholder`).toBeGreaterThan(0)
+    }
+  })
+
+  it('should preload fonts that are served from the client bundle', { timeout: 60_000 }, async () => {
+    const files = await buildFixture()
+
+    const serverEntry = await readFile(join(outputDir, 'rsc/index.js'), 'utf-8')
+    expect(serverEntry, 'unresolved asset placeholder in the server bundle').not.toContain('__VITE_ASSET__')
+
+    const preloads = [...serverEntry.matchAll(/"(\/assets\/_fonts\/[^"]+\.woff2)"/g)].map(([, href]) => href!)
+    expect(preloads.length, 'expected the rsc entry to render preload links').toBeGreaterThan(0)
+
+    // Preload hrefs are resolved per environment, but the browser only ever fetches
+    // fonts from the client output, so every href has to exist there.
+    const clientFonts = new Set(files.filter(file => file.startsWith('client/')).map(file => file.slice('client/'.length)))
+    for (const href of preloads) {
+      expect(clientFonts, `${href} is preloaded but missing from the client bundle`).toContain(href.slice(1))
     }
   })
 })

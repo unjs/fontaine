@@ -1,4 +1,5 @@
 import { renderToReadableStream } from '@vitejs/plugin-rsc/rsc/server'
+import { preloads } from 'fontless/runtime'
 import { Counter } from './counter'
 import './server.css'
 
@@ -9,6 +10,9 @@ function Root() {
         <meta charSet="utf-8" />
         <title>fontless rsc demo</title>
         {import.meta.viteRsc.loadCss()}
+        {preloads.map(({ crossorigin, ...attrs }) => (
+          <link key={attrs.href} {...attrs} crossOrigin={crossorigin} />
+        ))}
       </head>
       <body>
         <p className="server-poppins">Rendered on the server</p>

@@ -1,5 +1,6 @@
-import type { Plugin } from 'vite'
+import type { Plugin, ViteDevServer } from 'vite'
 import type { NormalizeFontDataContext } from './assets'
+import type { LinkAttributes } from './runtime'
 import type { FontlessOptions } from './types'
 import type { FontFamilyInjectionPluginOptions } from './utils'
 
@@ -7,6 +8,7 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 import { Buffer } from 'node:buffer'
 import { readFile } from 'node:fs/promises'
 import { defu } from 'defu'
+import MagicString from 'magic-string'
 import { hasProtocol, joinURL } from 'ufo'
 import { normalizeFontData } from './assets'
 import { defaultOptions } from './defaults'
@@ -23,11 +25,14 @@ const EMPTY_SOURCE = new Uint8Array()
 
 const CSS_EXTENSIONS_RE = /\.(?:css|scss|sass|postcss|pcss|less|stylus|styl)(?:\?[^.]+)?$/
 
-export function fontless(_options?: FontlessOptions): Plugin {
+export function fontless(_options?: FontlessOptions): Plugin[] {
   const options = defu(_options, defaultOptions satisfies FontlessOptions) as FontlessOptions
 
   let cssTransformOptions: FontFamilyInjectionPluginOptions
   let assetContext: NormalizeFontDataContext
+  let command: 'build' | 'serve'
+  let server: ViteDevServer | undefined
+  const RUNTIME_NAME = 'fontless/runtime'
   let storage: ReturnType<typeof createFontlessStorage>
 
   // `emit` is only available while a CSS module is being transformed, as it needs that
@@ -58,10 +63,30 @@ export function fontless(_options?: FontlessOptions): Plugin {
     return res
   }
 
-  return {
+  // URLs of emitted fonts as the browser will request them, keyed by the URL that was
+  // written into the generated CSS. During build the latter is a per-environment asset
+  // placeholder, which cannot be rendered into a server bundle: the placeholder's
+  // reference id belongs to whichever environment emitted the font.
+  const publicFontURLs = new Map<string, string>()
+
+  function getPreloadHrefs() {
+    return [...cssTransformOptions.fontsToPreload.values()].flatMap(v => [...v])
+  }
+
+  function toPreloadLinks(hrefs: string[]): LinkAttributes[] {
+    return hrefs.map(href => ({
+      rel: 'preload',
+      as: 'font',
+      href,
+      crossorigin: '',
+    }))
+  }
+
+  const mainPlugin: Plugin = {
     name: 'vite-plugin-fontless',
     apply: (_config, env) => !env.isPreview,
     async configResolved(config) {
+      command = config.command
       storage = createFontlessStorage(_options?.cache, { root: config.root, cacheDir: config.cacheDir })
 
       assetContext = {
@@ -78,6 +103,9 @@ export function fontless(_options?: FontlessOptions): Plugin {
         resolveAssetURL: config.command === 'build'
           ? file => buildContext.getStore()?.emit(file)
           : undefined,
+        callback: (file, url) => {
+          publicFontURLs.set(url, joinURL(assetContext.baseURL || '/', assetContext.assetsBaseURL, file))
+        },
       }
 
       const alias = Array.isArray(config.resolve.alias) ? {} : config.resolve.alias
@@ -130,9 +158,10 @@ export function fontless(_options?: FontlessOptions): Plugin {
         cssTransformOptions.lightningcssOptions = config.css.lightningcss as FontFamilyInjectionPluginOptions['lightningcssOptions']
       }
     },
-    configureServer(server) {
+    configureServer(server_) {
       // serve font assets via middleware during dev
       // based on https://github.com/nuxt/fonts/blob/e7f537a0357896d34be9c17031b3178fb4e79042/src/assets.ts#L30
+      server = server_
       // Connect middlewares see the full request path, including `base`
       const mountPath = joinURL(assetContext.baseURL || '/', assetContext.assetsBaseURL)
       server.middlewares.use(mountPath, async (req, res, next) => {
@@ -173,6 +202,10 @@ export function fontless(_options?: FontlessOptions): Plugin {
         const s = await buildContext.run({ emit }, () => transformCSS(cssTransformOptions, code, id))
 
         if (s.hasChanged()) {
+          // invalidate virtual module to ensure fresh preloads list during dev
+          if (server) {
+            invalidateModuleById(server, `\0${RUNTIME_NAME}`)
+          }
           return {
             code: s.toString(),
             map: s.generateMap({ hires: true }),
@@ -196,17 +229,80 @@ export function fontless(_options?: FontlessOptions): Plugin {
       handler() {
         // Preload doesn't work on initial rendering during dev since `fontsToPreload`
         // is empty before css is transformed.
-        const hrefs = [...cssTransformOptions.fontsToPreload.values()].flatMap(v => [...v])
-        return hrefs.map(href => ({
+        return toPreloadLinks(getPreloadHrefs()).map(attrs => ({
           tag: 'link',
-          attrs: {
-            rel: 'preload',
-            as: 'font',
-            href,
-            crossorigin: '',
-          },
+          attrs: attrs as unknown as Record<string, string>,
         }))
       },
     },
+  }
+
+  function getRuntimePreloads(): LinkAttributes[] {
+    return toPreloadLinks(getPreloadHrefs().map(href => publicFontURLs.get(href) ?? href))
+  }
+
+  const RUNTIME_PLACEHOLDER = '__FONTLESS_RUNTIME_BUILD_PLACEHOLDER__'
+  const runtimePlugin: Plugin = {
+    name: 'fontless-runtime',
+    configEnvironment() {
+      return {
+        resolve: {
+          // an externalised import would bypass `resolveId` below and load the
+          // published stub, which has no preloads in it
+          noExternal: [RUNTIME_NAME],
+        },
+      }
+    },
+    resolveId: {
+      // override Vite's node resolution
+      order: 'pre',
+      handler(source) {
+        if (source === RUNTIME_NAME) {
+          return `\0${RUNTIME_NAME}`
+        }
+      },
+    },
+    load: {
+      handler(id) {
+        if (id === `\0${RUNTIME_NAME}`) {
+          // during build, postpone replacement until `renderChunk`
+          // to ensure fonts are collected through css transform
+          if (command === 'build') {
+            return `export const { preloads } = ${RUNTIME_PLACEHOLDER}`
+          }
+          return `export const { preloads } = ${JSON.stringify({ preloads: getRuntimePreloads() })}`
+        }
+      },
+    },
+    renderChunk: {
+      order: 'pre',
+      handler(code) {
+        if (code.includes(RUNTIME_PLACEHOLDER)) {
+          const s = new MagicString(code)
+          s.replaceAll(
+            RUNTIME_PLACEHOLDER,
+            JSON.stringify({ preloads: getRuntimePreloads() }),
+          )
+          return {
+            code: s.toString(),
+            map: s.generateMap({ hires: 'boundary' }),
+          }
+        }
+      },
+    },
+  }
+
+  return [
+    mainPlugin,
+    runtimePlugin,
+  ]
+}
+
+function invalidateModuleById(server: ViteDevServer, id: string) {
+  for (const environment of Object.values(server.environments)) {
+    const mod = environment.moduleGraph.getModuleById(id)
+    if (mod) {
+      environment.moduleGraph.invalidateModule(mod)
+    }
   }
 }
