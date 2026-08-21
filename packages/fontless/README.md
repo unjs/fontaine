@@ -211,7 +211,7 @@ function Layout() {
 }
 ```
 
-- [SvelteKit]./examples/sveltekit-app)
+- [SvelteKit](./examples/sveltekit-app)
 
 ```svelte
 <script lang="ts">

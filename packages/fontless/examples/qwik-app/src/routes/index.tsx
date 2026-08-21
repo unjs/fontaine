@@ -1,4 +1,3 @@
-/// <reference types="vite/client" />
 import type { DocumentHead } from '@qwik.dev/router'
 import { component$, useStyles$ } from '@qwik.dev/core'
 import styles from './index.css?inline'
