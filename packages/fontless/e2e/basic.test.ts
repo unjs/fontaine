@@ -39,7 +39,7 @@ test.describe('dev vanilla', () => {
   })
 })
 
-test.describe('build react-rotuer', () => {
+test.describe('build react-router', () => {
   let cli: ReturnType<typeof runCli>
   let baseURL: string
 
