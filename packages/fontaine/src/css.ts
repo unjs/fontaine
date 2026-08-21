@@ -45,6 +45,9 @@ export function isStylesheetRelative(source: string): boolean {
   return !hasProtocol(source, { acceptRelative: true }) && !isAbsolute(source)
 }
 
+// https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_cascade/Value_processing#css-wide_keywords
+export const cssWideKeywords: Set<string> = new Set(['inherit', 'initial', 'revert', 'revert-layer', 'unset'])
+
 // https://developer.mozilla.org/en-US/docs/Web/CSS/font-family
 export const genericCSSFamilies: Set<string> = new Set([
   'serif',

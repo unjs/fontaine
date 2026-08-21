@@ -9,7 +9,7 @@ import MagicString from 'magic-string'
 
 import { isAbsolute } from 'pathe'
 import { createUnplugin } from 'unplugin'
-import { generateFallbackName, generateFontFace, parseFontFace, withoutQueryOrFragment, withoutQuotes } from './css'
+import { cssWideKeywords, generateFallbackName, generateFontFace, genericCSSFamilies, parseFontFace, withoutQueryOrFragment, withoutQuotes } from './css'
 import { resolveCategoryFallbacks } from './fallbacks'
 import { getMetricsForFamily, readMetricsForSource } from './metrics'
 
@@ -306,14 +306,16 @@ export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransfo
               if (child.type === 'String') {
                 family = withoutQuotes(child.value)
               }
-              else if (child.type === 'Identifier' && child.name !== 'inherit') {
+              else if (child.type === 'Identifier' && !cssWideKeywords.has(child.name.toLowerCase())) {
                 family = child.name
               }
 
               if (!family)
                 continue
 
-              s.appendRight(child.loc!.end.offset, `, "${fallbackName(family)}"`)
+              if (!genericCSSFamilies.has(family.toLowerCase())) {
+                s.appendRight(child.loc!.end.offset, `, "${fallbackName(family)}"`)
+              }
               return
             }
           },

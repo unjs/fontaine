@@ -123,6 +123,16 @@ describe('fontaine postcss plugin', () => {
     `)
   })
 
+  it('should not add fallbacks for any generic family or CSS-wide keyword', async () => {
+    for (const value of ['sans-serif', 'monospace', 'system-ui', 'inherit', 'initial', 'unset', 'revert', 'revert-layer']) {
+      expect(await process(`.foo { font-family: ${value}; }`)).toBe(`.foo { font-family: ${value}; }`)
+    }
+  })
+
+  it('should add a fallback for a real family followed by a generic family', async () => {
+    expect(await process('.foo { font-family: Poppins, sans-serif; }')).toBe('.foo { font-family: Poppins, "Poppins fallback", sans-serif; }')
+  })
+
   it('should add fallbacks for families declared in another stylesheet', async () => {
     expect(await process(`
       body {
