@@ -135,13 +135,15 @@ describe('fontaine transform', () => {
   })
 
   it('should read metrics from local paths', async () => {
+    // @ts-expect-error not typed as mock
+    fromFile.mockReset()
     await transform(`
       @font-face {
         font-family: 'Unique Font';
-        src: url('./my.ttf');
+        src: url('./resolve-path.ttf');
       }
     `, { resolvePath: id => new URL(id, import.meta.url) })
-    expect(fromFile).toHaveBeenCalledWith(fileURLToPath(new URL('./my.ttf', import.meta.url)))
+    expect(fromFile).toHaveBeenCalledWith(fileURLToPath(new URL('./resolve-path.ttf', import.meta.url)))
 
     // @ts-expect-error not typed as mock
     fromFile.mockReset()
@@ -149,10 +151,10 @@ describe('fontaine transform', () => {
     await transform(`
       @font-face {
         font-family: 'Unique Font';
-        src: url('./my.ttf');
+        src: url('./relative-to-importer.ttf');
       }
     `, {}, cssFilename)
-    expect(fromFile).toHaveBeenCalledWith(fileURLToPath(new URL('./my.ttf', import.meta.url)))
+    expect(fromFile).toHaveBeenCalledWith(fileURLToPath(new URL('./relative-to-importer.ttf', import.meta.url)))
   })
 
   it('should resolve bare relative paths against the stylesheet, falling back to `resolvePath`', async () => {
@@ -372,7 +374,7 @@ describe('fontaine transform', () => {
     await transform(`
       @font-face {
         font-family: 'Unique Font';
-        src: url('./my.wasm');
+        src: url('./unsupported.wasm');
       }
     `, { resolvePath: id => new URL(id, import.meta.url) })
     expect(fromFile).not.toHaveBeenCalled()
@@ -443,7 +445,8 @@ describe('fontaine transform', () => {
   })
 
   it('should handle font families not specified in fallbacks object by using category defaults', async () => {
-    // Use a mock to ensure fromFile returns metrics for our test font
+    // @ts-expect-error not typed as mock
+    fromFile.mockReset()
     // @ts-expect-error not typed as mock
     fromFile.mockResolvedValueOnce({
       familyName: 'UnknownFont',
@@ -459,7 +462,7 @@ describe('fontaine transform', () => {
     const result = await transform(`
       @font-face {
         font-family: UnknownFont;
-        src: url('unknownfont.ttf');
+        src: url('unknownfont-category-defaults.ttf');
       }
     `, {
       fallbacks: {
@@ -469,6 +472,7 @@ describe('fontaine transform', () => {
       resolvePath: id => new URL(id, import.meta.url),
     })
 
+    expect(fromFile).toHaveBeenCalledWith(fileURLToPath(new URL('./unknownfont-category-defaults.ttf', import.meta.url)))
     expect(result).toContain('@font-face')
     expect(result).toContain('UnknownFont fallback')
   })
@@ -673,6 +677,8 @@ describe('fontaine transform', () => {
 
     it('should fall back to sans-serif preset when font has no category', async () => {
       // @ts-expect-error not typed as mock
+      fromFile.mockReset()
+      // @ts-expect-error not typed as mock
       fromFile.mockResolvedValueOnce({
         familyName: 'UnknownFont',
         capHeight: 1000,
@@ -687,7 +693,7 @@ describe('fontaine transform', () => {
       expect(await transform(`
         @font-face {
           font-family: UnknownFont;
-          src: url('unknownfont.ttf');
+          src: url('unknownfont-no-category.ttf');
         }
       `, {
         fallbacks: {},
@@ -736,7 +742,7 @@ describe('fontaine transform', () => {
           }
           @font-face {
               font-family: UnknownFont;
-              src: url('unknownfont.ttf');
+              src: url('unknownfont-no-category.ttf');
             }"
         `)
     })
