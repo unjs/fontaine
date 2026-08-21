@@ -34,6 +34,11 @@
         "vite-tsconfig-paths"
       ]
     },
+    "packages/fontless/examples/rsc-app": {
+      "entry": [
+        "src/entry.*"
+      ]
+    },
     "packages/fontless/examples/qwik-app": {
       "entry": [
         "src/entry.*",
