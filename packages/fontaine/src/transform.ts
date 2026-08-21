@@ -4,15 +4,14 @@ import { readFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parse, walk } from 'css-tree'
-import { anyOf, char, charIn, createRegExp, exactly, oneOrMore } from 'magic-regexp'
+import { anyOf, char, createRegExp, exactly, oneOrMore } from 'magic-regexp'
 import MagicString from 'magic-string'
 
 import { isAbsolute } from 'pathe'
-import { hasProtocol } from 'ufo'
 import { createUnplugin } from 'unplugin'
-import { generateFallbackName, generateFontFace, parseFontFace, withoutQuotes } from './css'
+import { generateFallbackName, generateFontFace, parseFontFace, withoutQueryOrFragment, withoutQuotes } from './css'
 import { resolveCategoryFallbacks } from './fallbacks'
-import { getMetricsForFamily, readMetrics } from './metrics'
+import { getMetricsForFamily, readMetricsForSource } from './metrics'
 
 export interface FontaineTransformOptions {
   /**
@@ -84,18 +83,6 @@ const CSS_RE = createRegExp(
 const RELATIVE_RE = createRegExp(
   exactly('.').or('..').and(anyOf('/', '\\')).at.lineStart(),
 )
-
-const QUERY_OR_FRAGMENT_RE = createRegExp(
-  charIn('?#').and(oneOrMore(char).optionally()).at.lineEnd(),
-)
-
-/**
- * Whether a CSS URL is resolved relative to the stylesheet that declared it, as opposed to
- * the document root (`/font.woff2`) or an external location (`https:`, `//`, `data:`).
- */
-function isStylesheetRelative(source: string) {
-  return !hasProtocol(source, { acceptRelative: true }) && !isAbsolute(source)
-}
 
 interface CssImport {
   specifier: string
@@ -218,13 +205,6 @@ export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransfo
 
   const skipFontFaceGeneration = options.skipFontFaceGeneration || (() => false)
 
-  function readMetricsFromId(path: string, importer: string) {
-    const resolvedPath = isAbsolute(importer) && isStylesheetRelative(path)
-      ? new URL(path, pathToFileURL(importer))
-      : resolvePath(path)
-    return readMetrics(resolvedPath)
-  }
-
   return {
     name: 'fontaine-transform',
     enforce: 'pre',
@@ -268,13 +248,13 @@ export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransfo
         }
 
         for (const { family, source: rawSource, index, properties, importer, prefix } of fontFaces) {
-          const source = rawSource?.replace(QUERY_OR_FRAGMENT_RE, '')
+          const source = rawSource && withoutQueryOrFragment(rawSource)
           if (!supportedExtensions.some(e => source?.endsWith(e)))
             continue
           if (skipFontFaceGeneration(fallbackName(family)))
             continue
 
-          const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsFromId(source, importer).catch(() => null)))
+          const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsForSource(source, importer, resolvePath).catch(() => null)))
 
           /* v8 ignore next 2 */
           if (!metrics)

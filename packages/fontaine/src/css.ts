@@ -1,7 +1,9 @@
 import type { Font } from '@capsizecss/unpack'
 import type { CssNode } from 'css-tree'
 import { generate, parse, walk } from 'css-tree'
-import { charIn, createRegExp } from 'magic-regexp'
+import { char, charIn, createRegExp, oneOrMore } from 'magic-regexp'
+import { isAbsolute } from 'pathe'
+import { hasProtocol } from 'ufo'
 
 // See: https://github.com/seek-oss/capsize/blob/master/packages/core/src/round.ts
 function toPercentage(value: number, fractionDigits = 4) {
@@ -21,6 +23,27 @@ const QUOTES_RE = createRegExp(
 )
 
 export const withoutQuotes = (str: string): string => str.trim().replace(QUOTES_RE, '')
+
+const QUERY_OR_FRAGMENT_RE = createRegExp(
+  charIn('?#').and(oneOrMore(char).optionally()).at.lineEnd(),
+)
+
+/** Removes any `?query` or `#fragment` suffix, which is not part of the file a URL points to. */
+export function withoutQueryOrFragment(source: string): string {
+  return source.replace(QUERY_OR_FRAGMENT_RE, '')
+}
+
+/**
+ * Whether a CSS URL may be resolved relative to the stylesheet that declared it, as opposed to
+ * the document root (`/font.woff2`) or an external location (`https:`, `//`, `data:`).
+ *
+ * Bare package specifiers and the webpack `~` convention are indistinguishable from
+ * stylesheet-relative paths here, so callers should fall back to their own resolver when
+ * resolving against the stylesheet finds nothing.
+ */
+export function isStylesheetRelative(source: string): boolean {
+  return !hasProtocol(source, { acceptRelative: true }) && !isAbsolute(source)
+}
 
 // https://developer.mozilla.org/en-US/docs/Web/CSS/font-family
 export const genericCSSFamilies: Set<string> = new Set([

@@ -1,14 +1,10 @@
 import type { AtRule, Declaration, Node, Plugin, Result } from 'postcss'
 import type { FontFaceMetrics } from './css'
 import type { FontCategory } from './fallbacks'
-import { pathToFileURL } from 'node:url'
 import { parse } from 'css-tree'
-import { char, charIn, createRegExp, oneOrMore } from 'magic-regexp'
-import { isAbsolute } from 'pathe'
-import { hasProtocol } from 'ufo'
-import { generateFallbackName, generateFontFace, genericCSSFamilies, parseFontFace, withoutQuotes } from './css'
+import { generateFallbackName, generateFontFace, genericCSSFamilies, parseFontFace, withoutQueryOrFragment, withoutQuotes } from './css'
 import { resolveCategoryFallbacks } from './fallbacks'
-import { getMetricsForFamily, readMetrics } from './metrics'
+import { getMetricsForFamily, readMetricsForSource } from './metrics'
 
 export interface FontainePostcssOptions {
   /**
@@ -55,18 +51,6 @@ const supportedExtensions = ['woff2', 'woff', 'ttf']
 // https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_cascade/Value_processing#css-wide_keywords
 const cssWideKeywords = new Set(['inherit', 'initial', 'revert', 'revert-layer', 'unset'])
 
-const QUERY_OR_FRAGMENT_RE = createRegExp(
-  charIn('?#').and(oneOrMore(char).optionally()).at.lineEnd(),
-)
-
-/**
- * Whether a CSS URL is resolved relative to the stylesheet that declared it, as opposed to
- * the document root (`/font.woff2`) or an external location (`https:`, `//`, `data:`).
- */
-function isStylesheetRelative(source: string) {
-  return !hasProtocol(source, { acceptRelative: true }) && !isAbsolute(source)
-}
-
 /**
  * Resolves the file a node originated from, consulting any upstream source map so that
  * relative font URLs are resolved against the stylesheet that actually declared them
@@ -103,13 +87,6 @@ function fontaine(options: FontainePostcssOptions): Plugin {
   const fallbackName = options.fallbackName || generateFallbackName
   const skipFontFaceGeneration = options.skipFontFaceGeneration || (() => false)
 
-  function readMetricsFromId(path: string, importer: string | undefined) {
-    const resolvedPath = importer && isAbsolute(importer) && isStylesheetRelative(path)
-      ? new URL(path, pathToFileURL(importer))
-      : resolvePath(path)
-    return readMetrics(resolvedPath)
-  }
-
   return {
     postcssPlugin: 'fontaine',
     async Once(root, { result, postcss }) {
@@ -120,7 +97,7 @@ function fontaine(options: FontainePostcssOptions): Plugin {
         // `parseFontFace` yields an entry per `src` URL, but a rule declares a single
         // family, so fallbacks are generated from the first source we can read.
         for (const { family, source: url, properties } of parseFontFace(rule.toString())) {
-          const source = url?.replace(QUERY_OR_FRAGMENT_RE, '')
+          const source = url && withoutQueryOrFragment(url)
           if (!supportedExtensions.some(e => source?.endsWith(e)))
             continue
 
@@ -128,7 +105,7 @@ function fontaine(options: FontainePostcssOptions): Plugin {
             continue
 
           const metrics: FontFaceMetrics | null = (await getMetricsForFamily(family))
-            || (source ? await readMetricsFromId(source, originatingFile(rule, result)).catch(() => null) : null)
+            || (source ? await readMetricsForSource(source, originatingFile(rule, result), resolvePath).catch(() => null) : null)
 
           if (!metrics)
             continue

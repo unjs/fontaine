@@ -187,6 +187,62 @@ describe('fontaine postcss plugin', () => {
     expect(fromFile).toHaveBeenCalledWith(fileURLToPath(new URL('./my.woff2', import.meta.url)))
   })
 
+  it('should resolve bare relative paths against the stylesheet, falling back to `resolvePath`', async () => {
+    // @ts-expect-error not typed as mock
+    fromFile.mockReset()
+
+    const resolvePath = vi.fn((id: string) => id)
+    const from = fileURLToPath(new URL('./test.css', import.meta.url))
+    await process(`
+      @font-face {
+        font-family: "Unknown Family";
+        src: url('fonts/my.woff2') format('woff2');
+      }
+    `, { resolvePath }, from)
+
+    expect(fromFile).toHaveBeenCalledWith(fileURLToPath(new URL('./fonts/my.woff2', import.meta.url)))
+    expect(resolvePath).toHaveBeenCalledWith('fonts/my.woff2')
+  })
+
+  it('should pass bare package specifiers to `resolvePath`', async () => {
+    const from = fileURLToPath(new URL('./test.css', import.meta.url))
+
+    for (const src of ['~@fake-fontsource/dm-sans/files/c.woff2', '@fake-fontsource/dm-sans/files/d.woff2']) {
+      const resolvePath = vi.fn((id: string) => id)
+      await process(`
+        @font-face {
+          font-family: "Unknown Family";
+          src: url('${src}') format('woff2');
+        }
+      `, { resolvePath }, from)
+      expect(resolvePath).toHaveBeenCalledWith(src)
+    }
+  })
+
+  it('should prefer the stylesheet-relative path when it yields metrics', async () => {
+    // @ts-expect-error not typed as mock
+    fromFile.mockResolvedValueOnce({
+      familyName: 'Resolvable Postcss Font',
+      ascent: 1000,
+      descent: 200,
+      lineGap: 0,
+      unitsPerEm: 1000,
+      xWidthAvg: 500,
+    })
+
+    const resolvePath = vi.fn((id: string) => id)
+    const from = fileURLToPath(new URL('./test.css', import.meta.url))
+    await process(`
+      @font-face {
+        font-family: "Resolvable Postcss Font";
+        src: url('fonts/resolvable-postcss.woff2') format('woff2');
+      }
+    `, { resolvePath }, from)
+
+    expect(fromFile).toHaveBeenCalledWith(fileURLToPath(new URL('./fonts/resolvable-postcss.woff2', import.meta.url)))
+    expect(resolvePath).not.toHaveBeenCalled()
+  })
+
   it('should resolve font paths with `resolvePath`', async () => {
     // @ts-expect-error not typed as mock
     fromFile.mockReset()
