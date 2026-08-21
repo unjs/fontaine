@@ -78,7 +78,8 @@ type ProviderOption = ((options: any) => Provider) | string | false
 
 /**
  * Enable adding preload links to the initially rendered HTML.
- * With `subsets`, you can specify which subsets to preload.
+ * Pass `{ subsets }` to preload only fonts covering those subsets,
+ * or a function to filter font faces individually.
  * @default false
  * @example { subsets: ['latin'] }
  */
@@ -106,7 +107,7 @@ export interface FontlessOptions {
    */
   families?: Array<FontFamilyManualOverride | FontFamilyProviderOverride>
   defaults?: Partial<{
-    preload?: PreloadOption
+    preload: PreloadOption
     weights: Array<string | number>
     styles: ResolveFontOptions['styles']
     subsets: ResolveFontOptions['subsets']

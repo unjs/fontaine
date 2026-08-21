@@ -79,7 +79,7 @@ fontless({
 
   // Default font settings
   defaults: {
-    preload: { subsets: ['latin'] }, // select preload fonts by subset
+    preload: true, // also accepts { subsets: ['latin'] } or a filter function
     weights: [400, 700],
     styles: ['normal', 'italic'],
     // Fallbacks use category-aware presets from fontaine

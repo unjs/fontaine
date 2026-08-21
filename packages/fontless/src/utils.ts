@@ -27,7 +27,7 @@ export interface FontFamilyInjectionPluginOptions {
   dev: boolean
   processCSSVariables?: boolean | 'font-prefixed-only' | (string & {})
   /** @deprecated use `filterFontsToPreload` instead */
-  shouldPreload: (fontFamily: string, font: FontFaceData) => boolean
+  shouldPreload?: (fontFamily: string, font: FontFaceData) => boolean
   filterFontsToPreload?: (fontFamily: string, fonts: FontFaceData[]) => FontFaceData[]
   fontsToPreload: Map<string, Set<string>>
 }
@@ -92,7 +92,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
 
     const [topPriorityFont] = result.fonts.sort((a, b) => (a.meta?.priority || 0) - (b.meta?.priority || 0))
     const fontsToPreload: FontFaceData[] = []
-    if (topPriorityFont && options.shouldPreload(fontFamily, topPriorityFont)) {
+    if (topPriorityFont && options.shouldPreload?.(fontFamily, topPriorityFont)) {
       fontsToPreload.push(topPriorityFont)
     }
     if (options.filterFontsToPreload) {
