@@ -144,6 +144,90 @@ describe('fontaine transform', () => {
     expect(fromFile).toHaveBeenCalledWith(fileURLToPath(new URL('./my.ttf', import.meta.url)))
   })
 
+  it('should resolve bare relative paths against the stylesheet, falling back to `resolvePath`', async () => {
+    // @ts-expect-error not typed as mock
+    fromFile.mockReset()
+    const resolvePath = vi.fn((id: string) => id)
+    const cssFilename = fileURLToPath(new URL('./test.css', import.meta.url))
+    await transform(`
+      @font-face {
+        font-family: 'Unique Font';
+        src: url('fonts/my.ttf');
+      }
+    `, { resolvePath }, cssFilename)
+    expect(fromFile).toHaveBeenCalledWith(fileURLToPath(new URL('./fonts/my.ttf', import.meta.url)))
+    expect(resolvePath).toHaveBeenCalledWith('fonts/my.ttf')
+  })
+
+  it('should not resolve root-relative, protocol-relative or absolute URLs against the stylesheet', async () => {
+    const cssFilename = fileURLToPath(new URL('./test.css', import.meta.url))
+    const resolvePath = vi.fn((id: string) => id)
+
+    for (const src of ['/fonts/my.ttf', '//example.com/my.ttf', 'https://example.com/my.ttf']) {
+      await transform(`
+        @font-face {
+          font-family: 'Unique Font';
+          src: url('${src}');
+        }
+      `, { resolvePath }, cssFilename)
+      expect(resolvePath).toHaveBeenCalledWith(src)
+    }
+  })
+
+  it('should ignore query strings and fragments in font URLs', async () => {
+    for (const suffix of ['?v=1', '#iefix']) {
+      // @ts-expect-error not typed as mock
+      fromFile.mockReset()
+      const cssFilename = fileURLToPath(new URL('./test.css', import.meta.url))
+      await transform(`
+        @font-face {
+          font-family: 'Unique Font';
+          src: url('./my.ttf${suffix}');
+        }
+      `, {}, cssFilename)
+      expect(fromFile).toHaveBeenCalledWith(fileURLToPath(new URL('./my.ttf', import.meta.url)))
+    }
+  })
+
+  it('should pass bare package specifiers to `resolvePath`', async () => {
+    const cssFilename = fileURLToPath(new URL('./test.css', import.meta.url))
+
+    for (const src of ['~@fake-fontsource/dm-sans/files/a.woff2', '@fake-fontsource/dm-sans/files/b.woff2']) {
+      const resolvePath = vi.fn((id: string) => id)
+      await transform(`
+        @font-face {
+          font-family: 'Unique Font';
+          src: url('${src}');
+        }
+      `, { resolvePath }, cssFilename)
+      expect(resolvePath).toHaveBeenCalledWith(src)
+    }
+  })
+
+  it('should prefer the stylesheet-relative path when it yields metrics', async () => {
+    // @ts-expect-error not typed as mock
+    fromFile.mockResolvedValueOnce({
+      familyName: 'Resolvable Font',
+      ascent: 1000,
+      descent: 200,
+      lineGap: 0,
+      unitsPerEm: 1000,
+      xWidthAvg: 500,
+    })
+
+    const resolvePath = vi.fn((id: string) => id)
+    const cssFilename = fileURLToPath(new URL('./test.css', import.meta.url))
+    await transform(`
+      @font-face {
+        font-family: 'Resolvable Font';
+        src: url('fonts/resolvable.woff2');
+      }
+    `, { resolvePath }, cssFilename)
+
+    expect(fromFile).toHaveBeenCalledWith(fileURLToPath(new URL('./fonts/resolvable.woff2', import.meta.url)))
+    expect(resolvePath).not.toHaveBeenCalled()
+  })
+
   it('should generate @font-face rules for fonts pulled in via CSS `@import`', async () => {
     const cssFilename = fileURLToPath(new URL('./test.css', import.meta.url))
     expect(await transform(`

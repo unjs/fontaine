@@ -9,9 +9,9 @@ import MagicString from 'magic-string'
 
 import { isAbsolute } from 'pathe'
 import { createUnplugin } from 'unplugin'
-import { generateFallbackName, generateFontFace, parseFontFace, withoutQuotes } from './css'
+import { generateFallbackName, generateFontFace, parseFontFace, withoutQueryOrFragment, withoutQuotes } from './css'
 import { resolveCategoryFallbacks } from './fallbacks'
-import { getMetricsForFamily, readMetrics } from './metrics'
+import { getMetricsForFamily, readMetricsForSource } from './metrics'
 
 export interface FontaineTransformOptions {
   /**
@@ -205,13 +205,6 @@ export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransfo
 
   const skipFontFaceGeneration = options.skipFontFaceGeneration || (() => false)
 
-  function readMetricsFromId(path: string, importer: string) {
-    const resolvedPath = isAbsolute(importer) && RELATIVE_RE.test(path)
-      ? new URL(path, pathToFileURL(importer))
-      : resolvePath(path)
-    return readMetrics(resolvedPath)
-  }
-
   return {
     name: 'fontaine-transform',
     enforce: 'pre',
@@ -254,13 +247,14 @@ export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransfo
           }
         }
 
-        for (const { family, source, index, properties, importer, prefix } of fontFaces) {
+        for (const { family, source: rawSource, index, properties, importer, prefix } of fontFaces) {
+          const source = rawSource && withoutQueryOrFragment(rawSource)
           if (!supportedExtensions.some(e => source?.endsWith(e)))
             continue
           if (skipFontFaceGeneration(fallbackName(family)))
             continue
 
-          const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsFromId(source, importer).catch(() => null)))
+          const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsForSource(source, importer, resolvePath).catch(() => null)))
 
           /* v8 ignore next 2 */
           if (!metrics)

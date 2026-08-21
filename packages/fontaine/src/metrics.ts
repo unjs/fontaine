@@ -1,12 +1,13 @@
 import type { Font } from '@capsizecss/unpack'
 import type { FontFaceMetrics } from './css'
 
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { fromUrl } from '@capsizecss/unpack'
 import { fromFile } from '@capsizecss/unpack/fs'
+import { isAbsolute } from 'pathe'
 import { parseURL } from 'ufo'
 
-import { withoutQuotes } from './css'
+import { isStylesheetRelative, withoutQuotes } from './css'
 
 const metricCache: Record<string, FontFaceMetrics | null> = {}
 
@@ -94,6 +95,22 @@ export async function readMetrics(_source: URL | string): Promise<FontFaceMetric
   const filteredMetrics = filterRequiredMetrics(metrics)
   metricCache[source] = filteredMetrics
   return filteredMetrics
+}
+
+/**
+ * Reads font metrics for a `src` URL declared in a stylesheet.
+ *
+ * A scheme-less, non-rooted URL is resolved against the stylesheet first, then handed to
+ * `resolvePath` if that yields no metrics: bare package specifiers and webpack's `~` prefix
+ * look identical to stylesheet-relative paths, and only the caller's resolver can map them.
+ */
+export async function readMetricsForSource(source: string, importer: string | undefined, resolvePath: (path: string) => string | URL): Promise<FontFaceMetrics | null> {
+  if (importer && isAbsolute(importer) && isStylesheetRelative(source)) {
+    const metrics = await readMetrics(new URL(source, pathToFileURL(importer))).catch(() => null)
+    if (metrics)
+      return metrics
+  }
+  return readMetrics(resolvePath(source))
 }
 
 // inline `@capsizecss/metrics`
