@@ -8,6 +8,12 @@ export default defineConfig({
     },
   },
   test: {
+    sequence: {
+      shuffle: {
+        files: true,
+        tests: true,
+      },
+    },
     coverage: {
       thresholds: {
         branches: 94.89,

@@ -10,6 +10,12 @@ export default defineConfig({
     },
   },
   test: {
+    sequence: {
+      shuffle: {
+        files: true,
+        tests: true,
+      },
+    },
     dir: 'test',
     coverage: {
       include: ['src'],
