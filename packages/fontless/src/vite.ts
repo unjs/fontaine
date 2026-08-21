@@ -98,7 +98,7 @@ export function fontless(_options?: FontlessOptions): Plugin {
 
       cssTransformOptions = {
         processCSSVariables: options.processCSSVariables,
-        filterFontsToPreload(fontFamily, fonts) {
+        selectFontsToPreload(fontFamily, fonts) {
           const override = options.families?.find(f => f.name === fontFamily)
           const preload = override?.preload ?? options.defaults?.preload
           if (preload === true) {
