@@ -1,10 +1,18 @@
 import type { FontFaceData } from 'unifont'
 import type { RawFontFaceData } from './types'
+import { fileURLToPath } from 'node:url'
 import { hash } from 'ohash'
-import { extname } from 'pathe'
+import { extname, relative } from 'pathe'
 import { filename } from 'pathe/utils'
 import { hasProtocol, joinRelativeURL, joinURL } from 'ufo'
 import { formatToExtension, parseFont } from './css/render'
+
+function hashableSource(context: NormalizeFontDataContext, source: { url: string }) {
+  if (!source.url.startsWith('file://') || !context.root) {
+    return source
+  }
+  return { ...source, url: relative(context.root, fileURLToPath(source.url)) }
+}
 
 function toArray<T>(value?: T | T[]): T[] {
   return !value || Array.isArray(value) ? value as T[] : [value]
@@ -14,6 +22,11 @@ export interface NormalizeFontDataContext {
   dev: boolean
   renderedFontURLs: Map<string, string>
   assetsBaseURL: string
+  /**
+   * Project root, used to keep emitted file names for local (`file:`) fonts stable
+   * across machines, whose absolute paths differ.
+   */
+  root?: string
   /**
    * Public URL prefix that `assetsBaseURL` is served under, i.e. Vite's `base`.
    *
@@ -49,7 +62,7 @@ export function normalizeFontData(context: NormalizeFontDataContext, faces: RawF
           const file = [
             // TODO: investigate why negative ignore pattern below is being ignored
             hash(filename(_url) || _url).replace(/^-+/, '').slice(0, MAX_FILENAME_PREFIX_LENGTH),
-            hash(source).replace(/-/, '_') + (extname(source.url) || formatToExtension(source.format) || ''),
+            hash(hashableSource(context, source)).replace(/-/, '_') + (extname(source.url) || formatToExtension(source.format) || ''),
           ].filter(Boolean).join('-')
 
           context.renderedFontURLs.set(file, source.url)

@@ -97,6 +97,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       assetContext = {
         dev: config.mode === 'development',
         renderedFontURLs: new Map<string, string>(),
+        root: config.root,
         assetsBaseURL: options.assets?.prefix || joinURL('/', config.build.assetsDir, '_fonts'),
         // A relative base (`''` or `'./'`) cannot be resolved from a URL in CSS served
         // during dev, where every stylesheet is requested from its own path, so fall back
