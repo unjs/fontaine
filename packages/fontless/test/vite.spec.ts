@@ -115,6 +115,17 @@ describe('fontless vite plugin', () => {
     expect(await npmOptions.readFile(join(root, 'missing.css'))).toBeNull()
   })
 
+  it('should give the npm provider an `exists` that does not read the file', async () => {
+    const root = await createFixture({ 'index.html': html, 'style.css': styles })
+    const { provider, receivedOptions } = createStubProvider('/inter.woff2', 'npm')
+
+    await buildApp(root, { provider: 'npm', providers: { npm: provider } })
+
+    const npmOptions = receivedOptions[0] as { exists: (path: string) => Promise<boolean> }
+    expect(await npmOptions.exists(join(root, 'inter.woff2'))).toBe(true)
+    expect(await npmOptions.exists(join(root, 'missing.woff2'))).toBe(false)
+  })
+
   it('should forward font loading failures to the dev server error handler', async () => {
     const root = await createFixture({ 'index.html': html, 'style.css': styles })
     const { provider } = createStubProvider('https://127.0.0.1:1/inter.woff2')

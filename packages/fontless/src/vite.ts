@@ -6,7 +6,7 @@ import type { FontFamilyInjectionPluginOptions } from './utils'
 
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { Buffer } from 'node:buffer'
-import { readFile } from 'node:fs/promises'
+import { access, readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { defu } from 'defu'
 import MagicString from 'magic-string'
@@ -120,9 +120,10 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       const alias = Array.isArray(config.resolve.alias) ? {} : config.resolve.alias
       const providers = await resolveProviders(options.providers, { root: config.root, alias })
 
-      // Auto-inject readFile and root for the npm provider
+      // Auto-inject readFile, exists and root for the npm provider
       options.npm = defu(options.npm, {
         readFile: (path: string) => readFile(path, 'utf-8').catch(() => null),
+        exists: (path: string) => access(path).then(() => true, () => false),
         root: config.root,
       })
 
