@@ -60,6 +60,10 @@ export interface FontFamilyProviderOverride extends FontFamilyOverrides, Partial
    * These options are passed to the provider when resolving this specific font.
    */
   providerOptions?: ProviderFamilyOptions
+  /** `font-display` descriptor to apply to every `@font-face` resolved for this family. */
+  display?: FontFaceData['display']
+  /** `unicode-range` descriptor to apply to every `@font-face` resolved for this family. */
+  unicodeRange?: string | string[]
 }
 
 export type FontSource = string | LocalFontSource | RemoteFontSource
