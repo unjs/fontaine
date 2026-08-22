@@ -251,6 +251,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   }
 
   const RUNTIME_PLACEHOLDER = '__FONTLESS_RUNTIME_BUILD_PLACEHOLDER__'
+  let warnedAboutEmptyPreloads = false
   const runtimePlugin: Plugin = {
     name: 'fontless-runtime',
     configEnvironment() {
@@ -287,10 +288,15 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       order: 'pre',
       handler(code) {
         if (code.includes(RUNTIME_PLACEHOLDER)) {
+          const preloads = getRuntimePreloads()
+          if (preloads.length === 0 && !warnedAboutEmptyPreloads) {
+            warnedAboutEmptyPreloads = true
+            this.warn('`fontless/runtime` was imported but no fonts are marked for preloading, so `preloads` will be empty. Enable `defaults.preload` or set `preload` on individual `families` entries.')
+          }
           const s = new MagicString(code)
           s.replaceAll(
             RUNTIME_PLACEHOLDER,
-            JSON.stringify({ preloads: getRuntimePreloads() }),
+            JSON.stringify({ preloads }),
           )
           return {
             code: s.toString(),
