@@ -9,7 +9,9 @@ import { Buffer } from 'node:buffer'
 import { access, readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { defu } from 'defu'
+import { resolveModulePath } from 'exsolve'
 import MagicString from 'magic-string'
+import { join } from 'pathe'
 import { hasProtocol, joinURL } from 'ufo'
 import { normalizeFontData } from './assets'
 import { defaultOptions } from './defaults'
@@ -120,10 +122,19 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       const alias = Array.isArray(config.resolve.alias) ? {} : config.resolve.alias
       const providers = await resolveProviders(options.providers, { root: config.root, alias })
 
-      // Auto-inject readFile, exists and root for the npm provider
+      // Auto-inject readFile, exists, resolve and root for the npm provider
       options.npm = defu(options.npm, {
         readFile: (path: string) => readFile(path, 'utf-8').catch(() => null),
         exists: (path: string) => access(path).then(() => true, () => false),
+        // Font packages are not always linked into `<root>/node_modules`: pnpm's isolated
+        // store and hoisting to a monorepo root both put them elsewhere. `style` is
+        // included for packages that expose their stylesheet only under that condition,
+        // and the fallback covers packages whose `exports` omit CSS entirely.
+        resolve: (id: string) => resolveModulePath(id, {
+          from: `${config.root}/`,
+          conditions: ['node', 'import', 'style', 'default'],
+          try: true,
+        }) ?? join(config.root, 'node_modules', id),
         root: config.root,
       })
 

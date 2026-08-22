@@ -115,6 +115,34 @@ describe('fontless vite plugin', () => {
     expect(await npmOptions.readFile(join(root, 'missing.css'))).toBeNull()
   })
 
+  it('should give the npm provider a `resolve` that finds packages hoisted above the root', async () => {
+    const workspace = await fsp.mkdtemp(join(tmpdir(), 'fontless-vite-'))
+    scratchDirs.push(workspace)
+    const root = join(workspace, 'app')
+    await fsp.mkdir(root)
+    await fsp.writeFile(join(root, 'index.html'), html)
+    await fsp.writeFile(join(root, 'style.css'), styles)
+    await fsp.writeFile(join(root, 'inter.woff2'), 'not-really-a-font')
+
+    const pkgDir = join(workspace, 'node_modules/@fake-fontsource/inter')
+    await fsp.mkdir(pkgDir, { recursive: true })
+    await fsp.writeFile(join(pkgDir, 'package.json'), JSON.stringify({ name: '@fake-fontsource/inter', version: '1.0.0', exports: { './*': './*' } }))
+    await fsp.writeFile(join(pkgDir, 'index.css'), '')
+
+    const { provider, receivedOptions } = createStubProvider('/inter.woff2', 'npm')
+    await buildApp(root, { provider: 'npm', providers: { npm: provider } })
+
+    const styleDir = join(workspace, 'node_modules/@fake-fontsource/style-condition')
+    await fsp.mkdir(styleDir, { recursive: true })
+    await fsp.writeFile(join(styleDir, 'package.json'), JSON.stringify({ name: '@fake-fontsource/style-condition', version: '1.0.0', exports: { './index.css': { style: './fonts.css', default: './index.js' } } }))
+    await fsp.writeFile(join(styleDir, 'fonts.css'), '')
+
+    const npmOptions = receivedOptions[0] as { resolve: (id: string) => string }
+    expect(npmOptions.resolve('@fake-fontsource/inter/index.css')).toBe(join(pkgDir, 'index.css'))
+    expect(npmOptions.resolve('@fake-fontsource/style-condition/index.css')).toBe(join(styleDir, 'fonts.css'))
+    expect(npmOptions.resolve('@fake-fontsource/missing/index.css')).toBe(join(root, 'node_modules/@fake-fontsource/missing/index.css'))
+  })
+
   it('should give the npm provider an `exists` that does not read the file', async () => {
     const root = await createFixture({ 'index.html': html, 'style.css': styles })
     const { provider, receivedOptions } = createStubProvider('/inter.woff2', 'npm')
