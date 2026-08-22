@@ -139,7 +139,21 @@ You can override fallbacks for specific generic families in the `defaults.fallba
 
 ## Preloading Fonts
 
-Fontless provides an option to select fonts to preload via `preload` option. For Vite SPA, the selected preload fonts are automatically injected into the HTML.
+Preloading is opt-in: no font is preloaded unless you ask for it. Enable it for every resolved font with `defaults.preload`, or for individual families with `families[].preload`:
+
+```ts
+fontless({
+  // preload every font fontless resolves
+  defaults: { preload: true },
+  // ...or only specific families
+  families: [
+    { name: 'Poppins', preload: true },
+    // `{ subsets: ['latin'] }` and `(family, font) => boolean` are also accepted
+  ],
+})
+```
+
+For Vite SPA, the selected preload fonts are automatically injected into the HTML.
 
 For SSR meta-frameworks which don't rely on [`transformIndexHtml` plugin hook](https://vite.dev/guide/api-plugin.html#transformindexhtml), you need to manually render preload links on the server. Fontless provides `fontless/runtime` module for server to access the necessary data for preload links generation, for example:
 
@@ -212,6 +226,8 @@ function Layout() {
 ```
 
 - [SvelteKit](./examples/sveltekit-app)
+
+If `preloads` is an empty array, either no `preload` option is enabled (see above), or `fontless/runtime` was not transformed by the plugin. Check that `fontless()` is in your Vite config and that `fontless/runtime` is not externalised.
 
 ```svelte
 <script lang="ts">
