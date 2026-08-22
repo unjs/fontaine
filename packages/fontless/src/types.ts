@@ -1,6 +1,9 @@
-import type { FontFaceData, LocalFontSource, Provider, ProviderFactory, providers, RemoteFontSource, ResolveFontOptions } from 'unifont'
+import type { FontFaceData, GoogleFamilyOptions, GoogleiconsFamilyOptions, LocalFontSource, Provider, ProviderFactory, providers, RemoteFontSource, ResolveFontOptions } from 'unifont'
+import type { Storage, StorageValue } from 'unstorage'
 
 import type { GenericCSSFamily } from './css/parse'
+
+export type FontFormat = ResolveFontOptions['formats'][number]
 
 export type Awaitable<T> = T | Promise<T>
 
@@ -38,18 +41,29 @@ export interface FontFamilyOverrides {
   name: string
   /** Inject `@font-face` regardless of usage in project. */
   global?: boolean
-  /**
-   * Enable or disable adding preload links to the initially rendered HTML.
-   * This is true by default for the highest priority format unless a font is subsetted (to avoid over-preloading).
-   */
-  preload?: boolean
+  preload?: PreloadOption
 
   // TODO:
   // as?: string
 }
-export interface FontFamilyProviderOverride extends FontFamilyOverrides, Partial<Omit<ResolveFontOptions, 'weights'> & { weights: Array<string | number> }> {
+/** Provider-specific family options that can be passed when resolving a font */
+export type ProviderFamilyOptions = {
+  google?: GoogleFamilyOptions
+  googleicons?: GoogleiconsFamilyOptions
+} & Record<string, Record<string, unknown> | undefined>
+
+export interface FontFamilyProviderOverride extends FontFamilyOverrides, Partial<Omit<ResolveFontOptions, 'weights' | 'options'> & { weights: Array<string | number> }> {
   /** The provider to use when resolving this font. */
   provider?: FontProviderName
+  /**
+   * Provider-specific options for this font family.
+   * These options are passed to the provider when resolving this specific font.
+   */
+  providerOptions?: ProviderFamilyOptions
+  /** `font-display` descriptor to apply to every `@font-face` resolved for this family. */
+  display?: FontFaceData['display']
+  /** `unicode-range` descriptor to apply to every `@font-face` resolved for this family. */
+  unicodeRange?: string | string[]
 }
 
 export type FontSource = string | LocalFontSource | RemoteFontSource
@@ -65,6 +79,18 @@ export interface FontFamilyManualOverride extends FontFamilyOverrides, RawFontFa
 }
 
 type ProviderOption = ((options: any) => Provider) | string | false
+
+/**
+ * Enable adding preload links to the initially rendered HTML.
+ * Pass `{ subsets }` to preload only fonts covering those subsets,
+ * or a function to filter font faces individually.
+ * @default false
+ * @example { subsets: ['latin'] }
+ */
+type PreloadOption
+  = | boolean
+    | { subsets: string[] }
+    | ((fontFamily: string, font: FontFaceData) => boolean)
 
 export interface FontlessOptions {
   /**
@@ -85,11 +111,17 @@ export interface FontlessOptions {
    */
   families?: Array<FontFamilyManualOverride | FontFamilyProviderOverride>
   defaults?: Partial<{
-    preload: boolean
+    preload: PreloadOption
     weights: Array<string | number>
     styles: ResolveFontOptions['styles']
     subsets: ResolveFontOptions['subsets']
-    fallbacks?: Partial<Record<GenericCSSFamily, string[]>>
+    /**
+     * Font formats to resolve. Defaults to `['woff2']`.
+     * @default ['woff2']
+     */
+    formats: FontFormat[]
+    /** An array applies to every generic family, overriding the per-category defaults. */
+    fallbacks?: string[] | Partial<Record<GenericCSSFamily, string[]>>
   }>
   providers?: {
     adobe?: ProviderOption
@@ -98,13 +130,24 @@ export interface FontlessOptions {
     fontsource?: ProviderOption
     google?: ProviderOption
     googleicons?: ProviderOption
+    npm?: ProviderOption
     [key: string]: ProviderOption | undefined
   }
+  /**
+   * Configure how font metadata and downloaded font files are cached between builds.
+   *
+   * - a string or `{ dir }`: cache to this directory (relative paths are resolved from the Vite root)
+   * - an `unstorage` instance: cache with your own driver
+   * - `false`: disable persistent caching (an in-memory cache is used instead)
+   *
+   * By default, fonts are cached in `node_modules/.cache/fontless/meta`, next to Vite's own cache directory.
+   */
+  cache?: false | string | { dir?: string } | Storage<StorageValue>
   /** Configure the way font assets are exposed */
-  assets: {
+  assets?: {
     /**
      * The baseURL where font files are served.
-     * @default '/_fonts/'
+     * @default '/assets/_fonts'
      */
     prefix?: string
     /** Currently font assets are exposed as public assets as part of the build. This will be configurable in future */
@@ -113,17 +156,19 @@ export interface FontlessOptions {
   /** Options passed directly to `local` font provider (none currently) */
   local?: Record<string, never>
   /** Options passed directly to `adobe` font provider */
-  adobe?: typeof providers.adobe extends ProviderFactory<infer O> ? O : Record<string, never>
+  adobe?: typeof providers.adobe extends ProviderFactory<any, infer O> ? O : Record<string, never>
   /** Options passed directly to `bunny` font provider */
-  bunny?: typeof providers.bunny extends ProviderFactory<infer O> ? O : Record<string, never>
+  bunny?: typeof providers.bunny extends ProviderFactory<any, infer O> ? O : Record<string, never>
   /** Options passed directly to `fontshare` font provider */
-  fontshare?: typeof providers.fontshare extends ProviderFactory<infer O> ? O : Record<string, never>
+  fontshare?: typeof providers.fontshare extends ProviderFactory<any, infer O> ? O : Record<string, never>
   /** Options passed directly to `fontsource` font provider */
-  fontsource?: typeof providers.fontsource extends ProviderFactory<infer O> ? O : Record<string, never>
+  fontsource?: typeof providers.fontsource extends ProviderFactory<any, infer O> ? O : Record<string, never>
   /** Options passed directly to `google` font provider */
-  google?: typeof providers.google extends ProviderFactory<infer O> ? O : Record<string, never>
+  google?: typeof providers.google extends ProviderFactory<any, infer O> ? O : Record<string, never>
   /** Options passed directly to `googleicons` font provider */
-  googleicons?: typeof providers.googleicons extends ProviderFactory<infer O> ? O : Record<string, never>
+  googleicons?: typeof providers.googleicons extends ProviderFactory<any, infer O> ? O : Record<string, never>
+  /** Options passed directly to `npm` font provider */
+  npm?: typeof providers.npm extends ProviderFactory<any, infer O> ? O : Record<string, never>
   /**
    * An ordered list of providers to check when resolving font families.
    *
@@ -138,9 +183,21 @@ export interface FontlessOptions {
   provider?: FontProviderName
   /**
    * You can enable support for processing CSS variables for font family names.
+   *
+   * - `false` — disable CSS variable processing
+   * - `'font-prefixed-only'` — process `--font-*` CSS variables, plus any `--*-font-family` variable (such as Tailwind v4's `--default-font-family`)
+   * - `true` — process all CSS variables (may have performance impact)
+   * - Any custom string — process only CSS variables matching `--<prefix>*` (e.g., `'my-app'` processes `--my-app-*` variables)
+   *
    * @default 'font-prefixed-only'
    */
-  processCSSVariables?: boolean | 'font-prefixed-only'
+  processCSSVariables?: boolean | 'font-prefixed-only' | (string & {})
+  /**
+   * Whether to throw an error when font resolution fails.
+   * When false (default), font resolution failures are logged as warnings.
+   * @default false
+   */
+  throwOnError?: boolean
   experimental?: {
     /**
      * You can disable adding local fallbacks for generated font faces, like `local('Font Face')`.
@@ -152,6 +209,6 @@ export interface FontlessOptions {
      * @default 'font-prefixed-only'
      * @deprecated This feature is no longer experimental. Use `processCSSVariables` instead. For Tailwind v4 users, setting this option to `true` is no longer needed or recommended.
      */
-    processCSSVariables?: boolean | 'font-prefixed-only'
+    processCSSVariables?: boolean | 'font-prefixed-only' | (string & {})
   }
 }

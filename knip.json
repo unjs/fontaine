@@ -1,14 +1,18 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignoreBinaries": ["playwright", "test-e2e"],
   "workspaces": {
+    "packages/fontless": {
+      "ignoreDependencies": [
+        "vite"
+      ]
+    },
     "packages/fontless/docs": {
       "entry": [
         "app.config.ts",
-        "tailwind.config.js",
-        "nuxt.config.ts"
+        "assets/css/tailwind.css"
       ],
       "ignoreDependencies": [
-        "shadcn-docs-nuxt",
         "vue",
         "vue-router"
       ]
@@ -28,6 +32,11 @@
         "@angular/build",
         "@angular/compiler-cli",
         "vite-tsconfig-paths"
+      ]
+    },
+    "packages/fontless/examples/rsc-app": {
+      "entry": [
+        "src/entry.*"
       ]
     },
     "packages/fontless/examples/qwik-app": {

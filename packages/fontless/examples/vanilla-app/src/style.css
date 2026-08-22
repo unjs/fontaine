@@ -12,7 +12,11 @@ p {
 }
 
 .google-press-start {
-  font-family: "Press Start 2P", sans-serif;
+  font-family: var(--font-test-variable);
+}
+
+:root {
+  --font-test-variable: "Press Start 2P", sans-serif;
 }
 
 .bunny-aclonica {

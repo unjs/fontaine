@@ -9,7 +9,7 @@
 
 ## Features
 
-- 🚀 **Optimized font loading**: Automatically loads and configures fonts with proper fallbacks
+- 🚀 **Optimized font loading**: Automatically loads and configures fonts with proper fallbacks and preload links.
 - 🔤 **Multiple provider support**: Google Fonts, Bunny Fonts, FontShare, FontSource, and more using [unifont](https://github.com/unjs/unifont)
 - 📦 **Zero runtime overhead**: Pure CSS solution with no JavaScript required at runtime
 - 📏 **Metric-based fallbacks**: Reduces Cumulative Layout Shift (CLS) by using font metrics from [fontaine](https://github.com/unjs/fontaine)
@@ -79,11 +79,14 @@ fontless({
 
   // Default font settings
   defaults: {
-    preload: true,
+    preload: true, // also accepts { subsets: ['latin'] } or a filter function
     weights: [400, 700],
     styles: ['normal', 'italic'],
+    // Fallbacks use category-aware presets from fontaine
+    // Override specific generic families as needed
     fallbacks: {
-      'sans-serif': ['Arial', 'Helvetica Neue']
+      'sans-serif': ['Arial', 'Helvetica Neue'],
+      // serif, monospace, cursive, fantasy, system-ui, etc. use shared defaults
     }
   },
 
@@ -105,14 +108,122 @@ fontless({
 
   // Asset configuration
   assets: {
-    prefix: '/_fonts'
+    prefix: '/assets/_fonts'
   },
+
+  // Where font metadata and downloaded fonts are cached between builds, defaulting to
+  // `node_modules/.cache/fontless/meta`. Accepts a directory (resolved from the Vite
+  // root), `{ dir }`, an `unstorage` instance for a custom driver, or `false` to
+  // disable persistent caching.
+  cache: '.cache/fonts',
 
   // Experimental features
   experimental: {
     disableLocalFallbacks: false
   }
 })
+```
+
+### Category-Aware Fallbacks
+
+Fontless uses category-aware fallback presets shared with the [fontaine](https://github.com/unjs/fontaine) package. These presets provide optimized system fonts for different generic font families:
+
+- **sans-serif**: `BlinkMacSystemFont`, `Segoe UI`, `Helvetica Neue`, `Arial`, `Noto Sans`
+- **serif**: `Times New Roman`, `Georgia`, `Noto Serif`
+- **monospace**: `Courier New`, `Roboto Mono`, `Noto Sans Mono`
+- **cursive**: Uses handwriting category fallbacks
+- **fantasy**: Uses display category fallbacks
+- **system-ui**, **ui-serif**, **ui-sans-serif**, **ui-monospace**: Mapped to corresponding category presets
+
+You can override fallbacks for specific generic families in the `defaults.fallbacks` configuration while keeping the shared defaults for others. This ensures consistent font fallback behavior across your application and reduces cumulative layout shift (CLS).
+
+## Preloading Fonts
+
+Fontless provides an option to select fonts to preload via `preload` option. For Vite SPA, the selected preload fonts are automatically injected into the HTML.
+
+For SSR meta-frameworks which don't rely on [`transformIndexHtml` plugin hook](https://vite.dev/guide/api-plugin.html#transformindexhtml), you need to manually render preload links on the server. Fontless provides `fontless/runtime` module for server to access the necessary data for preload links generation, for example:
+
+- Vanilla
+
+```tsx
+import { preloads } from "fontless/runtime";
+
+function renderHtml() {
+  const renderedPreloads = preloads
+    .map(
+      (attrs) =>
+        `<link rel="${attrs.rel}" as="${attrs.as}" href="${attrs.href}" crossorigin="${attrs.crossorigin}">`,
+    )
+    .join("\n");
+  return `\
+<html>
+  <head>
+    ${renderedPreloads}
+  </head>
+  <body>
+    ...
+  </body>
+</html>
+`;
+}
+```
+
+- [Qwik](./examples/qwik-app)
+
+```tsx
+import { preloads } from "fontless/runtime"
+
+export const RouterHead = component$(() => {
+  return (
+    <>
+      {preloads.map((l) => (
+        <link key={l.href} {...l} />
+      ))}
+      ...
+    </>
+  )
+})
+```
+
+- [React](./examples/react-router-app)
+
+```tsx
+import { preloads } from 'fontless/runtime'
+
+function Layout() {
+  return (
+    <html lang="en">
+      <head>
+        {preloads.map(({crossorigin, ...attrs}) => (
+          <link
+            key={attrs.href}
+            {...attrs}
+            crossOrigin={crossorigin}
+          />
+        ))}
+        ...
+      </head>
+      <body>
+        ...
+      </body>
+    </html>
+  )
+}
+```
+
+- [SvelteKit](./examples/sveltekit-app)
+
+```svelte
+<script lang="ts">
+	import { preloads } from "fontless/runtime";
+</script>
+
+<svelte:head>
+	<link rel="icon" href={favicon} />
+	{#each preloads as attrs}
+		<link {...attrs} />
+	{/each}
+</svelte:head>
 ```
 
 ## How It Works

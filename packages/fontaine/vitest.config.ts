@@ -8,12 +8,21 @@ export default defineConfig({
     },
   },
   test: {
+    sequence: {
+      shuffle: {
+        files: true,
+        tests: true,
+      },
+    },
     coverage: {
       thresholds: {
-        100: true,
+        branches: 100,
+        functions: 100,
+        lines: 100,
+        statements: 100,
       },
       include: ['src'],
       reporter: ['text', 'json', 'html'],
     },
   },
-})
+}) as any

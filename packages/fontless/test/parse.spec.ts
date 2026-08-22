@@ -2,7 +2,7 @@ import { parse, walk } from 'css-tree'
 import { describe, expect, it } from 'vitest'
 
 import { transformCSS } from '../src'
-import { extractFontFamilies } from '../src/css/parse'
+import { addLocalFallbacks, extractFontFamilies } from '../src/css/parse'
 
 describe('parsing', () => {
   it('should add declarations for `font-family`', async () => {
@@ -14,6 +14,58 @@ describe('parsing', () => {
           font-display: swap;
         }
         :root { font-family: 'CustomFont' }"
+      `)
+  })
+
+  it('should add declarations after any @import', async () => {
+    expect(await transform(`@import url("https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css") layer(bootstrap); body { font-family: "Gabarito", sans-serif; }`))
+      .toMatchInlineSnapshot(`
+        "@import url("https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css") layer(bootstrap);
+        @font-face {
+          font-family: 'Gabarito';
+          src: url("/gabarito.woff2") format(woff2);
+          font-display: swap;
+        }
+        @font-face {
+          font-family: "Gabarito Fallback: Times New Roman";
+          src: local("Times New Roman");
+          size-adjust: 108.8%;
+          ascent-override: 86.3971%;
+          descent-override: 23.8971%;
+          line-gap-override: 0%;
+        }
+
+         body { font-family: "Gabarito", "Gabarito Fallback: Times New Roman", sans-serif; }"
+      `)
+  })
+
+  it('should add declarations after multiple @import and @charset', async () => {
+    expect(await transform(`@charset "UTF-8";
+@import url("reset.css");
+@import url("typography.css");
+@namespace url("http://www.w3.org/1999/xhtml");
+body { font-family: "Inter", sans-serif; }`))
+      .toMatchInlineSnapshot(`
+        "@charset "UTF-8";
+        @import url("reset.css");
+        @import url("typography.css");
+        @namespace url("http://www.w3.org/1999/xhtml");
+        @font-face {
+          font-family: 'Inter';
+          src: url("/inter.woff2") format(woff2);
+          font-display: swap;
+        }
+        @font-face {
+          font-family: "Inter Fallback: Times New Roman";
+          src: local("Times New Roman");
+          size-adjust: 117.5481%;
+          ascent-override: 82.4131%;
+          descent-override: 20.5202%;
+          line-gap-override: 0%;
+        }
+
+
+        body { font-family: "Inter", "Inter Fallback: Times New Roman", sans-serif; }"
       `)
   })
 
@@ -45,7 +97,14 @@ describe('parsing', () => {
     expect(await transform(`
     :root { font-family:Open Sans}
     :root { font-family: Open Sans, sans-serif }
+    :root { --test:Open Sans }
+    :root { --test: Open Sans }
     :root { --test: Open Sans, sans-serif }
+    :root { --test: Open Sans,sans-serif }
+    :root { --test:"Open Sans" }
+    :root { --test: "Open Sans" }
+    :root { --test: "Open Sans", sans-serif }
+    :root { --test: "Open Sans",sans-serif }
     `))
       .toMatchInlineSnapshot(`
         "@font-face {
@@ -65,7 +124,14 @@ describe('parsing', () => {
 
             :root { font-family:Open Sans, "Open Sans Fallback: Times New Roman"}
             :root { font-family: Open Sans, "Open Sans Fallback: Times New Roman", sans-serif }
-            :root { --test: Open Sans, sans-serif }
+            :root { --test:Open Sans , "Open Sans Fallback: Times New Roman"}
+            :root { --test: Open Sans , "Open Sans Fallback: Times New Roman"}
+            :root { --test: Open Sans, "Open Sans Fallback: Times New Roman", sans-serif }
+            :root { --test: Open Sans, "Open Sans Fallback: Times New Roman",sans-serif }
+            :root { --test:"Open Sans" , "Open Sans Fallback: Times New Roman"}
+            :root { --test: "Open Sans" , "Open Sans Fallback: Times New Roman"}
+            :root { --test: "Open Sans", "Open Sans Fallback: Times New Roman", sans-serif }
+            :root { --test: "Open Sans", "Open Sans Fallback: Times New Roman",sans-serif }
             "
       `)
   })
@@ -186,12 +252,159 @@ describe('parsing css', () => {
   })
 })
 
+describe('custom prefix for processCSSVariables', () => {
+  const transformWithPrefix = async (css: string, prefix: string) => {
+    const result = await transformCSS({
+      dev: true,
+      processCSSVariables: prefix,
+      fontsToPreload: new Map(),
+      resolveFontFace: (family, options) => ({
+        fonts: [{ src: [{ url: `/${family.toLowerCase().replace(/\W/g, '-')}.woff2`, format: 'woff2' }] }],
+        fallbacks: options?.fallbacks ? ['Times New Roman', ...options.fallbacks] : undefined,
+      }),
+    }, css, 'some-id')
+    return result?.toString()
+  }
+
+  it('should process CSS variables matching the custom prefix', async () => {
+    expect(await transformWithPrefix(`:root { --my-app-heading: 'CustomFont' }`, 'my-app'))
+      .toMatchInlineSnapshot(`
+        "@font-face {
+          font-family: 'CustomFont';
+          src: url("/customfont.woff2") format(woff2);
+          font-display: swap;
+        }
+        :root { --my-app-heading: 'CustomFont' }"
+      `)
+  })
+
+  it('should skip CSS variables not matching the custom prefix', async () => {
+    const result = await transformWithPrefix(`:root { --other-var: 'CustomFont' }`, 'my-app')
+    expect(result).not.toContain('@font-face')
+  })
+
+  it('should still process font-family properties regardless of prefix', async () => {
+    expect(await transformWithPrefix(`:root { font-family: 'CustomFont' }`, 'my-app'))
+      .toContain('@font-face')
+  })
+
+  it('should still process font shorthand properties regardless of prefix', async () => {
+    expect(await transformWithPrefix(`:root { font: 1.2em 'CustomFont' }`, 'my-app'))
+      .toContain('@font-face')
+  })
+
+  it('should process --font-* variables only when prefix is "font"', async () => {
+    const result = await transformWithPrefix(`:root { --font-heading: 'CustomFont'; --other-var: 'OtherFont' }`, 'font')
+    expect(result).toContain('@font-face')
+    expect(result).toContain(`src: url("/customfont.woff2")`)
+    expect(result).not.toContain(`src: url("/otherfont.woff2")`)
+  })
+
+  it('should process --font-* variables only when prefix is "font-prefixed-only"', async () => {
+    const result = await transformWithPrefix(`:root { --font-heading: 'CustomFont'; --other-var: 'OtherFont' }`, 'font-prefixed-only')
+    expect(result).toContain('@font-face')
+    expect(result).toContain(`src: url("/customfont.woff2")`)
+    expect(result).not.toContain(`src: url("/otherfont.woff2")`)
+  })
+
+  it('should process Tailwind v4 `--default-font-family` with the default setting', async () => {
+    const result = await transformWithPrefix(`@layer theme { :root, :host { --default-font-family: "Rubik Storm", sans-serif; } } @layer base { :root, :host { font-family: var(--default-font-family, ui-sans-serif, system-ui, sans-serif); } }`, 'font-prefixed-only')
+    expect(result).toContain('@font-face')
+    expect(result).toContain(`src: url("/rubik-storm.woff2")`)
+  })
+
+  it('should process any `-font-family` custom property with the default setting', async () => {
+    const result = await transformWithPrefix(`:root { --default-mono-font-family: 'CustomFont'; --other-var: 'OtherFont' }`, 'font-prefixed-only')
+    expect(result).toContain(`src: url("/customfont.woff2")`)
+    expect(result).not.toContain(`src: url("/otherfont.woff2")`)
+  })
+
+  it('should treat empty string prefix as disabled (no CSS variable processing)', async () => {
+    const cssVarOnly = await transformWithPrefix(`:root { --heading: 'CustomFont' }`, '')
+    expect(cssVarOnly).not.toContain('@font-face')
+
+    const withFontFamily = await transformWithPrefix(`:root { font-family: 'CustomFont' }`, '')
+    expect(withFontFamily).toContain('@font-face')
+  })
+
+  it('should match prefix case-sensitively', async () => {
+    const upper = await transformWithPrefix(`:root { --My-App-heading: 'CustomFont' }`, 'My-App')
+    expect(upper).toContain('@font-face')
+
+    const lower = await transformWithPrefix(`:root { --my-app-heading: 'CustomFont' }`, 'My-App')
+    expect(lower).not.toContain('@font-face')
+  })
+
+  it('should not match prefix as substring of a longer segment', async () => {
+    const exact = await transformWithPrefix(`:root { --app-font: 'CustomFont' }`, 'app')
+    expect(exact).toContain('@font-face')
+
+    const substring = await transformWithPrefix(`:root { --my-app-font: 'CustomFont' }`, 'app')
+    expect(substring).not.toContain('@font-face')
+  })
+
+  it('should require a dash delimiter after the prefix', async () => {
+    const delimited = await transformWithPrefix(`:root { --my-app-heading: 'CustomFont' }`, 'my-app')
+    expect(delimited).toContain('@font-face')
+
+    const noDelimiter = await transformWithPrefix(`:root { --my-appbar: 'CustomFont' }`, 'my-app')
+    expect(noDelimiter).not.toContain('@font-face')
+  })
+})
+
 const slugify = (str: string) => str.toLowerCase().replace(/\W/g, '-')
+
+describe('lightningcss integration', () => {
+  it('should transform CSS with lightningcss in production mode', async () => {
+    const result = await transformLightningCSS(`:root { font-family: 'Poppins' }`)
+    expect(result).toMatchInlineSnapshot(`"@font-face{font-family:Poppins;src:url(/poppins.woff2)format("woff2");font-display:swap}@font-face{font-family:Poppins Fallback\\: Times New Roman;src:local(Times New Roman);size-adjust:123.077%;ascent-override:85.3125%;descent-override:28.4375%;line-gap-override:8.125%}:root { font-family: 'Poppins', "Poppins Fallback: Times New Roman" }"`)
+  })
+
+  it('should handle multiple font families with lightningcss', async () => {
+    const result = await transformLightningCSS(`:root { font-family: 'Inter', 'Arial', sans-serif }`)
+    expect(result).toMatchInlineSnapshot(`"@font-face{font-family:Inter;src:url(/inter.woff2)format("woff2");font-display:swap}@font-face{font-family:Inter Fallback\\: Times New Roman;src:local(Times New Roman);size-adjust:117.548%;ascent-override:82.4131%;descent-override:20.5202%;line-gap-override:0%}@font-face{font-family:Inter Fallback\\: Arial;src:local(Arial);size-adjust:107.119%;ascent-override:90.4365%;descent-override:22.518%;line-gap-override:0%}:root { font-family: 'Inter', "Inter Fallback: Times New Roman", "Inter Fallback: Arial", 'Arial', sans-serif }"`)
+  })
+
+  it('should preserve import rules with lightningcss', async () => {
+    const result = await transformLightningCSS(`@import url("reset.css"); body { font-family: "Lato"; }`)
+    expect(result).toMatchInlineSnapshot(`
+      "@import url("reset.css");
+      @font-face{font-family:Lato;src:url(/lato.woff2)format("woff2");font-display:swap}@font-face{font-family:Lato Fallback\\: Times New Roman;src:local(Times New Roman);size-adjust:107.2%;ascent-override:92.0709%;descent-override:19.8694%;line-gap-override:0%} body { font-family: "Lato", "Lato Fallback: Times New Roman"; }"
+    `)
+  })
+
+  it('should handle font shorthand with lightningcss', async () => {
+    const result = await transformLightningCSS(`:root { font: 16px/1.4 'Roboto' }`)
+    expect(result).toMatchInlineSnapshot(`"@font-face{font-family:Roboto;src:url(/roboto.woff2)format("woff2");font-display:swap}@font-face{font-family:Roboto Fallback\\: Times New Roman;src:local(Times New Roman);size-adjust:109.495%;ascent-override:84.7283%;descent-override:22.2969%;line-gap-override:0%}:root { font: 16px/1.4 'Roboto', "Roboto Fallback: Times New Roman" }"`)
+  })
+
+  it('should work in development mode with lightningcss options', async () => {
+    const result = await transformCSS({
+      dev: true,
+      processCSSVariables: true,
+      fontsToPreload: new Map(),
+      lightningcssOptions: { minify: false },
+      resolveFontFace: (family, options) => ({
+        fonts: [{ src: [{ url: `/${slugify(family)}.woff2`, format: 'woff2' }] }],
+        fallbacks: options?.fallbacks ? ['Times New Roman', ...options.fallbacks] : undefined,
+      }),
+    }, `:root { font-family: 'CustomFont' }`, 'some-id')
+
+    expect(result?.toString()).toMatchInlineSnapshot(`
+      "@font-face {
+        font-family: 'CustomFont';
+        src: url("/customfont.woff2") format(woff2);
+        font-display: swap;
+      }
+      :root { font-family: 'CustomFont' }"
+    `)
+  })
+})
+
 async function transform(css: string) {
   const result = await transformCSS({
     dev: true,
     processCSSVariables: true,
-    shouldPreload: () => true,
     fontsToPreload: new Map(),
     resolveFontFace: (family, options) => ({
       fonts: [{ src: [{ url: `/${slugify(family)}.woff2`, format: 'woff2' }] }],
@@ -200,3 +413,47 @@ async function transform(css: string) {
   }, css, 'some-id')
   return result?.toString()
 }
+
+async function transformLightningCSS(css: string) {
+  const result = await transformCSS({
+    dev: false,
+    processCSSVariables: true,
+    fontsToPreload: new Map(),
+    lightningcssOptions: { minify: true },
+    resolveFontFace: (family, options) => ({
+      fonts: [{ src: [{ url: `/${slugify(family)}.woff2`, format: 'woff2' }] }],
+      fallbacks: options?.fallbacks ? ['Times New Roman', ...options.fallbacks] : undefined,
+    }),
+  }, css, 'some-id')
+  return result?.toString()
+}
+
+describe('addLocalFallbacks', () => {
+  const localNames = (data: Parameters<typeof addLocalFallbacks>[1]) =>
+    addLocalFallbacks('Inter', data)[0]!.src.filter(src => 'name' in src).map(src => (src as { name: string }).name)
+
+  it('should add a variable local font for a weight range', () => {
+    expect(localNames([{ weight: [400, 700], src: [{ url: '/inter.woff2' }] }])).toEqual(['Inter Variable'])
+  })
+
+  it('should include the style in the variable local font name', () => {
+    expect(localNames([{ weight: [400, 700], style: 'italic', src: [{ url: '/inter.woff2' }] }]))
+      .toEqual(['Inter Variable Italic'])
+  })
+
+  it('should add a bare family name alongside the regular weight', () => {
+    expect(localNames([{ weight: 400, src: [{ url: '/inter.woff2' }] }])).toEqual(['Inter Regular', 'Inter'])
+  })
+
+  it('should not add a bare family name for other weights', () => {
+    expect(localNames([{ weight: 700, style: 'italic', src: [{ url: '/inter.woff2' }] }])).toEqual(['Inter Bold Italic'])
+  })
+
+  it('should ignore unmapped weights and styles', () => {
+    expect(localNames([{ weight: 'bolder', style: 'unknown', src: [{ url: '/inter.woff2' }] }])).toEqual([])
+  })
+
+  it('should leave faces that already start with a local source untouched', () => {
+    expect(localNames([{ weight: 400, src: [{ name: 'Inter Var' }, { url: '/inter.woff2' }] }])).toEqual(['Inter Var'])
+  })
+})

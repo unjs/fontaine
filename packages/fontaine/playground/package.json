@@ -2,13 +2,13 @@
   "name": "playground",
   "private": true,
   "engines": {
-    "node": "^18.12.0 || ^20.0.0 || >=22.0.0"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
     "dev": "vite"
   },
   "dependencies": {
     "fontaine": "latest",
-    "vite": "^6.3.2"
+    "vite": "^8.2.1"
   }
 }

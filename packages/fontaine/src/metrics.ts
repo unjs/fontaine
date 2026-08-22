@@ -1,22 +1,26 @@
 import type { Font } from '@capsizecss/unpack'
 import type { FontFaceMetrics } from './css'
 
-import { fileURLToPath } from 'node:url'
-import { fontFamilyToCamelCase } from '@capsizecss/metrics'
-import { fromFile, fromUrl } from '@capsizecss/unpack'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+import { fromUrl } from '@capsizecss/unpack'
+import { fromFile } from '@capsizecss/unpack/fs'
+import { isAbsolute } from 'pathe'
 import { parseURL } from 'ufo'
 
-import { withoutQuotes } from './css'
+import { isStylesheetRelative, withoutQuotes } from './css'
 
 const metricCache: Record<string, FontFaceMetrics | null> = {}
 
-function filterRequiredMetrics({ ascent, descent, lineGap, unitsPerEm, xWidthAvg }: Pick<Font, 'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'>) {
+type RequiredFontMetrics = Pick<Font, 'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'> & { category?: string }
+
+function filterRequiredMetrics(font: RequiredFontMetrics): FontFaceMetrics {
   return {
-    ascent,
-    descent,
-    lineGap,
-    unitsPerEm,
-    xWidthAvg,
+    ascent: font.ascent,
+    descent: font.descent,
+    lineGap: font.lineGap,
+    unitsPerEm: font.unitsPerEm,
+    xWidthAvg: font.xWidthAvg,
+    category: font.category,
   }
 }
 
@@ -26,15 +30,15 @@ function filterRequiredMetrics({ ascent, descent, lineGap, unitsPerEm, xWidthAvg
  * @returns {Promise<FontFaceMetrics | null>} - A promise that resolves with the filtered font metrics or null if not found. See {@link FontFaceMetrics}.
  * @async
  */
-export async function getMetricsForFamily(family: string) {
+export async function getMetricsForFamily(family: string): Promise<FontFaceMetrics | null> {
   family = withoutQuotes(family)
 
   if (family in metricCache)
-    return metricCache[family]
+    return metricCache[family] ?? null
 
   try {
     const name = fontFamilyToCamelCase(family)
-    const { entireMetricsCollection } = await import('@capsizecss/metrics/entireMetricsCollection')
+    const { entireMetricsCollection } = await import('#capsize-font-metrics') as any as typeof import('@capsizecss/metrics/entireMetricsCollection')
     const metrics = entireMetricsCollection[name as keyof typeof entireMetricsCollection]
 
     /* v8 ignore next 4 */
@@ -62,11 +66,11 @@ const urlRequestCache = new Map<string, Promise<Font>>()
  * @returns {Promise<FontFaceMetrics | null>} - A promise that resolves to the filtered font metrics or null if the source cannot be processed.
  * @async
  */
-export async function readMetrics(_source: URL | string) {
+export async function readMetrics(_source: URL | string): Promise<FontFaceMetrics | null> {
   const source = typeof _source !== 'string' && 'href' in _source ? _source.href : _source
 
   if (source in metricCache)
-    return metricCache[source]
+    return metricCache[source] ?? null
 
   const { protocol } = parseURL(source)
   if (!protocol)
@@ -91,4 +95,33 @@ export async function readMetrics(_source: URL | string) {
   const filteredMetrics = filterRequiredMetrics(metrics)
   metricCache[source] = filteredMetrics
   return filteredMetrics
+}
+
+/**
+ * Reads font metrics for a `src` URL declared in a stylesheet.
+ *
+ * A scheme-less, non-rooted URL is resolved against the stylesheet first, then handed to
+ * `resolvePath` if that yields no metrics: bare package specifiers and webpack's `~` prefix
+ * look identical to stylesheet-relative paths, and only the caller's resolver can map them.
+ */
+export async function readMetricsForSource(source: string, importer: string | undefined, resolvePath: (path: string) => string | URL): Promise<FontFaceMetrics | null> {
+  if (importer && isAbsolute(importer) && isStylesheetRelative(source)) {
+    const metrics = await readMetrics(new URL(source, pathToFileURL(importer))).catch(() => null)
+    if (metrics)
+      return metrics
+  }
+  return readMetrics(resolvePath(source))
+}
+
+// inline `@capsizecss/metrics`
+// https://github.com/seek-oss/capsize/blob/66344699ff7759a661a78d0629375714c6f308b0/packages/metrics/src/index.ts
+function fontFamilyToCamelCase(str: string) {
+  return str
+    .split(/[\s|-]/)
+    .filter(Boolean)
+    .map(
+      (s, i) =>
+        `${s.charAt(0)[i > 0 ? 'toUpperCase' : 'toLowerCase']()}${s.slice(1)}`,
+    )
+    .join('')
 }

@@ -18,6 +18,38 @@ interface ResolverContext {
   providers: Record<string, (opts: unknown) => Provider>
 }
 
+/** Family-level keys that are not `@font-face` descriptors and must not be passed through to `normalizeFontData`. */
+const NON_DESCRIPTOR_KEYS = new Set(['name', 'global', 'preload', 'fallbacks', 'provider', 'providerOptions'])
+
+function pickDescriptors(override: FontFamilyManualOverride): RawFontFaceData {
+  const face: Record<string, unknown> = {}
+  for (const key in override) {
+    if (!NON_DESCRIPTOR_KEYS.has(key)) {
+      face[key] = override[key as keyof FontFamilyManualOverride]
+    }
+  }
+  return face as unknown as RawFontFaceData
+}
+
+function toArray<T>(value: T | T[]): T[] {
+  return Array.isArray(value) ? value : [value]
+}
+
+/** Apply family-level `@font-face` descriptors to faces resolved by a provider. */
+function applyFaceOverrides(override: FontFamilyManualOverride | FontFamilyProviderOverride | undefined, fonts: FontFaceData[]): FontFaceData[] {
+  const display = override && 'display' in override ? override.display : undefined
+  const rawUnicodeRange = override && 'unicodeRange' in override ? override.unicodeRange : undefined
+  const unicodeRange = rawUnicodeRange ? toArray(rawUnicodeRange) : undefined
+  if (!display && !unicodeRange) {
+    return fonts
+  }
+  return fonts.map(font => ({
+    ...font,
+    ...(display && { display }),
+    ...(unicodeRange && { unicodeRange }),
+  }))
+}
+
 export type Resolver = (fontFamily: string, override?: FontFamilyManualOverride | FontFamilyProviderOverride, fallbackOptions?: {
   fallbacks: string[]
   generic?: GenericCSSFamily
@@ -34,9 +66,13 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
       delete providers[key]
     }
     else {
-      const providerOptions = (options[key as 'google' | 'local' | 'adobe'] || {}) as Record<string, unknown>
+      const providerOptions = (options[key as 'google' | 'local' | 'adobe' | 'npm'] || {}) as Record<string, unknown>
       resolvedProviders.push(provider(providerOptions))
     }
+  }
+
+  if (resolvedProviders.length === 0) {
+    throw new Error('At least one font provider must be configured')
   }
 
   for (const val of options.priority || []) {
@@ -46,15 +82,19 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
   for (const provider in providers) {
     prioritisedProviders.add(provider)
   }
-
-  const unifont = await createUnifont(resolvedProviders, { storage: context.storage })
+  const unifont = await createUnifont(resolvedProviders as [Provider, ...Provider[]], {
+    ...options,
+    storage: context.storage,
+  })
 
   // Custom merging for defaults - providing a value for any default will override module
   // defaults entirely (to prevent array merging)
+  // Note: defaultValues.fallbacks uses shared category-aware presets from fontaine package
   const normalizedDefaults = {
     weights: [...new Set((options.defaults?.weights || defaultValues.weights).map(v => String(v)))],
     styles: [...new Set(options.defaults?.styles || defaultValues.styles)],
     subsets: [...new Set(options.defaults?.subsets || defaultValues.subsets)],
+    formats: [...new Set(options.defaults?.formats || defaultValues.formats)],
     fallbacks: Object.fromEntries(Object.entries(defaultValues.fallbacks).map(([key, value]) => [
       key,
       Array.isArray(options.defaults?.fallbacks) ? options.defaults.fallbacks : options.defaults?.fallbacks?.[key as GenericCSSFamily] || value,
@@ -69,15 +109,10 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
   }
 
   return async function resolveFontFaceWithOverride(fontFamily: string, override?: FontFamilyManualOverride | FontFamilyProviderOverride, fallbackOptions?: { fallbacks: string[], generic?: GenericCSSFamily }): Promise<FontFaceResolution | undefined> {
-    const fallbacks = override?.fallbacks || normalizedDefaults.fallbacks[fallbackOptions?.generic || 'sans-serif']
+    const fallbacks = (override && 'fallbacks' in override ? override.fallbacks : undefined) || normalizedDefaults.fallbacks[fallbackOptions?.generic || 'sans-serif']
 
     if (override && 'src' in override) {
-      const fonts = addFallbacks(fontFamily, normalizeFontData({
-        src: override.src,
-        display: override.display,
-        weight: override.weight,
-        style: override.style,
-      }))
+      const fonts = addFallbacks(fontFamily, normalizeFontData(pickDescriptors(override)))
       exposeFont({
         type: 'manual',
         fontFamily,
@@ -94,21 +129,30 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
       return
     }
 
-    // Respect custom weights, styles and subsets options
+    // Respect custom weights, styles, subsets and formats options
     const defaults = { ...normalizedDefaults, fallbacks }
     for (const key of ['weights', 'styles', 'subsets'] as const) {
       if (override?.[key]) {
         defaults[key as 'weights'] = override[key]!.map(v => String(v))
       }
     }
+    if (override?.formats) {
+      defaults.formats = override.formats
+    }
+
+    // provider-specific options if available
+    const providerOptions = override && 'providerOptions' in override ? override.providerOptions : undefined
 
     // Handle explicit provider
     if (override?.provider) {
       if (override.provider in providers) {
-        const result = await unifont.resolveFont(fontFamily, defaults, [override.provider])
+        const resolveOptions = providerOptions?.[override.provider]
+          ? { ...defaults, options: { [override.provider]: providerOptions[override.provider] } }
+          : defaults
+        const result = await unifont.resolveFont(fontFamily, resolveOptions as typeof defaults, [override.provider])
         // Rewrite font source URLs to be proxied/local URLs
-        const fonts = normalizeFontData(result?.fonts || [])
-        if (!fonts.length || !result) {
+        const fonts = applyFaceOverrides(override, normalizeFontData(result.fonts))
+        if (!fonts.length) {
           logger.warn(`Could not produce font face declaration from \`${override.provider}\` for font family \`${fontFamily}\`.`)
           return
         }
@@ -129,27 +173,32 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
       logger.warn(`Unknown provider \`${override.provider}\` for font family \`${fontFamily}\`. Falling back to default providers.`)
     }
 
-    const result = await unifont.resolveFont(fontFamily, defaults, [...prioritisedProviders])
-    if (result) {
-      // Rewrite font source URLs to be proxied/local URLs
-      const fonts = normalizeFontData(result.fonts)
-      if (fonts.length > 0) {
-        const fontsWithLocalFallbacks = addFallbacks(fontFamily, fonts)
-        // TODO: expose provider name in result
-        exposeFont({
-          type: 'auto',
-          fontFamily,
-          provider: result.provider || 'unknown',
-          fonts: fontsWithLocalFallbacks,
-        })
-        return {
-          fallbacks: result.fallbacks || defaults.fallbacks,
-          fonts: fontsWithLocalFallbacks,
-        }
-      }
+    // Build options with provider-specific family options merged
+    const resolveOptions = providerOptions
+      ? { ...defaults, options: providerOptions }
+      : defaults
+
+    const result = await unifont.resolveFont(fontFamily, resolveOptions as typeof defaults, [...prioritisedProviders])
+    // Rewrite font source URLs to be proxied/local URLs
+    const fonts = applyFaceOverrides(override, normalizeFontData(result.fonts))
+    if (fonts.length === 0) {
       if (override) {
         logger.warn(`Could not produce font face declaration for \`${fontFamily}\` with override.`)
       }
+      return
+    }
+
+    const fontsWithLocalFallbacks = addFallbacks(fontFamily, fonts)
+    // TODO: expose provider name in result
+    exposeFont({
+      type: 'auto',
+      fontFamily,
+      provider: result.provider || 'unknown',
+      fonts: fontsWithLocalFallbacks,
+    })
+    return {
+      fallbacks: defaults.fallbacks,
+      fonts: fontsWithLocalFallbacks,
     }
   }
 }

@@ -52,8 +52,14 @@ const globalCSSValues = new Set([
   'unset',
 ])
 
-export function extractGeneric(node: Declaration) {
+export function extractGeneric(node: Declaration): GenericCSSFamily | undefined {
   if (node.value.type === 'Raw') {
+    const children = processRawValue(node.value.value)
+    for (const child of children) {
+      if (genericCSSFamilies.has(child as GenericCSSFamily)) {
+        return child as GenericCSSFamily
+      }
+    }
     return
   }
 
@@ -64,9 +70,11 @@ export function extractGeneric(node: Declaration) {
   }
 }
 
-export function extractEndOfFirstChild(node: Declaration) {
+export function extractEndOfFirstChild(node: Declaration): number | undefined {
   if (node.value.type === 'Raw') {
-    return
+    const value = node.value.value
+    const index = value.indexOf(',')
+    return node.value.loc!.start.offset! + (index >= 0 ? index : value.length)
   }
   for (const child of node.value.children) {
     if (child.type === 'String') {
@@ -79,9 +87,10 @@ export function extractEndOfFirstChild(node: Declaration) {
   return node.value.children.last!.loc!.end.offset!
 }
 
-export function extractFontFamilies(node: Declaration) {
+export function extractFontFamilies(node: Declaration): string[] {
   if (node.value.type === 'Raw') {
-    return processRawValue(node.value.value)
+    const children = processRawValue(node.value.value)
+    return children.filter(child => !genericCSSFamilies.has(child as GenericCSSFamily) && !globalCSSValues.has(child))
   }
 
   const families = [] as string[]
@@ -110,7 +119,7 @@ export function extractFontFamilies(node: Declaration) {
   return families
 }
 
-export function addLocalFallbacks(fontFamily: string, data: FontFaceData[]) {
+export function addLocalFallbacks(fontFamily: string, data: FontFaceData[]): FontFaceData[] {
   for (const face of data) {
     const style = (face.style ? styleMap[face.style] : '') ?? ''
 
@@ -118,8 +127,8 @@ export function addLocalFallbacks(fontFamily: string, data: FontFaceData[]) {
       face.src.unshift(({ name: ([fontFamily, 'Variable', style].join(' ')).trim() }))
     }
     else if (face.src[0] && !('name' in face.src[0])) {
-      const weights = (Array.isArray(face.weight) ? face.weight : [face.weight])
-        .map(weight => weightMap[weight])
+      const weights = [face.weight]
+        .map(weight => weightMap[weight!])
         .filter(Boolean)
 
       for (const weight of weights) {

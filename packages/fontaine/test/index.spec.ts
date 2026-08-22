@@ -46,6 +46,7 @@ describe('getMetricsForFamily', () => {
     expect(metrics).toMatchInlineSnapshot(`
       {
         "ascent": 1968,
+        "category": "sans-serif",
         "descent": -546,
         "lineGap": 0,
         "unitsPerEm": 2000,
@@ -80,6 +81,7 @@ describe('getMetricsForFamily', () => {
     expect(metrics).toMatchInlineSnapshot(`
       {
         "ascent": 1025,
+        "category": "monospace",
         "descent": -275,
         "lineGap": 0,
         "unitsPerEm": 1000,
@@ -128,6 +130,7 @@ describe('readMetrics', () => {
     expect(metrics).toMatchInlineSnapshot(`
       {
         "ascent": 1050,
+        "category": undefined,
         "descent": -350,
         "lineGap": 100,
         "unitsPerEm": 1000,
@@ -147,6 +150,7 @@ describe('readMetrics', () => {
     expect(metrics).toMatchInlineSnapshot(`
       {
         "ascent": 1050,
+        "category": undefined,
         "descent": -350,
         "lineGap": 100,
         "unitsPerEm": 1000,
@@ -235,6 +239,31 @@ describe('parseFontFace', () => {
         src: url("") format("woff"), url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
       }`,
     )).toStrictEqual([])
+  })
+
+  it('should ignore at-rules without a block', () => {
+    expect(parseFontFace(`@font-face;`)).toStrictEqual([])
+  })
+
+  it('should ignore generic families declared in font-family', () => {
+    expect(parseFontFace(
+      `@font-face {
+        font-family: sans-serif;
+        src: url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
+      }`,
+    )).toStrictEqual([])
+  })
+
+  it('should ignore font properties that cannot be parsed as a value', () => {
+    const [result] = parseFontFace(
+      `@font-face {
+        font-family: Roboto;
+        font-weight: ~broken~;
+        src: url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
+      }`,
+    )
+
+    expect(result?.properties).toStrictEqual({})
   })
 
   it('should handle sources with parentheses', () => {

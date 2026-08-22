@@ -1,6 +1,6 @@
-import * as unpack from '@capsizecss/unpack'
+import { fromUrl } from '@capsizecss/unpack'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { readMetrics } from '../src/metrics'
+import { getMetricsForFamily, readMetrics } from '../src/metrics'
 
 const mockFont = {
   ascent: 2000,
@@ -11,8 +11,11 @@ const mockFont = {
 }
 
 vi.mock('@capsizecss/unpack', () => ({
-  fromFile: vi.fn(),
   fromUrl: vi.fn(),
+}))
+
+vi.mock('@capsizecss/unpack/fs', () => ({
+  fromFile: vi.fn(),
 }))
 
 describe('readMetrics', () => {
@@ -28,7 +31,7 @@ describe('readMetrics', () => {
       resolvePromise = resolve
     })
 
-    vi.mocked(unpack.fromUrl).mockReturnValue(delayedPromise as Promise<any>)
+    vi.mocked(fromUrl).mockReturnValue(delayedPromise as Promise<any>)
 
     const promises = Array.from({ length: 200 }, () => readMetrics(url))
 
@@ -36,10 +39,18 @@ describe('readMetrics', () => {
 
     const results = await Promise.all(promises)
 
-    expect(unpack.fromUrl).toHaveBeenCalledTimes(1)
+    expect(fromUrl).toHaveBeenCalledTimes(1)
 
     results.forEach((result) => {
       expect(result).toEqual(mockFont)
     })
+  })
+
+  it('should return null for a source already cached as having no metrics', async () => {
+    const source = 'Definitely Not A Real Font Family'
+
+    expect(await getMetricsForFamily(source)).toBeNull()
+    expect(await readMetrics(source)).toBeNull()
+    expect(fromUrl).not.toHaveBeenCalled()
   })
 })

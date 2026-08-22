@@ -1,10 +1,26 @@
+shellEmulator: true
+
 packages:
   - packages/*
   - packages/fontaine/playground
   - packages/fontless/docs
   - packages/fontless/examples/*
-ignoredBuiltDependencies:
-  - esbuild
-onlyBuiltDependencies:
-  - shadcn-docs-nuxt
-  - simple-git-hooks
+
+overrides:
+  '@nuxt/fonts>fontaine': latest
+  '@nuxt/fonts>fontless': latest
+  fontaine: 'workspace:*'
+  fontless: 'workspace:*'
+  unstorage: 1.17.5
+  vue: 3.5.41
+
+allowBuilds:
+  '@parcel/watcher': false
+  '@swc/core': false
+  esbuild: false
+  lmdb: false
+  msgpackr-extract: false
+  shadcn-docs-nuxt: true
+  sharp: false
+  simple-git-hooks: true
+  vue-demi: false

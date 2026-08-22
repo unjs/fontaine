@@ -1,9 +1,18 @@
-import type { FontlessOptions } from './types'
+import type { FontFormat, FontlessOptions } from './types'
 
+import { DEFAULT_CATEGORY_FALLBACKS } from 'fontaine'
 import { providers } from 'unifont'
 
-export const defaultValues = {
-  weights: [400],
+interface DefaultValues {
+  weights: [400]
+  styles: ['normal', 'italic']
+  subsets: string[]
+  formats: FontFormat[]
+  fallbacks: typeof DEFAULT_CATEGORY_FALLBACKS
+}
+
+export const defaultValues: DefaultValues = {
+  weights: [400] as const,
   styles: ['normal', 'italic'] as const,
   subsets: [
     'cyrillic-ext',
@@ -14,22 +23,17 @@ export const defaultValues = {
     'latin-ext',
     'latin',
   ],
+  formats: ['woff2'],
   fallbacks: {
-    'serif': ['Times New Roman'],
-    'sans-serif': ['Arial'],
-    'monospace': ['Courier New'],
-    'cursive': [],
-    'fantasy': [],
-    'system-ui': [
-      'BlinkMacSystemFont',
-      'Segoe UI',
-      'Roboto',
-      'Helvetica Neue',
-      'Arial',
-    ],
-    'ui-serif': ['Times New Roman'],
-    'ui-sans-serif': ['Arial'],
-    'ui-monospace': ['Courier New'],
+    'serif': DEFAULT_CATEGORY_FALLBACKS.serif,
+    'sans-serif': DEFAULT_CATEGORY_FALLBACKS['sans-serif'],
+    'monospace': DEFAULT_CATEGORY_FALLBACKS.monospace,
+    'cursive': DEFAULT_CATEGORY_FALLBACKS.handwriting,
+    'fantasy': DEFAULT_CATEGORY_FALLBACKS.display,
+    'system-ui': DEFAULT_CATEGORY_FALLBACKS['sans-serif'],
+    'ui-serif': DEFAULT_CATEGORY_FALLBACKS.serif,
+    'ui-sans-serif': DEFAULT_CATEGORY_FALLBACKS['sans-serif'],
+    'ui-monospace': DEFAULT_CATEGORY_FALLBACKS.monospace,
     'ui-rounded': [],
     'emoji': [],
     'math': [],
@@ -43,13 +47,14 @@ export const defaultOptions: FontlessOptions = {
     disableLocalFallbacks: false,
   },
   defaults: {},
-  assets: {
-    prefix: '/_fonts',
-  },
+  assets: {},
   local: {},
   google: {},
   adobe: {
     id: '',
+  },
+  npm: {
+    remote: false,
   },
   providers: {
     adobe: providers.adobe,
@@ -58,5 +63,6 @@ export const defaultOptions: FontlessOptions = {
     bunny: providers.bunny,
     fontshare: providers.fontshare,
     fontsource: providers.fontsource,
+    npm: providers.npm,
   },
 }
