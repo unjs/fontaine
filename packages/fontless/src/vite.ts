@@ -10,7 +10,7 @@ import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { defu } from 'defu'
 import MagicString from 'magic-string'
-import { hasProtocol, joinRelativeURL, joinURL } from 'ufo'
+import { hasProtocol, joinURL } from 'ufo'
 import { normalizeFontData } from './assets'
 import { defaultOptions } from './defaults'
 import { resolveProviders } from './providers'
@@ -103,17 +103,12 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         // to the server root. During build the URL is resolved by Vite instead (see
         // `resolveAssetURL` below), which handles relative bases correctly.
         baseURL: config.base.startsWith('/') || hasProtocol(config.base) ? config.base : '/',
-        devFilesystemURL: joinRelativeURL(config.base, '@fs'),
         // During build, hand fonts to Vite's asset pipeline rather than writing literal
         // URLs, so `base`, a relative base and `experimental.renderBuiltUrl` all apply.
         resolveAssetURL: config.command === 'build'
           ? file => buildContext.getStore()?.emit(file)
           : undefined,
         callback: (file, url) => {
-          // fonts served from `/@fs` in dev are already requested at their public URL
-          if (url.startsWith(assetContext.devFilesystemURL!)) {
-            return
-          }
           publicFontURLs.set(url, joinURL(assetContext.baseURL, assetContext.assetsBaseURL, file))
         },
       }

@@ -1,6 +1,5 @@
 import type { FontFaceData } from 'unifont'
 import type { RawFontFaceData } from './types'
-import { fileURLToPath } from 'node:url'
 import { hash } from 'ohash'
 import { extname } from 'pathe'
 import { filename } from 'pathe/utils'
@@ -15,13 +14,6 @@ export interface NormalizeFontDataContext {
   dev: boolean
   renderedFontURLs: Map<string, string>
   assetsBaseURL: string
-  /**
-   * Public URL prefix Vite serves local filesystem paths under, i.e. `/@fs`.
-   *
-   * Only used in dev, for sources that are already local files: they are referenced in
-   * place rather than through the font asset middleware.
-   */
-  devFilesystemURL?: string
   /**
    * Public URL prefix that `assetsBaseURL` is served under, i.e. Vite's `base`.
    *
@@ -66,9 +58,7 @@ export function normalizeFontData(context: NormalizeFontDataContext, faces: RawF
           const baseURL = context.baseURL || '/'
           source.url = context.resolveAssetURL?.(file, source.url)
             ?? (context.dev
-              ? source.originalURL.startsWith('file://') && context.devFilesystemURL
-                ? joinRelativeURL(context.devFilesystemURL, fileURLToPath(source.originalURL))
-                : joinRelativeURL(baseURL, context.assetsBaseURL, file)
+              ? joinRelativeURL(baseURL, context.assetsBaseURL, file)
               : joinURL(baseURL, context.assetsBaseURL, file))
 
           context.callback?.(file, source.url)

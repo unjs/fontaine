@@ -3,6 +3,7 @@ import type { InlineConfig, Plugin } from 'vite'
 import type { FontlessOptions } from '../src/types'
 import { promises as fsp } from 'node:fs'
 import { tmpdir } from 'node:os'
+import { pathToFileURL } from 'node:url'
 import { join } from 'pathe'
 import { build, createServer } from 'vite'
 import { afterAll, describe, expect, it } from 'vitest'
@@ -63,7 +64,7 @@ async function buildApp(root: string, options: FontlessOptions = {}, config: Inl
   const files = await Array.fromAsync(fsp.glob('**/*', { cwd: outDir }))
   const cssFile = files.find(file => file.endsWith('.css'))
 
-  return { files, css: cssFile ? await fsp.readFile(join(outDir, cssFile), 'utf-8') : '' }
+  return { outDir, files, css: cssFile ? await fsp.readFile(join(outDir, cssFile), 'utf-8') : '' }
 }
 
 describe('fontless vite plugin', () => {
@@ -133,6 +134,41 @@ describe('fontless vite plugin', () => {
       const response = await fetch(new URL(`/assets/_fonts/${file}`, server.resolvedUrls!.local[0]))
 
       expect(response.status).toBe(500)
+    }
+    finally {
+      await server.close()
+    }
+  })
+
+  it('should emit fonts that providers resolve to local files', async () => {
+    const root = await createFixture({ 'index.html': html, 'style.css': styles })
+    const { provider } = createStubProvider(pathToFileURL(join(root, 'inter.woff2')).href)
+    const { outDir, files } = await buildApp(root, { providers: { stub: provider } })
+
+    const font = files.find(file => file.endsWith('.woff2'))
+    expect(font).toBeTruthy()
+    expect(await fsp.readFile(join(outDir, font!), 'utf-8')).toBe('not-really-a-font')
+  })
+
+  it('should serve fonts that providers resolve to local files during dev', async () => {
+    const root = await createFixture({ 'index.html': html, 'style.css': styles })
+    const { provider } = createStubProvider(pathToFileURL(join(root, 'inter.woff2')).href)
+    const server = await createServer({
+      root,
+      configFile: false,
+      logLevel: 'silent',
+      server: { host: '127.0.0.1', port: 0 },
+      plugins: [fontless(withStub({ providers: { stub: provider } }))],
+    })
+
+    try {
+      await server.listen()
+      const transformed = await server.transformRequest('/style.css')
+      const file = transformed!.code.match(/\/assets\/_fonts\/([\w-]+\.woff2)/)![1]
+
+      const response = await fetch(new URL(`/assets/_fonts/${file}`, server.resolvedUrls!.local[0]))
+
+      expect(await response.text()).toBe('not-really-a-font')
     }
     finally {
       await server.close()
