@@ -566,7 +566,7 @@ describe('createResolver', () => {
 
   describe('font face descriptors', () => {
     it('should apply display and unicodeRange to faces from an explicit provider', async () => {
-      const { provider } = createTrackingProvider('test')
+      const provider = createEmptyProvider('test', { fonts: [{ display: 'swap', unicodeRange: ['U+0000-007F'], src: [{ url: '/font.woff2' }] }] })
 
       const resolver = await createResolver({
         options: { providers: { test: provider } },
@@ -588,7 +588,7 @@ describe('createResolver', () => {
     })
 
     it('should apply display and unicodeRange to auto-resolved faces', async () => {
-      const { provider } = createTrackingProvider('test')
+      const provider = createEmptyProvider('test', { fonts: [{ display: 'swap', unicodeRange: ['U+0000-007F'], src: [{ url: '/font.woff2' }] }] })
 
       const resolver = await createResolver({
         options: { providers: { test: provider } },
@@ -621,6 +621,40 @@ describe('createResolver', () => {
 
       expect(result?.fonts?.[0]).toMatchObject({ display: 'block' })
       expect(result?.fonts?.[0]).not.toHaveProperty('unicodeRange', expect.anything())
+    })
+
+    it('should apply display without touching a provider unicodeRange', async () => {
+      const provider = createEmptyProvider('test', { fonts: [{ display: 'swap', unicodeRange: ['U+0000-007F'], src: [{ url: '/font.woff2' }] }] })
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      const result = await resolver('Inter', { name: 'Inter', display: 'optional' })
+
+      expect(result?.fonts?.[0]).toMatchObject({
+        display: 'optional',
+        unicodeRange: ['U+0000-007F'],
+      })
+    })
+
+    it('should apply unicodeRange without touching a provider display', async () => {
+      const provider = createEmptyProvider('test', { fonts: [{ display: 'swap', unicodeRange: ['U+0000-007F'], src: [{ url: '/font.woff2' }] }] })
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      const result = await resolver('Inter', { name: 'Inter', unicodeRange: 'U+0131' })
+
+      expect(result?.fonts?.[0]).toMatchObject({
+        display: 'swap',
+        unicodeRange: ['U+0131'],
+      })
     })
 
     it('should pass all descriptors through for a manually declared family', async () => {

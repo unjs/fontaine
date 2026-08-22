@@ -31,14 +31,15 @@ function pickDescriptors(override: FontFamilyManualOverride): RawFontFaceData {
   return face as unknown as RawFontFaceData
 }
 
-function toArray<T>(value?: T | T[]): T[] | undefined {
-  return value === undefined ? undefined : Array.isArray(value) ? value : [value]
+function toArray<T>(value: T | T[]): T[] {
+  return Array.isArray(value) ? value : [value]
 }
 
 /** Apply family-level `@font-face` descriptors to faces resolved by a provider. */
 function applyFaceOverrides(override: FontFamilyManualOverride | FontFamilyProviderOverride | undefined, fonts: FontFaceData[]): FontFaceData[] {
   const display = override && 'display' in override ? override.display : undefined
-  const unicodeRange = override && 'unicodeRange' in override ? toArray(override.unicodeRange) : undefined
+  const rawUnicodeRange = override && 'unicodeRange' in override ? override.unicodeRange : undefined
+  const unicodeRange = rawUnicodeRange ? toArray(rawUnicodeRange) : undefined
   if (!display && !unicodeRange) {
     return fonts
   }
