@@ -1,4 +1,6 @@
 import type { NormalizeFontDataContext } from '../src/assets'
+import { pathToFileURL } from 'node:url'
+import { join } from 'pathe'
 import { describe, expect, it } from 'vitest'
 import { normalizeFontData } from '../src/assets'
 
@@ -17,6 +19,16 @@ function urls(context: NormalizeFontDataContext, src: string = 'https://fonts.ex
 }
 
 describe('normalizeFontData', () => {
+  it('should emit the same file name for a local font resolved from a different root', () => {
+    const fileName = (root: string) => {
+      const context = createContext({ root })
+      normalizeFontData(context, { src: [{ url: pathToFileURL(join(root, 'node_modules/@fontsource/inter/inter.woff2')).href, format: 'woff2' }] })
+      return [...context.renderedFontURLs.keys()][0]
+    }
+
+    expect(fileName('/home/ci/app')).toBe(fileName('/Users/daniel/code/app'))
+  })
+
   it('should serve fonts from the assets base URL by default', () => {
     expect(urls(createContext())[0]).toMatch(/^\/assets\/_fonts\//)
     expect(urls(createContext({ dev: true }))[0]).toMatch(/^\/assets\/_fonts\//)

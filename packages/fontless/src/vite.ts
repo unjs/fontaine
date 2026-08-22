@@ -7,6 +7,7 @@ import type { FontFamilyInjectionPluginOptions } from './utils'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { Buffer } from 'node:buffer'
 import { readFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
 import { defu } from 'defu'
 import MagicString from 'magic-string'
 import { hasProtocol, joinURL } from 'ufo'
@@ -48,6 +49,10 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   }
 
   async function loadFont(file: string, url: string): Promise<Buffer> {
+    if (url.startsWith('file://')) {
+      return readFile(fileURLToPath(url))
+    }
+
     const key = `data:fonts:${file}`
     // Use storage to cache the font data between builds
     const cached = await storage.getItemRaw<Buffer>(key)
@@ -92,6 +97,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       assetContext = {
         dev: config.mode === 'development',
         renderedFontURLs: new Map<string, string>(),
+        root: config.root,
         assetsBaseURL: options.assets?.prefix || joinURL('/', config.build.assetsDir, '_fonts'),
         // A relative base (`''` or `'./'`) cannot be resolved from a URL in CSS served
         // during dev, where every stylesheet is requested from its own path, so fall back
