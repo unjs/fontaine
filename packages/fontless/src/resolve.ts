@@ -153,7 +153,11 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
         // Rewrite font source URLs to be proxied/local URLs
         const fonts = applyFaceOverrides(override, normalizeFontData(result.fonts))
         if (!fonts.length) {
-          logger.warn(`Could not produce font face declaration from \`${override.provider}\` for font family \`${fontFamily}\`.`)
+          const message = `Could not produce font face declaration from \`${override.provider}\` for font family \`${fontFamily}\`.`
+          if (options.throwOnError) {
+            throw new Error(message)
+          }
+          logger.warn(message)
           return
         }
         const fontsWithLocalFallbacks = addFallbacks(fontFamily, fonts)

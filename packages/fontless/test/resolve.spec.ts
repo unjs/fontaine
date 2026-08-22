@@ -548,6 +548,51 @@ describe('createResolver', () => {
       expect(warnings[0]).toContain('Could not produce font face declaration for `Inter` with override')
     })
 
+    it('should throw when an explicit provider produces no font faces and throwOnError is set', async () => {
+      const provider = createEmptyProvider('test', { fonts: [] })
+      const { logger, warnings } = createLogger()
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider }, throwOnError: true },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+        logger,
+      })
+
+      await expect(resolver('Inter', { name: 'Inter', provider: 'test' })).rejects.toThrow('Could not produce font face declaration from `test` for font family `Inter`.')
+      expect(warnings).toEqual([])
+    })
+
+    it('should warn when an override produces no font faces even if throwOnError is set', async () => {
+      const provider = createEmptyProvider('test', { fonts: [] })
+      const { logger, warnings } = createLogger()
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider }, throwOnError: true },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+        logger,
+      })
+
+      expect(await resolver('Inter', { name: 'Inter', weights: [400] })).toBeUndefined()
+      expect(warnings[0]).toContain('Could not produce font face declaration for `Inter` with override')
+    })
+
+    it('should not throw when no override is present and throwOnError is set', async () => {
+      const provider = createEmptyProvider('test', { fonts: [] })
+      const { logger, warnings } = createLogger()
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider }, throwOnError: true },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+        logger,
+      })
+
+      expect(await resolver('Inter')).toBeUndefined()
+      expect(warnings).toEqual([])
+    })
+
     it('should return undefined without warning when no provider resolves the family', async () => {
       const provider = createEmptyProvider('test')
       const { logger, warnings } = createLogger()
