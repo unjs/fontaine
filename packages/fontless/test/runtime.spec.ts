@@ -40,32 +40,46 @@ function extractHrefs(chunk: string) {
 const options: FontlessOptions = { families: [{ name: 'Poppins', preload: true }] }
 
 describe('`fontless/runtime` in build', () => {
-  async function buildApp(config: Omit<InlineConfig, 'root' | 'configFile' | 'logLevel'> = {}) {
+  async function buildApp(config: Omit<InlineConfig, 'root' | 'configFile' | 'logLevel'> = {}, fontlessOptions: FontlessOptions = options) {
     const outDir = await fsp.mkdtemp(join(tmpdir(), 'fontless-runtime-'))
     outDirs.push(outDir)
+
+    const warnings: string[] = []
 
     await build({
       ...config,
       root,
       configFile: false,
       logLevel: 'silent',
-      plugins: [entryPlugin(), fontless(options)],
+      plugins: [entryPlugin(), fontless(fontlessOptions)],
       build: {
         ...config.build,
         outDir,
         emptyOutDir: true,
-        rollupOptions: { input: { entry: ENTRY_ID } },
+        rollupOptions: {
+          input: { entry: ENTRY_ID },
+          onwarn: warning => warnings.push(warning.message),
+        },
       },
     })
 
     const files = await Array.fromAsync(fsp.glob('**/*', { cwd: outDir }))
     const chunk = await fsp.readFile(join(outDir, files.find(file => file.endsWith('.js'))!), 'utf-8')
-    return { files, chunk, hrefs: extractHrefs(chunk) }
+    return { files, chunk, warnings, hrefs: extractHrefs(chunk) }
   }
 
-  it('should render preload links pointing at emitted fonts', { timeout: 20_000 }, async () => {
-    const { chunk, files, hrefs } = await buildApp()
+  it('should warn when nothing is configured for preloading', { timeout: 20_000 }, async () => {
+    const { chunk, warnings } = await buildApp({}, { families: [{ name: 'Poppins' }] })
 
+    expect(chunk).not.toContain('__FONTLESS_RUNTIME_BUILD_PLACEHOLDER__')
+    expect(extractHrefs(chunk)).toEqual([])
+    expect(warnings.filter(message => message.includes('no fonts are marked for preloading'))).toHaveLength(1)
+  })
+
+  it('should render preload links pointing at emitted fonts', { timeout: 20_000 }, async () => {
+    const { chunk, files, hrefs, warnings } = await buildApp()
+
+    expect(warnings.filter(message => message.includes('no fonts are marked for preloading'))).toEqual([])
     expect(chunk).not.toContain('__FONTLESS_RUNTIME_BUILD_PLACEHOLDER__')
     expect(chunk).not.toContain('__VITE_ASSET__')
     expect(chunk).toMatch(/rel:["'`]preload/)
