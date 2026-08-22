@@ -147,8 +147,8 @@ importers:
         specifier: ^1.6.1
         version: 1.6.4
       unifont:
-        specifier: ^0.7.4
-        version: 0.7.5
+        specifier: ^0.8.0
+        version: 0.8.0
       unstorage:
         specifier: 1.17.5
         version: 1.17.5(db0@0.3.4)(ioredis@5.11.1(supports-color@10.2.2))
@@ -11901,6 +11901,9 @@ packages:
 
   unifont@0.7.5:
     resolution: {integrity: sha512-ULe/Cs+ZIsq+dcFofNkhqielCrUJnb5mr+Yc4EBM2VlL+6OZR6+cjtI2mT1bJvRBrVncqHAbLURxmPLcCXzWMg==}
+
+  unifont@0.8.0:
+    resolution: {integrity: sha512-WpXI49ZuqpZGBrTonFmPXdbOTldYwULPdMC53sl63jHbqibomxaakCBzctQWp1vDlVT81G/yuBgy5DHYAvuR3Q==}
 
   unimport@6.4.0:
     resolution: {integrity: sha512-JJOOuNMFq8b4ZPBKwQUxEcba4MplskDzYI1Lvrf8rJfWphZTWvPNXWa493qsPngHUmub89w6C7j+SeLWTE/UIQ==}
@@ -26001,6 +26004,12 @@ snapshots:
       vfile: 6.0.3
 
   unifont@0.7.5:
+    dependencies:
+      css-tree: 3.2.1
+      ohash: 2.0.12
+      undici: 8.10.0
+
+  unifont@0.8.0:
     dependencies:
       css-tree: 3.2.1
       ohash: 2.0.12

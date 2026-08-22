@@ -1,3 +1,5 @@
+minimumReleaseAgeExclude:
+  - unifont@0.8.0
 shellEmulator: true
 
 packages:
