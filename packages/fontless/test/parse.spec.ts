@@ -307,6 +307,18 @@ describe('custom prefix for processCSSVariables', () => {
     expect(result).not.toContain(`src: url("/otherfont.woff2")`)
   })
 
+  it('should process Tailwind v4 `--default-font-family` with the default setting', async () => {
+    const result = await transformWithPrefix(`@layer theme { :root, :host { --default-font-family: "Rubik Storm", sans-serif; } } @layer base { :root, :host { font-family: var(--default-font-family, ui-sans-serif, system-ui, sans-serif); } }`, 'font-prefixed-only')
+    expect(result).toContain('@font-face')
+    expect(result).toContain(`src: url("/rubik-storm.woff2")`)
+  })
+
+  it('should process any `-font-family` custom property with the default setting', async () => {
+    const result = await transformWithPrefix(`:root { --default-mono-font-family: 'CustomFont'; --other-var: 'OtherFont' }`, 'font-prefixed-only')
+    expect(result).toContain(`src: url("/customfont.woff2")`)
+    expect(result).not.toContain(`src: url("/otherfont.woff2")`)
+  })
+
   it('should treat empty string prefix as disabled (no CSS variable processing)', async () => {
     const cssVarOnly = await transformWithPrefix(`:root { --heading: 'CustomFont' }`, '')
     expect(cssVarOnly).not.toContain('@font-face')

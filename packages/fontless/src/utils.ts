@@ -57,7 +57,7 @@ function shouldSkipDeclaration(
   if (!processCSSVariables)
     return true
   if (processCSSVariables === 'font-prefixed-only')
-    return !property.startsWith('--font')
+    return !property.startsWith('--font') && !(property.startsWith('--') && property.endsWith('-font-family'))
   if (processCSSVariables === true)
     return !property.startsWith('--')
   return !property.startsWith(`--${processCSSVariables}-`)

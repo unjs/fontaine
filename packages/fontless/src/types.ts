@@ -181,7 +181,7 @@ export interface FontlessOptions {
    * You can enable support for processing CSS variables for font family names.
    *
    * - `false` — disable CSS variable processing
-   * - `'font-prefixed-only'` — process only `--font-*` CSS variables
+   * - `'font-prefixed-only'` — process `--font-*` CSS variables, plus any `--*-font-family` variable (such as Tailwind v4's `--default-font-family`)
    * - `true` — process all CSS variables (may have performance impact)
    * - Any custom string — process only CSS variables matching `--<prefix>*` (e.g., `'my-app'` processes `--my-app-*` variables)
    *
