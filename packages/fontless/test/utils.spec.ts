@@ -46,6 +46,48 @@ describe('transformCSS', () => {
     expect(fontsToPreload.size).toBe(0)
   })
 
+  it('should emit fallbacks without the primary `@font-face` when `skipFontFaceGeneration` is set', async () => {
+    const result = await transform(`:root { font-family: 'Poppins' }`, {
+      resolveFontFace: () => ({
+        fonts: [{ src: [{ url: '/poppins.woff2', format: 'woff2' }] }],
+        fallbacks: ['Arial'],
+        skipFontFaceGeneration: true,
+      }),
+    })
+
+    expect(result).toContain(`font-family: "Poppins Fallback: Arial"`)
+    expect(result).toContain(`font-family: 'Poppins', "Poppins Fallback: Arial"`)
+    expect(result).not.toContain(`font-family: 'Poppins';`)
+  })
+
+  it('should emit the primary `@font-face` alongside fallbacks by default', async () => {
+    const result = await transform(`:root { font-family: 'Poppins' }`, {
+      resolveFontFace: () => ({
+        fonts: [{ src: [{ url: '/poppins.woff2', format: 'woff2' }] }],
+        fallbacks: ['Arial'],
+      }),
+    })
+
+    expect(result).toContain(`font-family: 'Poppins';`)
+    expect(result).toContain(`font-family: "Poppins Fallback: Arial"`)
+    expect(result).toContain(`font-family: 'Poppins', "Poppins Fallback: Arial"`)
+  })
+
+  it('should not register preloads when `skipFontFaceGeneration` is set', async () => {
+    const fontsToPreload = new Map<string, Set<string>>()
+    await transform(`:root { font-family: 'Poppins' }`, {
+      fontsToPreload,
+      selectFontsToPreload: (_family, fonts) => fonts,
+      resolveFontFace: () => ({
+        fonts: [{ src: [{ url: '/poppins.woff2', format: 'woff2' }] }],
+        fallbacks: ['Arial'],
+        skipFontFaceGeneration: true,
+      }),
+    })
+
+    expect(fontsToPreload.size).toBe(0)
+  })
+
   it('should minify generated declarations outside dev', async () => {
     const result = await transform(`:root { font-family: 'Inter' }`, { dev: false })
 
