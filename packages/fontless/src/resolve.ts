@@ -1,17 +1,18 @@
 import type { ConsolaInstance } from 'consola'
 import type { FontFaceData, Provider, UnifontOptions } from 'unifont'
 import type { GenericCSSFamily } from './css/parse'
-import type { FontFamilyManualOverride, FontFamilyProviderOverride, FontlessOptions, ManualFontDetails, ProviderFontDetails, RawFontFaceData } from './types'
+import type { FontFamilyManualOverride, FontFamilyProviderOverride, FontlessOptions, ManualFontDetails, ProviderFamilyOptions, ProviderFontDetails, RawFontFaceData } from './types'
 
 import type { FontFaceResolution } from './utils'
 import { consola } from 'consola'
 import { createUnifont } from 'unifont'
 import { addLocalFallbacks } from './css/parse'
 import { defaultValues } from './defaults'
+import { normalizeGlyphs } from './subset'
 
 interface ResolverContext {
   exposeFont?: (font: ManualFontDetails | ProviderFontDetails) => void
-  normalizeFontData: (faces: RawFontFaceData | FontFaceData[]) => FontFaceData[]
+  normalizeFontData: (faces: RawFontFaceData | FontFaceData[], options?: { glyphs?: string }) => FontFaceData[]
   logger?: ConsolaInstance
   storage?: UnifontOptions['storage']
   options: FontlessOptions
@@ -19,7 +20,33 @@ interface ResolverContext {
 }
 
 /** Family-level keys that are not `@font-face` descriptors and must not be passed through to `normalizeFontData`. */
-const NON_DESCRIPTOR_KEYS = new Set(['name', 'global', 'preload', 'fallbacks', 'provider', 'providerOptions'])
+const NON_DESCRIPTOR_KEYS = new Set(['name', 'global', 'preload', 'fallbacks', 'provider', 'providerOptions', 'glyphs'])
+
+/**
+ * Providers whose `experimental.glyphs` option means 'these characters', so a family's
+ * `glyphs` can be passed through to them and subsetted server-side.
+ *
+ * `googleicons` is excluded deliberately: it reads the same option as a list of icon names.
+ */
+const GLYPH_PASSTHROUGH_PROVIDERS = new Set(['google'])
+
+/** Ask providers that support it to serve an already-subsetted file. */
+function withGlyphPassthrough(providerOptions: ProviderFamilyOptions | undefined, glyphs: string | undefined, providerNames: Iterable<string>): ProviderFamilyOptions | undefined {
+  if (!glyphs) {
+    return providerOptions
+  }
+  const options: ProviderFamilyOptions = { ...providerOptions }
+  for (const name of providerNames) {
+    if (!GLYPH_PASSTHROUGH_PROVIDERS.has(name)) {
+      continue
+    }
+    const existing = options[name] as { experimental?: { glyphs?: string[] } } | undefined
+    if (!existing?.experimental?.glyphs) {
+      options[name] = { ...existing, experimental: { ...existing?.experimental, glyphs: [...glyphs] } }
+    }
+  }
+  return options
+}
 
 function pickDescriptors(override: FontFamilyManualOverride): RawFontFaceData {
   const face: Record<string, unknown> = {}
@@ -121,11 +148,14 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
     return normalizedDefaults.fallbacks[category || 'sans-serif']
   }
 
+  const defaultGlyphs = normalizeGlyphs(options.defaults?.glyphs)
+
   return async function resolveFontFaceWithOverride(fontFamily: string, override?: FontFamilyManualOverride | FontFamilyProviderOverride, fallbackOptions?: { fallbacks: string[], generic?: GenericCSSFamily }): Promise<FontFaceResolution | undefined> {
     const fallbacks = resolveFallbacks(override, fallbackOptions?.generic)
+    const glyphs = override?.glyphs ? normalizeGlyphs(override.glyphs) : defaultGlyphs
 
     if (override && 'src' in override) {
-      const fonts = addFallbacks(fontFamily, normalizeFontData(pickDescriptors(override)))
+      const fonts = addFallbacks(fontFamily, normalizeFontData(pickDescriptors(override), { glyphs }))
       exposeFont({
         type: 'manual',
         fontFamily,
@@ -154,7 +184,11 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
     }
 
     // provider-specific options if available
-    const providerOptions = override && 'providerOptions' in override ? override.providerOptions : undefined
+    const providerOptions = withGlyphPassthrough(
+      override && 'providerOptions' in override ? override.providerOptions : undefined,
+      glyphs,
+      prioritisedProviders,
+    )
 
     // Handle explicit provider
     if (override?.provider) {
@@ -164,7 +198,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
           : defaults
         const result = await unifont.resolveFont(fontFamily, resolveOptions as typeof defaults, [override.provider])
         // Rewrite font source URLs to be proxied/local URLs
-        const fonts = applyFaceOverrides(override, normalizeFontData(result.fonts))
+        const fonts = applyFaceOverrides(override, normalizeFontData(result.fonts, { glyphs }))
         if (!fonts.length) {
           const message = `Could not produce font face declaration from \`${override.provider}\` for font family \`${fontFamily}\`.`
           if (options.throwOnError) {
@@ -197,7 +231,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
 
     const result = await unifont.resolveFont(fontFamily, resolveOptions as typeof defaults, [...prioritisedProviders])
     // Rewrite font source URLs to be proxied/local URLs
-    const fonts = applyFaceOverrides(override, normalizeFontData(result.fonts))
+    const fonts = applyFaceOverrides(override, normalizeFontData(result.fonts, { glyphs }))
     if (fonts.length === 0) {
       if (override) {
         logger.warn(`Could not produce font face declaration for \`${fontFamily}\` with override.`)

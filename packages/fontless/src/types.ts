@@ -42,6 +42,19 @@ export interface FontFamilyOverrides {
   /** Inject `@font-face` regardless of usage in project. */
   global?: boolean
   preload?: PreloadOption
+  /**
+   * Reduce every font file emitted for this family to the glyphs needed to render these
+   * characters, whichever provider served it.
+   *
+   * Accepts a string of text or an array of characters. Where the provider can subset
+   * server-side (Google Fonts' `text=`) the list is passed through to it as well, so the
+   * full file is never downloaded.
+   *
+   * Subsetting modifies the font file you ship; check that the font's licence allows it.
+   *
+   * @example 'Handgloves & 0123'
+   */
+  glyphs?: string | string[]
 
   // TODO:
   // as?: string
@@ -112,6 +125,13 @@ export interface FontlessOptions {
   families?: Array<FontFamilyManualOverride | FontFamilyProviderOverride>
   defaults?: Partial<{
     preload: PreloadOption
+    /**
+     * Reduce every font file emitted to the glyphs needed to render these characters.
+     * Overridden by `glyphs` on an individual family.
+     *
+     * Subsetting modifies the font files you ship; check that their licences allow it.
+     */
+    glyphs: string | string[]
     weights: Array<string | number>
     styles: ResolveFontOptions['styles']
     subsets: ResolveFontOptions['subsets']

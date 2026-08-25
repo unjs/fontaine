@@ -98,6 +98,11 @@ fontless({
       provider: 'google',
       weights: [300, 400, 600]
     },
+    // Ship only the glyphs this family needs
+    {
+      name: 'Cabinet Grotesk',
+      glyphs: 'Handgloves & 0123'
+    },
     // Manual font configuration
     {
       name: 'CustomFont',
@@ -136,6 +141,36 @@ Fontless uses category-aware fallback presets shared with the [fontaine](https:/
 - **system-ui**, **ui-serif**, **ui-sans-serif**, **ui-monospace**: Mapped to corresponding category presets
 
 You can override fallbacks for specific generic families in the `defaults.fallbacks` configuration while keeping the shared defaults for others. This ensures consistent font fallback behavior across your application and reduces cumulative layout shift (CLS).
+
+## Glyph Subsetting
+
+If you know a family only ever renders a fixed set of characters — a logotype, a specimen, a set of headings — set `glyphs` on it and `fontless` will reduce every file it emits for that family to those glyphs, whichever provider served it.
+
+The subsetter is an optional peer dependency, so install it alongside `fontless` if you use this option:
+
+```bash
+pnpm add -D subset-font
+```
+
+```ts
+fontless({
+  // apply to every family
+  defaults: { glyphs: 'Handgloves & 0123' },
+  families: [
+    // a string of text...
+    { name: 'Cabinet Grotesk', glyphs: 'Handgloves & 0123' },
+    // ...or an explicit list of characters
+    { name: 'Erode', glyphs: ['H', 'a', 'n', 'd'] },
+  ],
+})
+```
+
+Subsetting happens on the downloaded file with [harfbuzz](https://harfbuzz.github.io/) (via [`subset-font`](https://github.com/papandreou/subset-font)), so it works for every provider, keeps the original format and keeps a variable font's axes. Where the provider can subset server-side (Google Fonts' `text=` API) the glyph list is passed through to it as well, so the full file is never downloaded.
+
+The glyph list is part of the emitted file's name, so two families sharing a source font with different glyph lists get their own file, and changing the list invalidates the cache. Fallback metrics are still read from the original font, so `size-adjust` and friends are unaffected. Files are emitted unchanged for families without `glyphs`.
+
+> [!IMPORTANT]
+> Subsetting modifies the font file you ship. Some licences (particularly commercial and free-with-conditions ones) restrict modifying, converting or self-hosting a font, so check the licence or terms of the font you are subsetting before enabling this.
 
 ## Preloading Fonts
 

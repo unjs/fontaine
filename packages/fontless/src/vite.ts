@@ -18,6 +18,7 @@ import { defaultOptions } from './defaults'
 import { resolveProviders } from './providers'
 import { createResolver } from './resolve'
 import { createFontlessStorage } from './storage'
+import { subsetFontData } from './subset'
 import { transformCSS } from './utils'
 
 // Copied from @tailwindcss-vite
@@ -50,11 +51,14 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
     return fileName
   }
 
-  async function loadFont(file: string, { url, init }: RenderedFont): Promise<Buffer> {
+  async function loadFont(file: string, { url, init, subset }: RenderedFont): Promise<Buffer> {
     if (url.startsWith('file://')) {
-      return readFile(fileURLToPath(url))
+      const font = await readFile(fileURLToPath(url))
+      return subset ? subsetFontData(font, subset, url) : font
     }
 
+    // The file name is hashed from the glyph list as well as the URL, so cached bytes are
+    // never a stale subset of a font whose glyph list has since changed.
     const key = `data:fonts:${file}`
     // Use storage to cache the font data between builds
     const cached = await storage.getItemRaw<Buffer>(key)
@@ -65,7 +69,8 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
     if (!response.ok) {
       throw new Error(`Could not fetch font from \`${url}\` (${response.status} ${response.statusText}).`)
     }
-    const res = Buffer.from(await response.arrayBuffer())
+    const downloaded = Buffer.from(await response.arrayBuffer())
+    const res = subset ? await subsetFontData(downloaded, subset, url) : downloaded
     await storage.setItemRaw(key, res)
     return res
   }

@@ -23,6 +23,13 @@ export interface RenderedFont {
   url: string
   /** `RequestInit` the provider requires for this font, such as authorization headers. */
   init?: RequestInit
+  /** Characters the emitted file should be reduced to, if the family sets `glyphs`. */
+  subset?: string
+}
+
+export interface NormalizeFontDataOptions {
+  /** Normalised characters to subset the emitted files to. */
+  glyphs?: string
 }
 
 export interface NormalizeFontDataContext {
@@ -54,7 +61,7 @@ export interface NormalizeFontDataContext {
   callback?: (filename: string, url: string) => void
 }
 
-export function normalizeFontData(context: NormalizeFontDataContext, faces: RawFontFaceData | FontFaceData[]): FontFaceData[] {
+export function normalizeFontData(context: NormalizeFontDataContext, faces: RawFontFaceData | FontFaceData[], options: NormalizeFontDataOptions = {}): FontFaceData[] {
   const data: FontFaceData[] = []
   for (const face of toArray(faces)) {
     data.push({
@@ -69,10 +76,12 @@ export function normalizeFontData(context: NormalizeFontDataContext, faces: RawF
           const file = [
             // TODO: investigate why negative ignore pattern below is being ignored
             hash(filename(_url) || _url).replace(/^-+/, '').slice(0, MAX_FILENAME_PREFIX_LENGTH),
-            hash(hashableSource(context, source)).replace(/-/, '_') + (extname(source.url) || formatToExtension(source.format) || ''),
+            hash(options.glyphs
+              ? { source: hashableSource(context, source), glyphs: options.glyphs }
+              : hashableSource(context, source)).replace(/-/, '_') + (extname(source.url) || formatToExtension(source.format) || ''),
           ].filter(Boolean).join('-')
 
-          context.renderedFontURLs.set(file, { url: source.url, init: face.meta?.init })
+          context.renderedFontURLs.set(file, { url: source.url, init: face.meta?.init, subset: options.glyphs })
           source.originalURL = source.url
 
           const baseURL = context.baseURL || '/'

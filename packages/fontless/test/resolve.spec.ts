@@ -200,6 +200,72 @@ describe('createResolver', () => {
     })
   })
 
+  describe('glyphs option', () => {
+    async function resolveWith(providerName: string, options: FontlessOptions, override?: FontFamilyProviderOverride) {
+      const { provider, calls } = createTrackingProvider(providerName)
+      const providers = { [providerName]: provider }
+      const glyphLists: Array<string | undefined> = []
+      const resolver = await createResolver({
+        options: { ...options, providers },
+        providers,
+        normalizeFontData: (faces, opts) => {
+          glyphLists.push(opts?.glyphs)
+          return defaultNormalizeFontData(faces)
+        },
+      })
+
+      await resolver('TestFont', override)
+
+      return { calls, glyphLists }
+    }
+
+    it('should pass a family\'s glyphs to providers that can subset server-side', async () => {
+      const { calls } = await resolveWith('google', {}, { name: 'TestFont', glyphs: 'Hand' })
+
+      expect((calls[0]?.options as { options: unknown }).options).toEqual({
+        experimental: { glyphs: ['H', 'a', 'd', 'n'] },
+      })
+    })
+
+    it('should not pass glyphs to providers that read the option as icon names', async () => {
+      const { calls } = await resolveWith('googleicons', {}, { name: 'TestFont', glyphs: 'Hand' })
+
+      expect((calls[0]?.options as { options: unknown }).options).toBeUndefined()
+    })
+
+    it('should leave a family\'s own provider options in place', async () => {
+      const { calls } = await resolveWith('google', {}, {
+        name: 'TestFont',
+        glyphs: 'Hand',
+        providerOptions: { google: { experimental: { glyphs: ['A'] } } },
+      })
+
+      expect((calls[0]?.options as { options: unknown }).options).toEqual({
+        experimental: { glyphs: ['A'] },
+      })
+    })
+
+    it('should subset locally, preferring a family\'s glyphs over the default', async () => {
+      const withDefault = await resolveWith('test', { defaults: { glyphs: 'abc' } }, { name: 'TestFont' })
+      const withOverride = await resolveWith('test', { defaults: { glyphs: 'abc' } }, { name: 'TestFont', glyphs: 'Hand' })
+      const withNothing = await resolveWith('test', {})
+
+      expect(withDefault.glyphLists).toEqual(['abc'])
+      expect(withOverride.glyphLists).toEqual(['Hadn'])
+      expect(withNothing.glyphLists).toEqual([undefined])
+    })
+
+    it('should subset manually configured sources', async () => {
+      const { glyphLists } = await resolveWith('test', {}, {
+        name: 'TestFont',
+        glyphs: 'Hand',
+        src: '/font.woff2',
+      } as unknown as FontFamilyProviderOverride)
+
+      expect(glyphLists).toEqual(['Hadn'])
+    })
+  })
+
   describe('throwOnError option', () => {
     it('should pass throwOnError to unifont when specified', async () => {
       // This test verifies the option is passed - actual error throwing

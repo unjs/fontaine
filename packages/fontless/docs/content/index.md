@@ -156,6 +156,11 @@ fontless({
       provider: 'google',
       weights: [300, 400, 600]
     },
+    // Ship only the glyphs this family needs
+    {
+      name: 'Cabinet Grotesk',
+      glyphs: 'Handgloves & 0123'
+    },
     // Manual font configuration
     {
       name: 'CustomFont',
@@ -180,6 +185,33 @@ fontless({
   }
 })
 ```
+
+## Glyph Subsetting
+
+If a family only ever renders a fixed set of characters, set `glyphs` on it (or on `defaults`, for every family) and `fontless` will reduce every file it emits for that family to those glyphs.
+
+The subsetter is an optional peer dependency, so install it alongside `fontless` if you use this option:
+
+```bash
+pnpm add -D subset-font
+```
+
+```js
+fontless({
+  families: [
+    // a string of text...
+    { name: 'Cabinet Grotesk', glyphs: 'Handgloves & 0123' },
+    // ...or an explicit list of characters
+    { name: 'Erode', glyphs: ['H', 'a', 'n', 'd'] },
+  ],
+})
+```
+
+Subsetting runs on the downloaded file with [harfbuzz](https://harfbuzz.github.io/) (via [`subset-font`](https://github.com/papandreou/subset-font)), so it works for every provider, keeps the original format and keeps a variable font's axes. Where the provider can subset server-side (Google Fonts' `text=` API) the glyph list is passed through to it as well, so the full file is never downloaded.
+
+The glyph list is part of the emitted file's name, so two families sharing a source font with different glyph lists get their own file, and changing the list invalidates the cache. Fallback metrics are still read from the original font, so `size-adjust` and friends are unaffected.
+
+**Check the font's licence first.** Subsetting modifies the file you ship, and some licences (particularly commercial and free-with-conditions ones) restrict modifying, converting or self-hosting a font.
 
 ## npm Provider
 
