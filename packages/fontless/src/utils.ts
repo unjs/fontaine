@@ -20,14 +20,15 @@ export interface FontFaceResolution {
   fonts?: FontFaceData[]
   fallbacks?: string[]
   /**
-   * Emit only the fallback metric faces, not the primary `@font-face`, and skip
-   * preload registration. For families whose `@font-face` and preload hints are
-   * already emitted elsewhere (such as a global stylesheet) but whose usage sites
-   * should still be rewritten to include metric-override fallbacks.
+   * Emit only the fallback metric faces, not the primary `@font-face`, and register
+   * no preloads (so `selectFontsToPreload` is not called for this family). For
+   * families whose `@font-face` and preload hints are emitted elsewhere, such as a
+   * global stylesheet, but whose usage sites should still be rewritten to include
+   * metric-override fallbacks.
    *
    * `fonts` must still be provided, as fallback metrics are derived from it.
    */
-  skipFontFaceGeneration?: boolean
+  fallbacksOnly?: boolean
 }
 
 export interface FontFamilyInjectionPluginOptions {
@@ -98,7 +99,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
     let insertFontFamilies = false
 
     result.fonts.sort((a, b) => (a.meta?.priority || 0) - (b.meta?.priority || 0))
-    const fontsToPreload = result.skipFontFaceGeneration ? [] : options.selectFontsToPreload?.(fontFamily, result.fonts) ?? []
+    const fontsToPreload = result.fallbacksOnly ? [] : (options.selectFontsToPreload?.(fontFamily, result.fonts) ?? [])
     for (const font of fontsToPreload) {
       const fontToPreload = font.src.find((s): s is RemoteFontSource => 'url' in s)?.url
       if (fontToPreload) {
@@ -115,7 +116,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
 
     for (const font of result.fonts) {
       const fallbackDeclarations = await generateFontFallbacks(fontFamily, font, fallbackMap)
-      const declarations = result.skipFontFaceGeneration
+      const declarations = result.fallbacksOnly
         ? fallbackDeclarations
         : [generateFontFace(fontFamily, opts.relative ? relativiseFontSources(font, withLeadingSlash(dirname(id))) : font), ...fallbackDeclarations]
 

@@ -46,12 +46,12 @@ describe('transformCSS', () => {
     expect(fontsToPreload.size).toBe(0)
   })
 
-  it('should emit fallbacks without the primary `@font-face` when `skipFontFaceGeneration` is set', async () => {
+  it('should emit fallbacks without the primary `@font-face` when `fallbacksOnly` is set', async () => {
     const result = await transform(`:root { font-family: 'Poppins' }`, {
       resolveFontFace: () => ({
         fonts: [{ src: [{ url: '/poppins.woff2', format: 'woff2' }] }],
         fallbacks: ['Arial'],
-        skipFontFaceGeneration: true,
+        fallbacksOnly: true,
       }),
     })
 
@@ -73,7 +73,7 @@ describe('transformCSS', () => {
     expect(result).toContain(`font-family: 'Poppins', "Poppins Fallback: Arial"`)
   })
 
-  it('should not register preloads when `skipFontFaceGeneration` is set', async () => {
+  it('should not register preloads when `fallbacksOnly` is set', async () => {
     const fontsToPreload = new Map<string, Set<string>>()
     await transform(`:root { font-family: 'Poppins' }`, {
       fontsToPreload,
@@ -81,11 +81,24 @@ describe('transformCSS', () => {
       resolveFontFace: () => ({
         fonts: [{ src: [{ url: '/poppins.woff2', format: 'woff2' }] }],
         fallbacks: ['Arial'],
-        skipFontFaceGeneration: true,
+        fallbacksOnly: true,
       }),
     })
 
     expect(fontsToPreload.size).toBe(0)
+  })
+
+  it('should leave usage sites untouched when `fallbacksOnly` is set and no fallbacks resolve', async () => {
+    const result = await transform(`:root { font-family: 'Poppins' }`, {
+      resolveFontFace: () => ({
+        fonts: [{ src: [{ url: '/poppins.woff2', format: 'woff2' }] }],
+        fallbacks: [],
+        fallbacksOnly: true,
+      }),
+    })
+
+    expect(result).not.toContain('@font-face')
+    expect(result).toBe(`:root { font-family: 'Poppins' }`)
   })
 
   it('should minify generated declarations outside dev', async () => {
