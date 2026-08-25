@@ -106,6 +106,25 @@ describe('fontless vite plugin', () => {
     expect(output).toContain('font-family:Poppins;src:')
   })
 
+  it('should inject nothing when a `global` family resolves to no fonts', async () => {
+    const root = await createFixture({ 'index.html': html, 'style.css': styles })
+    const { html: output } = await buildApp(root, {
+      families: [{ name: 'Inter', global: true, provider: 'none' }],
+    })
+
+    expect(output).not.toContain('<style')
+  })
+
+  it('should not preload `global` fonts that have no remote source', async () => {
+    const root = await createFixture({ 'index.html': html, 'style.css': styles })
+    const { html: output } = await buildApp(root, {
+      families: [{ name: 'Inter', global: true, preload: true, src: [{ name: 'Inter Var' }] }],
+    })
+
+    expect(output).toContain('local(Inter Var)')
+    expect(output).not.toContain('rel="preload"')
+  })
+
   it('should still add fallback metrics at usage sites for `global` families', async () => {
     const root = await createFixture({ 'index.html': html, 'style.css': styles })
     const { css } = await buildApp(root, {

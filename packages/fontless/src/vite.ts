@@ -1,4 +1,4 @@
-import type { RemoteFontSource } from 'unifont'
+import type { FontFaceData, RemoteFontSource } from 'unifont'
 import type { Plugin, Rollup, ViteDevServer } from 'vite'
 import type { NormalizeFontDataContext, RenderedFont } from './assets'
 import type { LinkAttributes } from './runtime'
@@ -107,6 +107,21 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
     return joinURL(assetContext.baseURL, assetContext.assetsBaseURL, file)
   }
 
+  function selectFontsToPreload(fontFamily: string, fonts: FontFaceData[]): FontFaceData[] {
+    const override = options.families?.find(f => f.name === fontFamily)
+    const preload = override?.preload ?? options.defaults?.preload
+    if (preload === true) {
+      return [...fonts].sort((a, b) => (a.meta?.priority || 0) - (b.meta?.priority || 0)).slice(0, 1)
+    }
+    if (typeof preload === 'function') {
+      return fonts.filter(f => preload(fontFamily, f))
+    }
+    if (preload && 'subsets' in preload) {
+      return fonts.filter(f => f.meta?.subset && preload.subsets.includes(f.meta.subset))
+    }
+    return []
+  }
+
   function getPreloadHrefs() {
     return [...cssTransformOptions.fontsToPreload.values()].flatMap(v => [...v])
   }
@@ -139,7 +154,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         }
 
         const fonts = [...result.fonts].sort((a, b) => (a.meta?.priority || 0) - (b.meta?.priority || 0))
-        for (const font of cssTransformOptions.selectFontsToPreload?.(family.name, fonts) ?? []) {
+        for (const font of selectFontsToPreload(family.name, fonts)) {
           const url = font.src.find((s): s is RemoteFontSource => 'url' in s)?.url
           if (url) {
             hrefs.add(url)
@@ -256,20 +271,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
 
       cssTransformOptions = {
         processCSSVariables: options.processCSSVariables,
-        selectFontsToPreload(fontFamily, fonts) {
-          const override = options.families?.find(f => f.name === fontFamily)
-          const preload = override?.preload ?? options.defaults?.preload
-          if (preload === true) {
-            return [...fonts].sort((a, b) => (a.meta?.priority || 0) - (b.meta?.priority || 0)).slice(0, 1)
-          }
-          if (typeof preload === 'function') {
-            return fonts.filter(f => preload(fontFamily, f))
-          }
-          if (preload && 'subsets' in preload) {
-            return fonts.filter(f => f.meta?.subset && preload.subsets.includes(f.meta.subset))
-          }
-          return []
-        },
+        selectFontsToPreload,
         fontsToPreload: new Map(),
         dev: config.mode === 'development',
         async resolveFontFace(fontFamily, fallbackOptions) {
