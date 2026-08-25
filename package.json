@@ -2,7 +2,7 @@
   "name": "fontaine-monorepo",
   "preview": true,
   "type": "module",
-  "packageManager": "pnpm@11.22.0",
+  "packageManager": "pnpm@11.23.0",
   "description": "Automatic font fallback based on font metrics",
   "author": {
     "name": "Daniel Roe",
@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "9.3.0",
-    "eslint": "10.8.1",
+    "eslint": "10.9.0",
     "installed-check": "11.0.0",
     "knip": "6.32.2",
     "lint-staged": "17.3.0",
