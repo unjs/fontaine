@@ -306,7 +306,7 @@ function Head() {
 }
 ```
 
-An empty string means no families are configured with `global: true`, or that `fontless/runtime` was not transformed by the plugin.
+An empty string means no families are configured with `global: true`, that none of them resolved to a font, or that `fontless/runtime` was not transformed by the plugin.
 
 ## How It Works
 

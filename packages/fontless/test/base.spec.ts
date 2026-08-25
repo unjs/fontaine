@@ -90,6 +90,39 @@ it('should apply experimental.renderBuiltUrl to font URLs', { timeout: 20_000 },
   expect(html).toContain('href="https://cdn.example.com/assets/_fonts')
 })
 
+it('should apply experimental.renderBuiltUrl to global font URLs', { timeout: 20_000 }, async () => {
+  const { html } = await buildApp({
+    experimental: {
+      renderBuiltUrl(filename, { hostType }) {
+        return filename.includes('_fonts') ? `https://cdn.example.com/${filename}` : { relative: hostType !== 'html' }
+      },
+    },
+  }, { families: [{ name: 'Poppins', global: true, preload: true }] })
+
+  expect(html).toContain('url(https://cdn.example.com/assets/_fonts')
+  expect(html).not.toContain('url(/assets/_fonts')
+  expect(html).toContain('href="https://cdn.example.com/assets/_fonts')
+})
+
+it.each(['./', ''])('should emit global font URLs relative to the HTML for base %s', { timeout: 20_000 }, async (base) => {
+  const { outDir, html, fonts } = await buildApp({ base }, { families: [{ name: 'Poppins', global: true }] })
+
+  const urls = [...html.matchAll(/url\((\.[^)]+\.woff2)\)/g)].map(([, url]) => url!)
+  expect(urls.length).toBeGreaterThan(0)
+
+  for (const url of urls) {
+    expect(fonts).toContain(join('assets/_fonts', url.split('/_fonts/')[1]!))
+    expect((await fsp.stat(join(outDir, url))).size).toBeGreaterThan(0)
+  }
+})
+
+it('should prefix global font URLs with the configured base', { timeout: 20_000 }, async () => {
+  const { html, fonts } = await buildApp({ base: '/build/' }, { families: [{ name: 'Poppins', global: true }] })
+
+  expect(html).toContain('url(/build/assets/_fonts')
+  expect(fonts.some(file => file.endsWith('.woff2'))).toBe(true)
+})
+
 it('should honour renderBuiltUrl returning a relative URL for fonts', { timeout: 20_000 }, async () => {
   const { outDir, css, fonts } = await buildApp({
     experimental: { renderBuiltUrl: () => ({ relative: true }) },

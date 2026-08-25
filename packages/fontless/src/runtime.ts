@@ -10,7 +10,8 @@ export const preloads: LinkAttributes[] = []
 /**
  * Minified `@font-face` declarations for families configured with `global: true`, which
  * have no usage site in CSS for the plugin to inject them at. Render them in a `<style>`
- * tag in `<head>`; an empty string means no global families are configured.
+ * tag in `<head>`; an empty string means no global families are configured, or that none
+ * of them resolved to a font.
  *
  * The `fontless` Vite plugin replaces this module with the generated CSS, as it does for
  * `preloads`.

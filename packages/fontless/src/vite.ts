@@ -1,5 +1,5 @@
 import type { RemoteFontSource } from 'unifont'
-import type { Plugin, ViteDevServer } from 'vite'
+import type { Plugin, Rollup, ViteDevServer } from 'vite'
 import type { NormalizeFontDataContext, RenderedFont } from './assets'
 import type { LinkAttributes } from './runtime'
 import type { FontlessOptions } from './types'
@@ -53,12 +53,24 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
 
   // Output file names of emitted fonts, mapped back to their key in `renderedFontURLs`
   const fontFiles = new Map<string, string>()
-  const emittedFonts = new Set<string>()
   function fontFileName(file: string) {
     const fileName = joinURL(assetContext.assetsBaseURL, file).slice(1)
     fontFiles.set(fileName, file)
-    emittedFonts.add(file)
     return fileName
+  }
+
+  // Asset reference ids of emitted fonts, keyed by environment: a font emitted for one
+  // environment cannot be referenced from another, and emitting the same file name twice
+  // within one environment is an error.
+  const fontRefs = new Map<string, string>()
+  function emitFont(ctx: Rollup.PluginContext, file: string, source: Uint8Array | Buffer) {
+    const key = `${ctx.environment.name}:${file}`
+    let ref = fontRefs.get(key)
+    if (!ref) {
+      ref = ctx.emitFile({ type: 'asset', fileName: fontFileName(file), source })!
+      fontRefs.set(key, ref)
+    }
+    return `__VITE_ASSET__${ref}__`
   }
 
   async function loadFont(file: string, { url, init, subset }: RenderedFont): Promise<Buffer> {
@@ -90,6 +102,10 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   // placeholder, which cannot be rendered into a server bundle: the placeholder's
   // reference id belongs to whichever environment emitted the font.
   const publicFontURLs = new Map<string, string>()
+
+  function publicFontURL(file: string) {
+    return joinURL(assetContext.baseURL, assetContext.assetsBaseURL, file)
+  }
 
   function getPreloadHrefs() {
     return [...cssTransformOptions.fontsToPreload.values()].flatMap(v => [...v])
@@ -145,6 +161,31 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
     })()
 
     return globalFontFaces
+  }
+
+  // Public URL of each global font, mapped to the asset placeholder standing in for it in
+  // the HTML. Empty outside a client build, where there is no HTML to write.
+  let globalAssetURLs: Array<[string, string]> = []
+
+  /**
+   * Emit the fonts referenced only by global `@font-face` declarations, and record the
+   * placeholder standing in for each one, so that `base`, a relative base and
+   * `experimental.renderBuiltUrl` are applied to the URLs written into the HTML.
+   *
+   * Global fonts are not reachable from any module, so they are resolved without a plugin
+   * context and only gain a reference id here.
+   */
+  async function emitGlobalFonts(ctx: Rollup.PluginContext) {
+    await getGlobalFontFaces()
+
+    return Promise.all([...globalFontFiles].map(async (file): Promise<[string, string]> => {
+      const font = assetContext.renderedFontURLs.get(file)!
+      return [publicFontURL(file), emitFont(ctx, file, await loadFont(file, font))]
+    }))
+  }
+
+  function withEmittedAssets(value: string) {
+    return globalAssetURLs.reduce((value, [from, to]) => value.replaceAll(from, to), value)
   }
 
   function toPreloadLinks(hrefs: string[]): LinkAttributes[] {
@@ -249,6 +290,13 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         cssTransformOptions.lightningcssOptions = config.css.lightningcss as FontFamilyInjectionPluginOptions['lightningcssOptions']
       }
     },
+    async buildStart() {
+      // Only the client build writes HTML, and the placeholders are reference ids scoped to
+      // the environment that emitted them
+      if (command === 'build' && this.environment.config.consumer === 'client') {
+        globalAssetURLs = await emitGlobalFonts(this)
+      }
+    },
     configureServer(server_) {
       // serve font assets via middleware during dev
       // based on https://github.com/nuxt/fonts/blob/e7f537a0357896d34be9c17031b3178fb4e79042/src/assets.ts#L30
@@ -305,20 +353,9 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       },
     },
     async generateBundle(_options, bundle) {
-      // Resolve first: global fonts are not reachable from any module, so this is the only
-      // thing that populates `globalFontFiles`
-      await getGlobalFontFaces()
-      await Promise.all([...globalFontFiles].map(async (file) => {
-        const font = assetContext.renderedFontURLs.get(file)
-        if (!font || emittedFonts.has(file)) {
-          return
-        }
-        this.emitFile({
-          type: 'asset',
-          fileName: fontFileName(file),
-          source: await loadFont(file, font),
-        })
-      }))
+      // Global fonts are reachable from no module, so nothing else will have emitted them
+      // for this environment
+      await emitGlobalFonts(this)
 
       await Promise.all(Object.values(bundle).map(async (output) => {
         if (output.type !== 'asset') {
@@ -336,12 +373,13 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         // Inline rather than linking a stylesheet: a blocking request would delay the
         // point at which the browser knows the family exists, which is the only reason
         // these declarations are hoisted out of CSS in the first place.
-        const css = await getGlobalFontFaces()
-
+        //
         // Preload doesn't work on initial rendering during dev since `fontsToPreload`
         // is empty before css is transformed. Global fonts are unaffected, as they are
-        // resolved above rather than discovered.
-        const tags = toPreloadLinks(getPreloadHrefs()).map(attrs => ({
+        // resolved here rather than discovered.
+        const css = withEmittedAssets(await getGlobalFontFaces())
+
+        const tags = toPreloadLinks(getPreloadHrefs().map(withEmittedAssets)).map(attrs => ({
           tag: 'link',
           attrs: attrs as unknown as Record<string, string>,
         }))
