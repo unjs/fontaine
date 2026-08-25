@@ -266,6 +266,28 @@ fontless({
 })
 ```
 
+## Global Font Faces
+
+Some fonts are never referenced from CSS that Fontless can see, so there is no usage site to inject their `@font-face` at: a family used only from inline styles, from a canvas, or from a third-party widget. Mark those families `global` and their `@font-face` is emitted regardless of usage.
+
+```js
+fontless({
+  families: [
+    { name: 'Inter', global: true },
+  ],
+})
+```
+
+For Vite SPA the declarations are inlined into a `<style>` tag in `<head>`, rather than linked as a stylesheet, so the browser learns about the family without waiting for another request. Unlike preloads, this works on the first `vite dev` render, as global families are resolved from your config rather than discovered from stylesheets.
+
+Any usage of the family that *does* appear in CSS still gains the metric-override fallback families, so `global` does not cost you the layout-shift protection.
+
+For SSR meta-frameworks, `fontless/runtime` exposes the same declarations as a string:
+
+```ts
+import { globalFontFaces } from 'fontless/runtime'
+```
+
 ## How It Works
 
 `Fontless` works by:

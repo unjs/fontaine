@@ -63,8 +63,14 @@ async function buildApp(root: string, options: FontlessOptions = {}, config: Inl
 
   const files = await Array.fromAsync(fsp.glob('**/*', { cwd: outDir }))
   const cssFile = files.find(file => file.endsWith('.css'))
+  const htmlFile = files.find(file => file.endsWith('.html'))
 
-  return { outDir, files, css: cssFile ? await fsp.readFile(join(outDir, cssFile), 'utf-8') : '' }
+  return {
+    outDir,
+    files,
+    css: cssFile ? await fsp.readFile(join(outDir, cssFile), 'utf-8') : '',
+    html: htmlFile ? await fsp.readFile(join(outDir, htmlFile), 'utf-8') : '',
+  }
 }
 
 describe('fontless vite plugin', () => {
@@ -75,11 +81,47 @@ describe('fontless vite plugin', () => {
     expect(css).toContain('@font-face')
   })
 
-  it('should not inject `@font-face` for families declared `global`', async () => {
+  it('should inject `@font-face` into the HTML for families declared `global`', async () => {
     const root = await createFixture({ 'index.html': html, 'style.css': styles })
-    const { css } = await buildApp(root, { families: [{ name: 'Inter', global: true }] })
+    const { css, html: output } = await buildApp(root, { families: [{ name: 'Inter', global: true }] })
 
-    expect(css).not.toContain('@font-face')
+    expect(css).not.toContain('font-family:Inter;src:')
+    expect(output).toContain('<style type="text/css">@font-face{font-family:Inter;src:')
+  })
+
+  it('should emit fonts referenced only by the global `@font-face` declarations', async () => {
+    const root = await createFixture({ 'index.html': html, 'style.css': `body { color: red }` })
+    const src = pathToFileURL(join(root, 'inter.woff2')).href
+    const { html: output, files } = await buildApp(root, { families: [{ name: 'Inter', global: true, src }] })
+
+    const font = files.find(file => file.includes('_fonts/'))
+    expect(font).toBeDefined()
+    expect(output).toContain(`/${font}`)
+  })
+
+  it('should inject `@font-face` for a `global` family that is never used in CSS', async () => {
+    const root = await createFixture({ 'index.html': html, 'style.css': `body { color: red }` })
+    const { html: output } = await buildApp(root, { families: [{ name: 'Poppins', global: true }] })
+
+    expect(output).toContain('font-family:Poppins;src:')
+  })
+
+  it('should still add fallback metrics at usage sites for `global` families', async () => {
+    const root = await createFixture({ 'index.html': html, 'style.css': styles })
+    const { css } = await buildApp(root, {
+      families: [{ name: 'Inter', global: true, fallbacks: ['Arial'] }],
+    })
+
+    expect(css).toContain('Inter Fallback\\: Arial')
+  })
+
+  it('should preload fonts for `global` families', async () => {
+    const root = await createFixture({ 'index.html': html, 'style.css': `body { color: red }` })
+    const { html: output } = await buildApp(root, {
+      families: [{ name: 'Inter', global: true, preload: true }],
+    })
+
+    expect(output).toContain('rel="preload"')
   })
 
   it('should minify generated declarations with lightningcss when configured', async () => {

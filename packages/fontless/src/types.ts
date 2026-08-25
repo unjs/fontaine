@@ -39,7 +39,11 @@ export type FontProviderName = (string & {}) | 'google' | 'local' | 'none'
 export interface FontFamilyOverrides {
   /** The font family to apply this override to. */
   name: string
-  /** Inject `@font-face` regardless of usage in project. */
+  /**
+   * Inject `@font-face` regardless of usage in the project, into the HTML `<head>` rather
+   * than into any stylesheet. Usage sites found in CSS still gain fallback metric
+   * families. Also available as `globalFontFaces` from `fontless/runtime`.
+   */
   global?: boolean
   preload?: PreloadOption
   /**

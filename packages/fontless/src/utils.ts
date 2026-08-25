@@ -73,6 +73,30 @@ function shouldSkipDeclaration(
   return !property.startsWith(`--${processCSSVariables}-`)
 }
 
+/**
+ * Minify a generated `@font-face` block for output, or leave it readable in dev. `id` is
+ * the file the declaration will be written into, and is used for diagnostics only.
+ */
+export function renderDeclaration(declaration: string, id: string, options: Pick<FontFamilyInjectionPluginOptions, 'dev' | 'lightningcssOptions'>): string {
+  if (options.dev) {
+    return `${declaration}\n`
+  }
+
+  try {
+    return lightningCSSTransform({
+      filename: id,
+      code: Buffer.from(declaration),
+      minify: true,
+      sourceMap: false,
+      ...options.lightningcssOptions,
+    }).code.toString()
+  }
+  catch (error) {
+    logger.warn(`Could not minify generated \`@font-face\` in \`${id}\`. Falling back to unminified CSS.`, error)
+    return declaration
+  }
+}
+
 export async function transformCSS(options: FontFamilyInjectionPluginOptions, code: string, id: string, opts: { relative?: boolean } = {}): Promise<MagicString> {
   const s = new MagicString(code)
   const ast = parse(code, { positions: true })
@@ -120,28 +144,10 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
         ? fallbackDeclarations
         : [generateFontFace(fontFamily, opts.relative ? relativiseFontSources(font, withLeadingSlash(dirname(id))) : font), ...fallbackDeclarations]
 
-      for (let declaration of declarations) {
+      for (const declaration of declarations) {
         if (!injectedDeclarations.has(declaration)) {
           injectedDeclarations.add(declaration)
-          if (!options.dev) {
-            try {
-              const result = lightningCSSTransform({
-                filename: id,
-                code: Buffer.from(declaration),
-                minify: true,
-                sourceMap: false,
-                ...options.lightningcssOptions,
-              })
-              declaration = result.code.toString()
-            }
-            catch (error) {
-              logger.warn(`Could not minify generated \`@font-face\` in \`${id}\`. Falling back to unminified CSS.`, error)
-            }
-          }
-          else {
-            declaration += '\n'
-          }
-          prefaces.push(declaration)
+          prefaces.push(renderDeclaration(declaration, id, options))
         }
       }
 

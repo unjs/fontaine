@@ -1,3 +1,4 @@
+import type { RemoteFontSource } from 'unifont'
 import type { Plugin, ViteDevServer } from 'vite'
 import type { NormalizeFontDataContext, RenderedFont } from './assets'
 import type { LinkAttributes } from './runtime'
@@ -14,18 +15,23 @@ import MagicString from 'magic-string'
 import { join } from 'pathe'
 import { hasProtocol, joinURL } from 'ufo'
 import { normalizeFontData } from './assets'
+import { generateFontFace } from './css/render'
 import { defaultOptions } from './defaults'
 import { resolveProviders } from './providers'
 import { createResolver } from './resolve'
 import { createFontlessStorage } from './storage'
 import { subsetFontData } from './subset'
-import { transformCSS } from './utils'
+import { renderDeclaration, transformCSS } from './utils'
 
 // Copied from @tailwindcss-vite
 const CSS_LANG_QUERY_RE = /&lang\.css/
 const INLINE_STYLE_ID_RE = /[?&]index=\d+\.css$/
 // Copied from vue-bundle-renderer utils
 const EMPTY_SOURCE = new Uint8Array()
+
+// Fonts declared `global` have no stylesheet of their own, so their declarations are
+// keyed by this synthetic id in `fontsToPreload` and in minification diagnostics.
+const GLOBAL_CSS_ID = '\0fontless:global.css'
 
 const CSS_EXTENSIONS_RE = /\.(?:css|scss|sass|postcss|pcss|less|stylus|styl)(?:\?[^.]+)?$/
 
@@ -40,14 +46,18 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   let storage: ReturnType<typeof createFontlessStorage>
 
   // `emit` is only available while a CSS module is being transformed, as it needs that
-  // transform's plugin context to emit into the right environment's bundle.
-  const buildContext = new AsyncLocalStorage<{ emit: (file: string) => string }>()
+  // transform's plugin context to emit into the right environment's bundle. `collect`
+  // gathers the fonts referenced by declarations generated outside any CSS module, which
+  // therefore have to be emitted from `generateBundle` instead.
+  const buildContext = new AsyncLocalStorage<{ emit?: (file: string) => string, collect?: Set<string> }>()
 
   // Output file names of emitted fonts, mapped back to their key in `renderedFontURLs`
   const fontFiles = new Map<string, string>()
+  const emittedFonts = new Set<string>()
   function fontFileName(file: string) {
     const fileName = joinURL(assetContext.assetsBaseURL, file).slice(1)
     fontFiles.set(fileName, file)
+    emittedFonts.add(file)
     return fileName
   }
 
@@ -85,6 +95,58 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
     return [...cssTransformOptions.fontsToPreload.values()].flatMap(v => [...v])
   }
 
+  // Fonts referenced only by the global stylesheet, which is not attached to any module
+  const globalFontFiles = new Set<string>()
+  let resolveFontFaceWithOverride: Awaited<ReturnType<typeof createResolver>>
+  let globalFontFaces: Promise<string> | undefined
+
+  /**
+   * Render the `@font-face` blocks for families declared `global`, which by definition
+   * have no usage site in CSS to discover them from, and register their preloads.
+   *
+   * Fallback metric faces are not included: they are emitted per stylesheet alongside the
+   * usage sites they apply to, via `fallbacksOnly`.
+   */
+  function getGlobalFontFaces(): Promise<string> {
+    globalFontFaces ??= (async () => {
+      const families = options.families?.filter(f => f.global) ?? []
+      const declarations: string[] = []
+      const hrefs = new Set<string>()
+
+      for (const family of families) {
+        const result = await buildContext.run(
+          { collect: globalFontFiles },
+          () => resolveFontFaceWithOverride(family.name, family),
+        )
+        if (!result?.fonts?.length) {
+          continue
+        }
+
+        const fonts = [...result.fonts].sort((a, b) => (a.meta?.priority || 0) - (b.meta?.priority || 0))
+        for (const font of cssTransformOptions.selectFontsToPreload?.(family.name, fonts) ?? []) {
+          const url = font.src.find((s): s is RemoteFontSource => 'url' in s)?.url
+          if (url) {
+            hrefs.add(url)
+          }
+        }
+
+        // reverse order by priority since last rule with overlapping unicode-range wins
+        // https://www.w3.org/TR/css-fonts-4/#composite-fonts
+        for (const font of fonts.reverse()) {
+          declarations.push(renderDeclaration(generateFontFace(family.name, font), GLOBAL_CSS_ID, cssTransformOptions))
+        }
+      }
+
+      if (hrefs.size > 0) {
+        cssTransformOptions.fontsToPreload.set(GLOBAL_CSS_ID, hrefs)
+      }
+
+      return declarations.join('')
+    })()
+
+    return globalFontFaces
+  }
+
   function toPreloadLinks(hrefs: string[]): LinkAttributes[] {
     return hrefs.map(href => ({
       rel: 'preload',
@@ -114,10 +176,11 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         // During build, hand fonts to Vite's asset pipeline rather than writing literal
         // URLs, so `base`, a relative base and `experimental.renderBuiltUrl` all apply.
         resolveAssetURL: config.command === 'build'
-          ? file => buildContext.getStore()?.emit(file)
+          ? file => buildContext.getStore()?.emit?.(file)
           : undefined,
         callback: (file, url) => {
           publicFontURLs.set(url, joinURL(assetContext.baseURL, assetContext.assetsBaseURL, file))
+          buildContext.getStore()?.collect?.add(file)
         },
       }
 
@@ -143,7 +206,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         root: config.root,
       })
 
-      const resolveFontFaceWithOverride = await createResolver({
+      resolveFontFaceWithOverride = await createResolver({
         options,
         providers,
         storage,
@@ -170,13 +233,15 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         dev: config.mode === 'development',
         async resolveFontFace(fontFamily, fallbackOptions) {
           const override = options.families?.find(f => f.name === fontFamily)
+          const result = await resolveFontFaceWithOverride(fontFamily, override, fallbackOptions)
 
-          // This CSS will be injected in a separate location
-          if (override?.global) {
-            return
+          // The primary `@font-face` is emitted once into the global stylesheet, but usage
+          // sites in this file still need their fallback metric faces
+          if (result && override?.global) {
+            return { ...result, fallbacksOnly: true }
           }
 
-          return resolveFontFaceWithOverride(fontFamily, override, fallbackOptions)
+          return result
         },
       }
 
@@ -240,6 +305,21 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       },
     },
     async generateBundle(_options, bundle) {
+      // Resolve first: global fonts are not reachable from any module, so this is the only
+      // thing that populates `globalFontFiles`
+      await getGlobalFontFaces()
+      await Promise.all([...globalFontFiles].map(async (file) => {
+        const font = assetContext.renderedFontURLs.get(file)
+        if (!font || emittedFonts.has(file)) {
+          return
+        }
+        this.emitFile({
+          type: 'asset',
+          fileName: fontFileName(file),
+          source: await loadFont(file, font),
+        })
+      }))
+
       await Promise.all(Object.values(bundle).map(async (output) => {
         if (output.type !== 'asset') {
           return
@@ -252,19 +332,38 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       }))
     },
     transformIndexHtml: {
-      handler() {
+      async handler() {
+        // Inline rather than linking a stylesheet: a blocking request would delay the
+        // point at which the browser knows the family exists, which is the only reason
+        // these declarations are hoisted out of CSS in the first place.
+        const css = await getGlobalFontFaces()
+
         // Preload doesn't work on initial rendering during dev since `fontsToPreload`
-        // is empty before css is transformed.
-        return toPreloadLinks(getPreloadHrefs()).map(attrs => ({
+        // is empty before css is transformed. Global fonts are unaffected, as they are
+        // resolved above rather than discovered.
+        const tags = toPreloadLinks(getPreloadHrefs()).map(attrs => ({
           tag: 'link',
           attrs: attrs as unknown as Record<string, string>,
         }))
+
+        if (css) {
+          tags.push({ tag: 'style', attrs: { type: 'text/css' }, children: css } as never)
+        }
+
+        return tags
       },
     },
   }
 
   function getRuntimePreloads(): LinkAttributes[] {
     return toPreloadLinks(getPreloadHrefs().map(href => publicFontURLs.get(href) ?? href))
+  }
+
+  async function getRuntimeExports() {
+    // `@font-face` blocks must be resolved before preloads are read, as global families
+    // register their preloads as a side effect
+    const globalFontFaces = await getGlobalFontFaces()
+    return { preloads: getRuntimePreloads(), globalFontFaces }
   }
 
   const RUNTIME_PLACEHOLDER = '__FONTLESS_RUNTIME_BUILD_PLACEHOLDER__'
@@ -275,7 +374,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       return {
         resolve: {
           // an externalised import would bypass `resolveId` below and load the
-          // published stub, which has no preloads in it
+          // published stub, which has no preloads or font faces in it
           noExternal: [RUNTIME_NAME],
         },
       }
@@ -290,31 +389,29 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       },
     },
     load: {
-      handler(id) {
+      async handler(id) {
         if (id === `\0${RUNTIME_NAME}`) {
           // during build, postpone replacement until `renderChunk`
           // to ensure fonts are collected through css transform
           if (command === 'build') {
-            return `export const { preloads } = ${RUNTIME_PLACEHOLDER}`
+            return `export const { preloads, globalFontFaces } = ${RUNTIME_PLACEHOLDER}`
           }
-          return `export const { preloads } = ${JSON.stringify({ preloads: getRuntimePreloads() })}`
+          return `export const { preloads, globalFontFaces } = ${JSON.stringify(await getRuntimeExports())}`
         }
       },
     },
     renderChunk: {
       order: 'pre',
-      handler(code) {
+      async handler(code) {
         if (code.includes(RUNTIME_PLACEHOLDER)) {
-          const preloads = getRuntimePreloads()
+          const exports = await getRuntimeExports()
+          const { preloads } = exports
           if (preloads.length === 0 && !warnedAboutEmptyPreloads) {
             warnedAboutEmptyPreloads = true
             this.warn('`fontless/runtime` was imported but no fonts are marked for preloading, so `preloads` will be empty. Enable `defaults.preload` or set `preload` on individual `families` entries.')
           }
           const s = new MagicString(code)
-          s.replaceAll(
-            RUNTIME_PLACEHOLDER,
-            JSON.stringify({ preloads }),
-          )
+          s.replaceAll(RUNTIME_PLACEHOLDER, JSON.stringify(exports))
           return {
             code: s.toString(),
             map: s.generateMap({ hires: 'boundary' }),

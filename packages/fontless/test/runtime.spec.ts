@@ -2,7 +2,7 @@ import type { InlineConfig, Plugin } from 'vite'
 import type { FontlessOptions } from '../src/types'
 import { promises as fsp } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { join } from 'pathe'
 import { build, createServer } from 'vite'
 import { afterAll, describe, expect, it, vi } from 'vitest'
@@ -17,7 +17,7 @@ afterAll(async () => {
 
 const ENTRY_ID = 'virtual:fontless-runtime-fixture'
 
-function entryPlugin(): Plugin {
+function entryPlugin({ css = true }: { css?: boolean } = {}): Plugin {
   return {
     name: 'test-runtime-entry',
     resolveId(source) {
@@ -27,7 +27,11 @@ function entryPlugin(): Plugin {
     },
     load(id) {
       if (id === `\0${ENTRY_ID}`) {
-        return `import './src/style.css'\nimport { preloads } from 'fontless/runtime'\nexport { preloads }`
+        return [
+          css ? `import './src/style.css'` : '',
+          `import { preloads, globalFontFaces } from 'fontless/runtime'`,
+          `export { preloads, globalFontFaces }`,
+        ].filter(Boolean).join('\n')
       }
     },
   }
@@ -140,12 +144,61 @@ describe('`fontless/runtime` in dev', () => {
   })
 })
 
+describe('`fontless/runtime` global font faces', () => {
+  const globalOptions: FontlessOptions = {
+    families: [{ name: 'Black Fox', global: true, src: pathToFileURL(join(root, 'src/black-fox.ttf')).href }],
+  }
+
+  it('should expose `@font-face` declarations for `global` families in build', { timeout: 20_000 }, async () => {
+    const outDir = await fsp.mkdtemp(join(tmpdir(), 'fontless-runtime-'))
+    outDirs.push(outDir)
+
+    await build({
+      root,
+      configFile: false,
+      logLevel: 'silent',
+      plugins: [entryPlugin({ css: false }), fontless(globalOptions)],
+      build: { outDir, emptyOutDir: true, rollupOptions: { input: { entry: ENTRY_ID } } },
+    })
+
+    const files = await Array.fromAsync(fsp.glob('**/*', { cwd: outDir }))
+    const chunk = await fsp.readFile(join(outDir, files.find(file => file.endsWith('.js'))!), 'utf-8')
+
+    expect(chunk).not.toContain('__FONTLESS_RUNTIME_BUILD_PLACEHOLDER__')
+    expect(chunk).not.toContain('__VITE_ASSET__')
+    expect(chunk).toContain('@font-face')
+
+    const [, href] = chunk.match(/url\((\/assets\/_fonts\/[^)]+)\)/) ?? []
+    expect(href).toBeDefined()
+    expect(files).toContain(href!.slice(1))
+  })
+
+  it('should expose `@font-face` declarations for `global` families in dev', { timeout: 20_000 }, async () => {
+    const server = await createServer({
+      root,
+      configFile: false,
+      logLevel: 'silent',
+      server: { middlewareMode: true },
+      plugins: [entryPlugin({ css: false }), fontless(globalOptions)],
+    })
+
+    try {
+      const { globalFontFaces } = await server.ssrLoadModule('fontless/runtime')
+      expect(globalFontFaces).toContain(`font-family: 'Black Fox'`)
+    }
+    finally {
+      await server.close()
+    }
+  })
+})
+
 describe('published `fontless/runtime` stub', () => {
   it('should warn that no fonts will be preloaded', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     try {
-      const { preloads } = await import('../src/runtime')
+      const { preloads, globalFontFaces } = await import('../src/runtime')
       expect(preloads).toEqual([])
+      expect(globalFontFaces).toBe('')
       expect(warn).toHaveBeenCalledWith(expect.stringContaining('was not transformed by the fontless Vite plugin'))
     }
     finally {
