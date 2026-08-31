@@ -83,7 +83,7 @@
     "@types/node": "24.13.3",
     "@types/serve-handler": "6.1.4",
     "@vitest/coverage-v8": "4.1.11",
-    "eslint": "10.9.0",
+    "eslint": "10.9.1",
     "get-port-please": "3.2.0",
     "postcss": "8.5.26",
     "serve-handler": "6.1.7",
