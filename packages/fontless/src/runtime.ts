@@ -19,10 +19,11 @@ export const preloads: LinkAttributes[] = []
 export const globalFontFaces: string = ''
 
 export interface LinkAttributes {
-  rel: 'preload'
-  as: 'font'
-  href: string
-  crossorigin: 'anonymous' | 'use-credentials' | '' | undefined
+  'rel': 'preload'
+  'as': 'font'
+  'href': string
+  'crossorigin': 'anonymous' | 'use-credentials' | '' | undefined
+  'data-font-family': string
 }
 
 // Reaching this module at runtime means the plugin did not replace it, so the import
