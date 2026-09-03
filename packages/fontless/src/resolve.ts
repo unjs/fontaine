@@ -1,7 +1,7 @@
 import type { ConsolaInstance } from 'consola'
 import type { FontFaceData, Provider, UnifontOptions } from 'unifont'
 import type { GenericCSSFamily } from './css/parse'
-import type { FontFamilyManualOverride, FontFamilyProviderOverride, FontlessOptions, ManualFontDetails, ProviderFamilyOptions, ProviderFontDetails, RawFontFaceData } from './types'
+import type { FontFamilyManualOverride, FontFamilyProviderOverride, FontlessOptions, ManualFontDetails, NormalizedFontFaceData, ProviderFamilyOptions, ProviderFontDetails, RawFontFaceData } from './types'
 
 import type { FontFaceResolution } from './utils'
 import { consola } from 'consola'
@@ -62,18 +62,29 @@ function toArray<T>(value: T | T[]): T[] {
   return Array.isArray(value) ? value : [value]
 }
 
+const METRIC_OVERRIDE_KEYS = ['ascentOverride', 'descentOverride', 'lineGapOverride', 'sizeAdjust'] as const
+
 /** Apply family-level `@font-face` descriptors to faces resolved by a provider. */
-function applyFaceOverrides(override: FontFamilyManualOverride | FontFamilyProviderOverride | undefined, fonts: FontFaceData[]): FontFaceData[] {
+function applyFaceOverrides(override: FontFamilyManualOverride | FontFamilyProviderOverride | undefined, fonts: FontFaceData[]): NormalizedFontFaceData[] {
   const display = override && 'display' in override ? override.display : undefined
   const rawUnicodeRange = override && 'unicodeRange' in override ? override.unicodeRange : undefined
   const unicodeRange = rawUnicodeRange ? toArray(rawUnicodeRange) : undefined
-  if (!display && !unicodeRange) {
+  const metricOverrides: Record<string, string> = {}
+  for (const key of METRIC_OVERRIDE_KEYS) {
+    const value = override?.[key]
+    if (value) {
+      metricOverrides[key] = value
+    }
+  }
+  const hasMetricOverrides = Object.keys(metricOverrides).length > 0
+  if (!display && !unicodeRange && !hasMetricOverrides) {
     return fonts
   }
   return fonts.map(font => ({
     ...font,
     ...(display && { display }),
     ...(unicodeRange && { unicodeRange }),
+    ...metricOverrides,
   }))
 }
 
