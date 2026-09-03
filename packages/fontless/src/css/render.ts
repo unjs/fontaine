@@ -39,6 +39,10 @@ type FallbackMetrics = Pick<Required<ProviderFontMetrics>, 'ascent' | 'descent' 
 
 const OPTIONAL_METRICS = ['ascent', 'descent', 'lineGap', 'capHeight', 'xHeight', 'xWidthAvg'] as const
 
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value)
+}
+
 /**
  * Metrics reported by the provider that resolved this face, if any. Not every version of
  * `unifont` returns them, so the shape is validated before use.
@@ -49,13 +53,14 @@ function readProviderMetrics(data: NormalizedFontFaceData): ProviderFontMetrics 
     return
   }
   const metrics = candidate as Record<string, unknown>
-  if (typeof metrics.unitsPerEm !== 'number' || !metrics.unitsPerEm) {
+  if (!isFiniteNumber(metrics.unitsPerEm) || metrics.unitsPerEm <= 0) {
     return
   }
   const result: ProviderFontMetrics = { unitsPerEm: metrics.unitsPerEm }
   for (const key of OPTIONAL_METRICS) {
-    if (typeof metrics[key] === 'number') {
-      result[key] = metrics[key]
+    const value = metrics[key]
+    if (isFiniteNumber(value)) {
+      result[key] = value
     }
   }
   return result

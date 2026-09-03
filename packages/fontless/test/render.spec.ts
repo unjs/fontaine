@@ -172,6 +172,9 @@ describe('generateFontFallbacks', () => {
       'nope',
       {},
       { unitsPerEm: 0, ascent: 1000, descent: -250, lineGap: 0 },
+      { unitsPerEm: -1000, ascent: 1000, descent: -250, lineGap: 0 },
+      { unitsPerEm: Number.POSITIVE_INFINITY, ascent: 1000, descent: -250, lineGap: 0 },
+      { unitsPerEm: 1000, ascent: Number.NaN, descent: -250, lineGap: 0 },
       { unitsPerEm: 1000, ascent: 1000, capHeight: 700, xHeight: 500 },
     ]) {
       expect(await generateFontFallbacks('Some Unresolvable Font', { src: [{ url: '/unreadable.woff2' }], metrics } as never, [
