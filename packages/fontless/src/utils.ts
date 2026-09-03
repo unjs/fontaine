@@ -2,7 +2,7 @@ import type { CssNode, StyleSheet } from 'css-tree'
 import type { TransformOptions as LightningCSSTransformOptions } from 'lightningcss'
 import type { FontFaceData, RemoteFontSource } from 'unifont'
 import type { GenericCSSFamily } from './css/parse'
-import type { Awaitable } from './types'
+import type { Awaitable, NormalizedFontFaceData } from './types'
 import { Buffer } from 'node:buffer'
 import { consola } from 'consola'
 import { parse, walk } from 'css-tree'
@@ -17,7 +17,7 @@ import { generateFontFace, generateFontFallbacks, relativiseFontSources } from '
 const logger = consola.withTag('fontless')
 
 export interface FontFaceResolution {
-  fonts?: FontFaceData[]
+  fonts?: NormalizedFontFaceData[]
   fallbacks?: string[]
   /**
    * Emit only the fallback metric faces, not the primary `@font-face`, and register

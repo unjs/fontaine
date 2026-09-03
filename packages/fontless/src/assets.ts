@@ -64,7 +64,7 @@ export interface NormalizeFontDataContext {
 
 export function normalizeFontData(context: NormalizeFontDataContext, faces: RawFontFaceData | FontFaceData[], options: NormalizeFontDataOptions = {}): FontFaceData[] {
   const data: FontFaceData[] = []
-  for (const face of toArray(faces)) {
+  for (const face of toArray<RawFontFaceData | FontFaceData>(faces)) {
     let subsetted = false
     const unicodeRange = toArray(face.unicodeRange)
     const src = toArray(face.src).map((src) => {

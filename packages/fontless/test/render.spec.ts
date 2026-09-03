@@ -62,6 +62,26 @@ describe('rendering @font-face', () => {
       }"
     `)
   })
+  it('should render metric override descriptors', () => {
+    const css = generateFontFace('Inter', {
+      src: [{ url: '/inter.woff2' }],
+      ascentOverride: '90%',
+      descentOverride: '20%',
+      lineGapOverride: '0%',
+      sizeAdjust: '105%',
+    })
+    expect(css).toMatchInlineSnapshot(`
+      "@font-face {
+        font-family: 'Inter';
+        src: url("/inter.woff2");
+        font-display: swap;
+        ascent-override: 90%;
+        descent-override: 20%;
+        line-gap-override: 0%;
+        size-adjust: 105%;
+      }"
+    `)
+  })
   it('should render feature and variation settings', () => {
     const css = generateFontFace('Inter', {
       src: [{ url: '/inter.woff2' }],
@@ -97,6 +117,70 @@ describe('generateFontFallbacks', () => {
 
   it('should generate no fallbacks when none are requested', async () => {
     expect(await generateFontFallbacks('Inter', { src: [{ url: '/inter.woff2' }] })).toEqual([])
+  })
+
+  it('should use metrics reported by the provider', async () => {
+    const [css] = await generateFontFallbacks('Some Unresolvable Font', {
+      src: [{ url: '/unreadable.woff2' }],
+      metrics: { unitsPerEm: 1000, ascent: 1000, descent: -250, lineGap: 0, xWidthAvg: 500 },
+    } as never, [
+      { name: 'Some Unresolvable Font Fallback: Arial', font: 'Arial' },
+    ])
+
+    expect(css).toContain('font-family: "Some Unresolvable Font Fallback: Arial"')
+    expect(css).toContain('ascent-override: 89.1602%')
+    expect(css).toContain('descent-override: 22.29%')
+    expect(css).toContain('size-adjust: 112.1577%')
+  })
+
+  it('should leave `size-adjust` alone when the provider reports no average width', async () => {
+    const [css] = await generateFontFallbacks('Some Unresolvable Font', {
+      src: [{ url: '/unreadable.woff2' }],
+      metrics: { unitsPerEm: 1000, ascent: 1000, descent: -250, lineGap: 0 },
+    } as never, [
+      { name: 'Some Unresolvable Font Fallback: Arial', font: 'Arial' },
+    ])
+
+    expect(css).toContain('size-adjust: 100%')
+    expect(css).toContain('ascent-override: 100%')
+  })
+
+  it('should complete partial provider metrics from the metrics database', async () => {
+    const [ascentFromProvider] = await generateFontFallbacks('Inter', {
+      src: [{ url: '/unreadable.woff2' }],
+      metrics: { unitsPerEm: 2000, ascent: 2000 },
+    } as never, [
+      { name: 'Inter Fallback: Arial', font: 'Arial' },
+    ])
+
+    expect(ascentFromProvider).toContain('ascent-override: 93.3538%')
+    expect(ascentFromProvider).toContain('descent-override: 22.518%')
+
+    const [descentFromProvider] = await generateFontFallbacks('Inter', {
+      src: [{ url: '/unreadable.woff2' }],
+      metrics: { unitsPerEm: 2000, descent: -500 },
+    } as never, [
+      { name: 'Inter Fallback: Arial', font: 'Arial' },
+    ])
+
+    expect(descentFromProvider).toContain('descent-override: 23.3384%')
+  })
+
+  it('should ignore provider metrics that cannot produce fallback descriptors', async () => {
+    for (const metrics of [
+      null,
+      'nope',
+      {},
+      { unitsPerEm: 0, ascent: 1000, descent: -250, lineGap: 0 },
+      { unitsPerEm: -1000, ascent: 1000, descent: -250, lineGap: 0 },
+      { unitsPerEm: Number.POSITIVE_INFINITY, ascent: 1000, descent: -250, lineGap: 0 },
+      { unitsPerEm: 1000, ascent: Number.NaN, descent: -250, lineGap: 0 },
+      { unitsPerEm: 1000, ascent: 1000, capHeight: 700, xHeight: 500 },
+    ]) {
+      expect(await generateFontFallbacks('Some Unresolvable Font', { src: [{ url: '/unreadable.woff2' }], metrics } as never, [
+        { name: 'Some Unresolvable Font Fallback: Arial', font: 'Arial' },
+      ])).toEqual([])
+    }
   })
 })
 

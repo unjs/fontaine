@@ -1,10 +1,10 @@
-import type { FontFaceData, RemoteFontSource } from 'unifont'
-import type { FontSource } from '../types'
+import type { RemoteFontSource } from 'unifont'
+import type { FontSource, NormalizedFontFaceData } from '../types'
 import { generateFontFace as generateFallbackFontFace, getMetricsForFamily, readMetrics } from 'fontaine'
 import { extname, relative } from 'pathe'
 import { hasProtocol } from 'ufo'
 
-export function generateFontFace(family: string, font: FontFaceData): string {
+export function generateFontFace(family: string, font: NormalizedFontFaceData): string {
   return [
     '@font-face {',
     `  font-family: '${family}';`,
@@ -16,16 +16,95 @@ export function generateFontFace(family: string, font: FontFaceData): string {
     font.stretch && `  font-stretch: ${font.stretch};`,
     font.featureSettings && `  font-feature-settings: ${font.featureSettings};`,
     font.variationSettings && `  font-variation-settings: ${font.variationSettings};`,
+    font.ascentOverride && `  ascent-override: ${font.ascentOverride};`,
+    font.descentOverride && `  descent-override: ${font.descentOverride};`,
+    font.lineGapOverride && `  line-gap-override: ${font.lineGapOverride};`,
+    font.sizeAdjust && `  size-adjust: ${font.sizeAdjust};`,
     `}`,
   ].filter(Boolean).join('\n')
 }
 
-export async function generateFontFallbacks(family: string, data: FontFaceData, fallbacks?: Array<{ name: string, font: string }>): Promise<string[]> {
+/** Metrics a provider may report for a face. Only `unitsPerEm` is guaranteed to be present. */
+interface ProviderFontMetrics {
+  unitsPerEm: number
+  ascent?: number
+  descent?: number
+  lineGap?: number
+  capHeight?: number
+  xHeight?: number
+  xWidthAvg?: number
+}
+
+type FallbackMetrics = Pick<Required<ProviderFontMetrics>, 'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'>
+
+const OPTIONAL_METRICS = ['ascent', 'descent', 'lineGap', 'capHeight', 'xHeight', 'xWidthAvg'] as const
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value)
+}
+
+/**
+ * Metrics reported by the provider that resolved this face, if any. Not every version of
+ * `unifont` returns them, so the shape is validated before use.
+ */
+function readProviderMetrics(data: NormalizedFontFaceData): ProviderFontMetrics | undefined {
+  const candidate = (data as { metrics?: unknown }).metrics
+  if (!candidate || typeof candidate !== 'object') {
+    return
+  }
+  const metrics = candidate as Record<string, unknown>
+  if (!isFiniteNumber(metrics.unitsPerEm) || metrics.unitsPerEm <= 0) {
+    return
+  }
+  const result: ProviderFontMetrics = { unitsPerEm: metrics.unitsPerEm }
+  for (const key of OPTIONAL_METRICS) {
+    const value = metrics[key]
+    if (isFiniteNumber(value)) {
+      result[key] = value
+    }
+  }
+  return result
+}
+
+/**
+ * Complete a provider's metrics into the set the fallback faces are derived from, filling gaps
+ * from the metrics database where the family is known there.
+ *
+ * `ascent`, `descent` and `lineGap` are all needed, since each is divided by the em square to
+ * produce one of the `*-override` descriptors. `xWidthAvg` only drives `size-adjust`, and zero
+ * leaves the fallback at its natural width. Database values are in that font's own em square, so
+ * they are scaled into the provider's before being mixed in.
+ */
+function resolveProviderMetrics(data: NormalizedFontFaceData, knownMetrics: FallbackMetrics | null): FallbackMetrics | undefined {
+  const metrics = readProviderMetrics(data)
+  if (!metrics) {
+    return
+  }
+  const scale = knownMetrics ? metrics.unitsPerEm / knownMetrics.unitsPerEm : 0
+  const fill = (key: keyof FallbackMetrics) => knownMetrics ? knownMetrics[key] * scale : undefined
+
+  const ascent = metrics.ascent ?? fill('ascent')
+  const descent = metrics.descent ?? fill('descent')
+  const lineGap = metrics.lineGap ?? fill('lineGap')
+  if (ascent === undefined || descent === undefined || lineGap === undefined) {
+    return
+  }
+  return {
+    ascent,
+    descent,
+    lineGap,
+    unitsPerEm: metrics.unitsPerEm,
+    xWidthAvg: metrics.xWidthAvg ?? fill('xWidthAvg') ?? 0,
+  }
+}
+
+export async function generateFontFallbacks(family: string, data: NormalizedFontFaceData, fallbacks?: Array<{ name: string, font: string }>): Promise<string[]> {
   if (!fallbacks?.length)
     return []
 
   const fontURL = data.src!.find(s => 'url' in s) as RemoteFontSource | undefined
-  const metrics = await getMetricsForFamily(family) || (fontURL && await readMetrics(fontURL.originalURL || fontURL.url))
+  const knownMetrics = await getMetricsForFamily(family)
+  const metrics = resolveProviderMetrics(data, knownMetrics) || knownMetrics || (fontURL && await readMetrics(fontURL.originalURL || fontURL.url))
 
   if (!metrics)
     return []
@@ -89,7 +168,7 @@ function renderFontSrc(sources: Exclude<FontSource, string>[]) {
   }).join(', ')
 }
 
-export function relativiseFontSources(font: FontFaceData, relativeTo: string): FontFaceData {
+export function relativiseFontSources(font: NormalizedFontFaceData, relativeTo: string): NormalizedFontFaceData {
   return {
     ...font,
     src: font.src.map((source) => {
@@ -102,5 +181,5 @@ export function relativiseFontSources(font: FontFaceData, relativeTo: string): F
         url: relative(relativeTo, source.url),
       }
     }),
-  } satisfies FontFaceData
+  } satisfies NormalizedFontFaceData
 }

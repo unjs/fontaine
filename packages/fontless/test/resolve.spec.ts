@@ -852,6 +852,82 @@ describe('createResolver', () => {
       })
     })
 
+    it('should apply metric overrides to resolved faces', async () => {
+      const provider = createEmptyProvider('test', { fonts: [{ src: [{ url: '/font.woff2' }] }] })
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      const overrides = {
+        ascentOverride: '90%',
+        descentOverride: '20%',
+        lineGapOverride: '0%',
+        sizeAdjust: '105%',
+      }
+
+      for (const override of [{ name: 'Inter', provider: 'test', ...overrides }, { name: 'Inter', ...overrides }]) {
+        const result = await resolver('Inter', override)
+        expect(result?.fonts?.[0]).toMatchObject(overrides)
+      }
+    })
+
+    it('should override metric descriptors returned by a provider', async () => {
+      const provider = createEmptyProvider('test', { fonts: [{ src: [{ url: '/font.woff2' }], sizeAdjust: '50%' } as never] })
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      const result = await resolver('Inter', { name: 'Inter', sizeAdjust: '105%' })
+
+      expect(result?.fonts?.[0]).toMatchObject({ sizeAdjust: '105%' })
+    })
+
+    it('should leave provider metric descriptors in place when none are set', async () => {
+      const provider = createEmptyProvider('test', { fonts: [{ src: [{ url: '/font.woff2' }], sizeAdjust: '50%' } as never] })
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      const result = await resolver('Inter', { name: 'Inter', display: 'optional' })
+
+      expect(result?.fonts?.[0]).toMatchObject({ sizeAdjust: '50%', display: 'optional' })
+    })
+
+    it('should apply metric overrides to a manually declared family', async () => {
+      const { provider } = createTrackingProvider('test')
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      const result = await resolver('CustomFont', {
+        name: 'CustomFont',
+        src: '/custom.woff2',
+        ascentOverride: '90%',
+        descentOverride: '20%',
+        lineGapOverride: '0%',
+        sizeAdjust: '105%',
+      })
+
+      expect(result?.fonts?.[0]).toMatchObject({
+        ascentOverride: '90%',
+        descentOverride: '20%',
+        lineGapOverride: '0%',
+        sizeAdjust: '105%',
+      })
+    })
+
     it('should pass all descriptors through for a manually declared family', async () => {
       const { provider } = createTrackingProvider('test')
 

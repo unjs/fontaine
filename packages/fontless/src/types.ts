@@ -26,13 +26,20 @@ export interface ProviderFontDetails extends SharedFontDetails {
   provider: string
 }
 
-// TODO: Font metric providers
-// export interface FontFaceAdjustments {
-//   ascentOverride?: string // ascent-override
-//   descentOverride?: string // descent-override
-//   lineGapOverride?: string // line-gap-override
-//   sizeAdjust?: string // size-adjust
-// }
+/** CSS font metric override descriptors. */
+interface FontFaceMetricOverrides {
+  /** `ascent-override` descriptor. */
+  ascentOverride?: string
+  /** `descent-override` descriptor. */
+  descentOverride?: string
+  /** `line-gap-override` descriptor. */
+  lineGapOverride?: string
+  /** `size-adjust` descriptor. */
+  sizeAdjust?: string
+}
+
+/** Font face data with the descriptors `fontless` supports on top of those `unifont` resolves. */
+export type NormalizedFontFaceData = FontFaceData & FontFaceMetricOverrides
 
 export type FontProviderName = (string & {}) | 'google' | 'local' | 'none'
 
@@ -69,7 +76,7 @@ export type ProviderFamilyOptions = {
   googleicons?: GoogleiconsFamilyOptions
 } & Record<string, Record<string, unknown> | undefined>
 
-export interface FontFamilyProviderOverride extends FontFamilyOverrides, Partial<Omit<ResolveFontOptions, 'weights' | 'options'> & { weights: Array<string | number> }> {
+export interface FontFamilyProviderOverride extends FontFamilyOverrides, FontFaceMetricOverrides, Partial<Omit<ResolveFontOptions, 'weights' | 'options'> & { weights: Array<string | number> }> {
   /** The provider to use when resolving this font. */
   provider?: FontProviderName
   /**
@@ -85,7 +92,7 @@ export interface FontFamilyProviderOverride extends FontFamilyOverrides, Partial
 
 export type FontSource = string | LocalFontSource | RemoteFontSource
 
-export interface RawFontFaceData extends Omit<FontFaceData, 'src' | 'unicodeRange'> {
+export interface RawFontFaceData extends Omit<FontFaceData, 'src' | 'unicodeRange'>, FontFaceMetricOverrides {
   src: FontSource | Array<FontSource>
   unicodeRange?: string | string[]
 }
