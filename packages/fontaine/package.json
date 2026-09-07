@@ -82,7 +82,7 @@
     "@types/css-tree": "3.2.0",
     "@types/node": "24.13.3",
     "@types/serve-handler": "6.1.4",
-    "@vitest/coverage-v8": "4.1.11",
+    "@vitest/coverage-v8": "5.0.0",
     "eslint": "10.9.1",
     "get-port-please": "3.2.0",
     "postcss": "8.5.26",
@@ -90,6 +90,6 @@
     "tsdown": "0.22.14",
     "typescript": "6.0.3",
     "vite": "8.2.2",
-    "vitest": "4.1.11"
+    "vitest": "5.0.0"
   }
 }
