@@ -87,6 +87,7 @@ describe('`fontless/runtime` in build', () => {
     expect(chunk).not.toContain('__FONTLESS_RUNTIME_BUILD_PLACEHOLDER__')
     expect(chunk).not.toContain('__VITE_ASSET__')
     expect(chunk).toMatch(/rel:["'`]preload/)
+    expect(chunk).toMatch(/data-font-family:["'`]Poppins/)
     expect(hrefs.length).toBeGreaterThan(0)
     for (const href of hrefs) {
       expect(files).toContain(join('assets/_fonts', href.split('/_fonts/')[1]!))
@@ -135,7 +136,12 @@ describe('`fontless/runtime` in dev', () => {
 
       const after = await server.ssrLoadModule('fontless/runtime')
       expect(after.preloads.length).toBeGreaterThan(0)
-      expect(after.preloads[0]).toMatchObject({ rel: 'preload', as: 'font', crossorigin: '' })
+      expect(after.preloads[0]).toMatchObject({
+        'rel': 'preload',
+        'as': 'font',
+        'crossorigin': '',
+        'data-font-family': 'Poppins',
+      })
       expect(after.preloads[0].href).toMatch(/\/assets\/_fonts\/.*\.woff2$/)
     }
     finally {
