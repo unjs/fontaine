@@ -80,14 +80,14 @@
   "devDependencies": {
     "@capsizecss/metrics": "4.2.0",
     "@types/css-tree": "3.2.0",
-    "@types/node": "24.13.3",
+    "@types/node": "24.13.4",
     "@types/serve-handler": "6.1.4",
     "@vitest/coverage-v8": "5.0.0",
     "eslint": "10.10.0",
     "get-port-please": "3.2.0",
-    "postcss": "8.5.26",
+    "postcss": "8.5.28",
     "serve-handler": "6.1.7",
-    "tsdown": "0.22.14",
+    "tsdown": "0.23.0",
     "typescript": "6.0.3",
     "vite": "8.2.2",
     "vitest": "5.0.0"
