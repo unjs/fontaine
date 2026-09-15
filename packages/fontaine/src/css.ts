@@ -65,6 +65,21 @@ export const genericCSSFamilies: Set<string> = new Set([
   'fangsong',
 ])
 
+// A generic is resolved by the user agent and is never an installed family, so `local()` needs
+// the concrete families each generic resolves to across common platforms.
+const genericFamilyLocals: Record<string, string[]> = {
+  'serif': ['Times New Roman', 'Tinos', 'Liberation Serif', 'DejaVu Serif', 'Times'],
+  'sans-serif': ['Arial', 'Arimo', 'Liberation Sans', 'DejaVu Sans', 'Helvetica'],
+  'monospace': ['Courier New', 'Cousine', 'Liberation Mono', 'DejaVu Sans Mono', 'Menlo'],
+  'system-ui': ['Segoe UI', 'Roboto', 'Helvetica Neue', 'Cantarell', 'Ubuntu', 'Noto Sans'],
+  'cursive': ['Comic Sans MS', 'Apple Chancery', 'Segoe Script', 'URW Chancery L'],
+  'fantasy': ['Impact', 'Papyrus', 'Luminari'],
+}
+genericFamilyLocals['ui-serif'] = genericFamilyLocals.serif!
+genericFamilyLocals['ui-sans-serif'] = genericFamilyLocals['sans-serif']!
+genericFamilyLocals['ui-monospace'] = genericFamilyLocals.monospace!
+genericFamilyLocals['ui-rounded'] = genericFamilyLocals['system-ui']!
+
 const fontProperties = new Set(['font-weight', 'font-style', 'font-stretch'])
 
 interface FontProperties {
@@ -219,7 +234,7 @@ export function generateFontFace(metrics: FontFaceMetrics, fallback: FallbackOpt
 
   const declaration = {
     'font-family': JSON.stringify(fallbackName),
-    'src': `local(${JSON.stringify(fallbackFontName)})`,
+    'src': renderLocalSrc(fallbackFontName),
     'size-adjust': toPercentage(sizeAdjust),
     'ascent-override': toPercentage(ascentOverride),
     'descent-override': toPercentage(descentOverride),
@@ -228,4 +243,9 @@ export function generateFontFace(metrics: FontFaceMetrics, fallback: FallbackOpt
   }
 
   return `@font-face {\n${toCSS(declaration)}\n}\n`
+}
+
+function renderLocalSrc(font: string) {
+  const locals = genericFamilyLocals[withoutQuotes(font).toLowerCase()] || [font]
+  return locals.map(local => `local(${JSON.stringify(local)})`).join(', ')
 }
