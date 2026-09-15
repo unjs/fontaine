@@ -32,6 +32,49 @@ describe('generateFontFace', () => {
       "
     `)
   })
+
+  it.each([
+    'serif',
+    'sans-serif',
+    'monospace',
+    'system-ui',
+    'ui-serif',
+    'ui-sans-serif',
+    'ui-monospace',
+    'ui-rounded',
+    'cursive',
+    'fantasy',
+  ])('resolves the %s generic to installable families', async (generic) => {
+    const metrics = await readMetrics(fixtureURL)
+    const src = generateFontFace(metrics!, { name: 'example fallback', font: generic }).match(/ {2}src: (.+);/)![1]!
+    expect(src.split(', ').every(entry => /^local\("[^"]+"\)$/.test(entry))).toBe(true)
+    expect(src).not.toContain(`local("${generic}")`)
+  })
+
+  it('renders the full generic fallback stack', async () => {
+    const metrics = await readMetrics(fixtureURL)
+    expect(generateFontFace(metrics!, { name: 'example fallback', font: 'serif' })).toMatchInlineSnapshot(`
+      "@font-face {
+        font-family: "example fallback";
+        src: local("Times New Roman"), local("Tinos"), local("Liberation Serif"), local("DejaVu Serif"), local("Times");
+        size-adjust: 100%;
+        ascent-override: 105%;
+        descent-override: 35%;
+        line-gap-override: 10%;
+      }
+      "
+    `)
+  })
+
+  it('is case-insensitive when matching generics', async () => {
+    const metrics = await readMetrics(fixtureURL)
+    expect(generateFontFace(metrics!, { name: 'example fallback', font: 'Sans-Serif' })).toContain('local("Arial")')
+  })
+
+  it('leaves a concrete family name untouched', async () => {
+    const metrics = await readMetrics(fixtureURL)
+    expect(generateFontFace(metrics!, { name: 'example fallback', font: 'Times New Roman' })).toContain('  src: local("Times New Roman");')
+  })
 })
 
 describe('generateFallbackName', () => {
