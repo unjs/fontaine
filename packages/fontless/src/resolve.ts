@@ -1,18 +1,18 @@
 import type { ConsolaInstance } from 'consola'
 import type { FontFaceData, Provider, UnifontOptions } from 'unifont'
 import type { GenericCSSFamily } from './css/parse'
-import type { FontFamilyManualOverride, FontFamilyProviderOverride, FontlessOptions, ManualFontDetails, NormalizedFontFaceData, ProviderFamilyOptions, ProviderFontDetails, RawFontFaceData } from './types'
+import type { FontFamilyManualOverride, FontFamilyProviderOverride, FontlessOptions, ManualFontDetails, NormalizedFontFaceData, ProviderFamilyOptions, ProviderFontDetails, RawFontFaceData, ResolvedVariableAxisOptions } from './types'
 
 import type { FontFaceResolution } from './utils'
 import { consola } from 'consola'
 import { createUnifont } from 'unifont'
 import { addLocalFallbacks } from './css/parse'
 import { defaultValues } from './defaults'
-import { normalizeGlyphs } from './subset'
+import { normalizeAxisValues, normalizeGlyphs } from './subset'
 
 interface ResolverContext {
   exposeFont?: (font: ManualFontDetails | ProviderFontDetails) => void
-  normalizeFontData: (faces: RawFontFaceData | FontFaceData[], options?: { glyphs?: string }) => FontFaceData[]
+  normalizeFontData: (faces: RawFontFaceData | FontFaceData[], options?: { glyphs?: string, variableAxis?: ResolvedVariableAxisOptions }) => FontFaceData[]
   logger?: ConsolaInstance
   storage?: UnifontOptions['storage']
   options: FontlessOptions
@@ -20,7 +20,7 @@ interface ResolverContext {
 }
 
 /** Family-level keys that are not `@font-face` descriptors and must not be passed through to `normalizeFontData`. */
-const NON_DESCRIPTOR_KEYS = new Set(['name', 'global', 'preload', 'fallbacks', 'provider', 'providerOptions', 'glyphs'])
+const NON_DESCRIPTOR_KEYS = new Set(['name', 'global', 'preload', 'fallbacks', 'provider', 'providerOptions', 'glyphs', 'variableAxis'])
 
 /**
  * Providers whose `experimental.glyphs` option means 'these characters', so a family's
@@ -164,9 +164,11 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
   return async function resolveFontFaceWithOverride(fontFamily: string, override?: FontFamilyManualOverride | FontFamilyProviderOverride, fallbackOptions?: { fallbacks: string[], generic?: GenericCSSFamily }): Promise<FontFaceResolution | undefined> {
     const fallbacks = resolveFallbacks(override, fallbackOptions?.generic)
     const glyphs = override?.glyphs ? normalizeGlyphs(override.glyphs) : defaultGlyphs
+    const variableAxis = override?.variableAxis ?? options.defaults?.variableAxis
 
     if (override && 'src' in override) {
-      const fonts = addFallbacks(fontFamily, normalizeFontData(pickDescriptors(override), { glyphs }))
+      // Nothing resolves these sources, so every requested axis is left to `fontless`.
+      const fonts = addFallbacks(fontFamily, normalizeFontData(pickDescriptors(override), { glyphs, variableAxis: variableAxis && normalizeAxisValues(variableAxis) }))
       exposeFont({
         type: 'manual',
         fontFamily,
@@ -184,7 +186,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
     }
 
     // Respect custom weights, styles, subsets and formats options
-    const defaults = { ...normalizedDefaults, fallbacks }
+    const defaults = { ...normalizedDefaults, fallbacks, ...(variableAxis && { variableAxis }) }
     for (const key of ['weights', 'styles', 'subsets'] as const) {
       if (override?.[key]) {
         defaults[key as 'weights'] = override[key]!.map(v => String(v))
@@ -209,7 +211,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
           : defaults
         const result = await unifont.resolveFont(fontFamily, resolveOptions as typeof defaults, [override.provider])
         // Rewrite font source URLs to be proxied/local URLs
-        const fonts = applyFaceOverrides(override, normalizeFontData(result.fonts, { glyphs }))
+        const fonts = applyFaceOverrides(override, normalizeFontData(result.fonts, { glyphs, variableAxis: result.variableAxis }))
         if (!fonts.length) {
           const message = `Could not produce font face declaration from \`${override.provider}\` for font family \`${fontFamily}\`.`
           if (options.throwOnError) {
@@ -242,7 +244,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
 
     const result = await unifont.resolveFont(fontFamily, resolveOptions as typeof defaults, [...prioritisedProviders])
     // Rewrite font source URLs to be proxied/local URLs
-    const fonts = applyFaceOverrides(override, normalizeFontData(result.fonts, { glyphs }))
+    const fonts = applyFaceOverrides(override, normalizeFontData(result.fonts, { glyphs, variableAxis: result.variableAxis }))
     if (fonts.length === 0) {
       if (override) {
         logger.warn(`Could not produce font face declaration for \`${fontFamily}\` with override.`)

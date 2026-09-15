@@ -22,6 +22,8 @@ export type {
   ManualFontDetails,
   ProviderFamilyOptions,
   ProviderFontDetails,
+  ResolvedVariableAxisOptions,
+  VariableAxisOptions,
 } from './types'
 
 export { transformCSS } from './utils'

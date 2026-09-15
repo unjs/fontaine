@@ -213,6 +213,32 @@ The glyph list is part of the emitted file's name, so two families sharing a sou
 
 **Check the font's licence first.** Subsetting modifies the file you ship, and some licences (particularly commercial and free-with-conditions ones) restrict modifying, converting or self-hosting a font.
 
+## Variable Font Axes
+
+Set `variableAxis` on a family (or on `defaults`, for every family) to choose the values a variable font is shipped at. A number or string pins an axis to a single value, and a `{ min, max }` object (or a `[min, max]` pair) narrows it to an inclusive range:
+
+```js
+fontless({
+  families: [
+    {
+      name: 'Recursive',
+      variableAxis: {
+        CASL: [1],
+        MONO: [{ min: 0, max: 1 }],
+      },
+    },
+  ],
+})
+```
+
+Providers that can instance a font server-side, such as Google Fonts, serve the file already resolved at those values. Otherwise `fontless` applies the axis to the downloaded file with [`subset-font`](https://github.com/papandreou/subset-font) and drops the `font-variation-settings` descriptor for that axis.
+
+Applying an axis locally means subsetting the file, so it needs a glyph list: either the family's `glyphs`, or the characters the face's `unicode-range` declares. Without either, the file is emitted untouched and the descriptor is kept, so the font still renders at the requested values. An axis a font file does not have is skipped, keeping any glyph subset. Because it is a subsetting pass, the licence caveat under [Glyph Subsetting](#glyph-subsetting) applies to the file you ship.
+
+The axis values are part of the emitted file's name, so two families sharing a source font with different values get their own file. `wght` and `ital` are left alone, because `@font-face` descriptors already express them.
+
+This option is experimental: provider support and the option shape may change.
+
 ## npm Provider
 
 The `npm` provider resolves fonts from locally installed npm packages such as [`@fontsource/*`](https://fontsource.org/), [`@fontsource-variable/*`](https://fontsource.org/), and [`cal-sans`](https://github.com/calcom/font). It is enabled by default with `remote: false`, meaning it only reads from your local `node_modules` without making any network requests.
