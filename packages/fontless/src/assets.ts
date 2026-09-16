@@ -86,8 +86,8 @@ export function normalizeFontData(context: NormalizeFontDataContext, faces: RawF
         const file = [
           // TODO: investigate why negative ignore pattern below is being ignored
           hash(filename(_url) || _url).replace(/^-+/, '').slice(0, MAX_FILENAME_PREFIX_LENGTH),
-          hash(options.glyphs || variationAxes
-            ? { source: hashableSource(context, source), ...(options.glyphs && { glyphs: options.glyphs }), ...(variationAxes && { variationAxes }) }
+          hash(text || variationAxes
+            ? { source: hashableSource(context, source), ...(text && { glyphs: text }), ...(variationAxes && { variationAxes }) }
             : hashableSource(context, source)).replace(/-/, '_') + (extname(source.url) || formatToExtension(source.format) || ''),
         ].filter(Boolean).join('-')
 

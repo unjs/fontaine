@@ -183,6 +183,16 @@ describe('variable axis instancing', () => {
     expect(face.variationSettings).toBe('"CASL" 1')
   })
 
+  it('should emit one file per unicode range for the same source font', () => {
+    const context = createContext()
+    const face = (unicodeRange: string[]) => ({ src: [{ url: 'https://fonts.example.com/font.woff2', format: 'woff2' }], unicodeRange })
+    const variableAxis: ResolvedVariableAxisOptions = { CASL: { values: ['1'], appliedAs: 'variation-settings' } }
+    normalizeFontData(context, [face(['U+0041'])], { variableAxis })
+    normalizeFontData(context, [face(['U+0042'])], { variableAxis })
+
+    expect(context.renderedFontURLs.size).toBe(2)
+  })
+
   it('should emit one file per set of axis values for the same source font', () => {
     const context = createContext()
     const face = () => ({ src: [{ url: 'https://fonts.example.com/font.woff2', format: 'woff2' }], unicodeRange: ['U+0041'], variationSettings: '"CASL" 1' })
