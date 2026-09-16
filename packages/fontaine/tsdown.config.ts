@@ -5,7 +5,7 @@ export default defineConfig({
   entry: ['src/index.ts', 'src/postcss.ts'],
   format: ['es', 'cjs'],
   dts: {
-    oxc: true,
+    generator: 'oxc',
   },
   hooks: {
     'build:done': async function () {
