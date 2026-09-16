@@ -1,9 +1,15 @@
-import type { FontFaceData, GoogleFamilyOptions, GoogleiconsFamilyOptions, LocalFontSource, Provider, ProviderFactory, providers, RemoteFontSource, ResolveFontOptions } from 'unifont'
+import type { FontFaceData, GoogleFamilyOptions, GoogleiconsFamilyOptions, LocalFontSource, Provider, ProviderFactory, providers, RemoteFontSource, ResolveFontOptions, ResolveFontResult } from 'unifont'
 import type { Storage, StorageValue } from 'unstorage'
 
 import type { GenericCSSFamily } from './css/parse'
 
 export type FontFormat = ResolveFontOptions['formats'][number]
+
+/** Requested values for variable font axes, keyed by OpenType axis tag. */
+export type VariableAxisOptions = NonNullable<ResolveFontOptions['variableAxis']>
+
+/** What `unifont` reports became of each requested variable font axis. */
+export type ResolvedVariableAxisOptions = NonNullable<ResolveFontResult['variableAxis']>
 
 export type Awaitable<T> = T | Promise<T>
 
@@ -66,6 +72,23 @@ export interface FontFamilyOverrides {
    * @example 'Handgloves & 0123'
    */
   glyphs?: string | string[]
+  /**
+   * Values to resolve variable font axes at, keyed by OpenType axis tag. A number or string
+   * pins the axis to a single value, and a `[min, max]` pair or `{ min, max }` object narrows
+   * it to an inclusive range.
+   *
+   * The request is passed to the provider, which serves an already-instanced file where it
+   * can. Otherwise the axis is applied to the downloaded file, which requires `subset-font`
+   * and a glyph list to subset to, either from `glyphs` or from the face's `unicode-range`.
+   *
+   * `wght` and `ital` are left alone: they are expressed by `@font-face` descriptors.
+   *
+   * **Experimental.** Provider support and the option shape may change.
+   *
+   * @example { CASL: [1], MONO: [{ min: 0, max: 1 }] }
+   * @see {@link https://github.com/unjs/unifont | unifont} for the axes each provider supports.
+   */
+  variableAxis?: VariableAxisOptions
 
   // TODO:
   // as?: string
@@ -144,6 +167,13 @@ export interface FontlessOptions {
      */
     glyphs: string | string[]
     weights: Array<string | number>
+    /**
+     * Values to resolve variable font axes at for every family, keyed by OpenType axis tag.
+     * Overridden by `variableAxis` on an individual family.
+     *
+     * **Experimental.** Provider support and the option shape may change.
+     */
+    variableAxis: VariableAxisOptions
     styles: ResolveFontOptions['styles']
     subsets: ResolveFontOptions['subsets']
     /**

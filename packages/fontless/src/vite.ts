@@ -74,14 +74,14 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
     return `__VITE_ASSET__${ref}__`
   }
 
-  async function loadFont(file: string, { url, init, subset }: RenderedFont): Promise<Buffer> {
+  async function loadFont(file: string, { url, init, subset, variationAxes }: RenderedFont): Promise<Buffer> {
     if (url.startsWith('file://')) {
       const font = await readFile(fileURLToPath(url))
-      return subset ? subsetFontData(font, subset, url) : font
+      return subset ? subsetFontData(font, subset, url, variationAxes) : font
     }
 
-    // The file name is hashed from the glyph list as well as the URL, so cached bytes are
-    // never a stale subset of a font whose glyph list has since changed.
+    // The file name is hashed from the glyph list and axis values as well as the URL, so
+    // cached bytes are never a stale subset of a font whose options have since changed.
     const key = `data:fonts:${file}`
     // Use storage to cache the font data between builds
     const cached = await storage.getItemRaw<Buffer>(key)
@@ -93,7 +93,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       throw new Error(`Could not fetch font from \`${url}\` (${response.status} ${response.statusText}).`)
     }
     const downloaded = Buffer.from(await response.arrayBuffer())
-    const res = subset ? await subsetFontData(downloaded, subset, url) : downloaded
+    const res = subset ? await subsetFontData(downloaded, subset, url, variationAxes) : downloaded
     await storage.setItemRaw(key, res)
     return res
   }

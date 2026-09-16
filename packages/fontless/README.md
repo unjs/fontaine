@@ -172,6 +172,33 @@ The glyph list is part of the emitted file's name, so two families sharing a sou
 > [!IMPORTANT]
 > Subsetting modifies the font file you ship. Some licences (particularly commercial and free-with-conditions ones) restrict modifying, converting or self-hosting a font, so check the licence or terms of the font you are subsetting before enabling this.
 
+## Variable Font Axes
+
+Variable fonts expose axes beyond weight and italic, such as Recursive's casual (`CASL`) and monospace (`MONO`) axes. Set `variableAxis` on a family (or on `defaults`, for every family) to choose the values you ship. A number or string pins an axis to a single value, and a `{ min, max }` object (or a `[min, max]` pair) narrows it to an inclusive range:
+
+```ts
+fontless({
+  families: [
+    {
+      name: 'Recursive',
+      variableAxis: {
+        CASL: [1],
+        MONO: [{ min: 0, max: 1 }],
+      },
+    },
+  ],
+})
+```
+
+The request is passed to the provider first. Google Fonts serves an already-instanced file, so nothing further happens locally. For every other provider, `unifont` returns the variable file with a `font-variation-settings` descriptor, and `fontless` applies the axis to the file itself with [`subset-font`](https://github.com/papandreou/subset-font), then drops the descriptor for that axis, since the axis no longer exists in the file to be varied. Values that `unifont` reports it left to the consumer, such as a range, are applied to the file without touching the CSS.
+
+Applying an axis locally means subsetting the file, so it needs a glyph list: either the family's `glyphs`, or the characters the face's `unicode-range` declares. Without either, the file is emitted untouched and the `font-variation-settings` descriptor is kept, so the font still renders at the requested values. An axis a font file does not have is skipped, keeping any glyph subset. Because it is a subsetting pass, the licence caveat under [Glyph Subsetting](#glyph-subsetting) applies to the file you ship.
+
+The axis values are part of the emitted file's name, so two families sharing a source font with different values get their own file, and changing a value invalidates the cache. `wght` and `ital` are left alone: they are expressed by `@font-face` descriptors, and pinning them would lose the other faces of the family.
+
+> [!NOTE]
+> This option is experimental. Provider support and the option shape may change.
+
 ## Preloading Fonts
 
 Preloading is opt-in: no font is preloaded unless you ask for it. Enable it for every family with `defaults.preload`, or for individual families with `families[].preload`:

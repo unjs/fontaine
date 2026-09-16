@@ -1,12 +1,13 @@
 import type { FontFaceData } from 'unifont'
-import type { RawFontFaceData } from './types'
+import type { VariationAxes } from './subset'
+import type { RawFontFaceData, ResolvedVariableAxisOptions } from './types'
 import { fileURLToPath } from 'node:url'
 import { hash } from 'ohash'
 import { extname, relative } from 'pathe'
 import { filename } from 'pathe/utils'
 import { hasProtocol, joinRelativeURL, joinURL } from 'ufo'
 import { formatToExtension, parseFont } from './css/render'
-import { glyphsToUnicodeRange } from './subset'
+import { glyphsToUnicodeRange, resolveVariationAxes, unicodeRangeToText, withoutVariationSettings } from './subset'
 
 function hashableSource(context: NormalizeFontDataContext, source: { url: string }) {
   if (!source.url.startsWith('file://') || !context.root) {
@@ -26,11 +27,15 @@ export interface RenderedFont {
   init?: RequestInit
   /** Characters the emitted file should be reduced to, if the family sets `glyphs`. */
   subset?: string
+  /** Variable font axes to apply to the emitted file, if the family sets `variableAxis`. */
+  variationAxes?: VariationAxes
 }
 
 export interface NormalizeFontDataOptions {
   /** Normalised characters to subset the emitted files to. */
   glyphs?: string
+  /** How each requested variable font axis was resolved, and so what is left to apply here. */
+  variableAxis?: ResolvedVariableAxisOptions
 }
 
 export interface NormalizeFontDataContext {
@@ -67,6 +72,11 @@ export function normalizeFontData(context: NormalizeFontDataContext, faces: RawF
   for (const face of toArray<RawFontFaceData | FontFaceData>(faces)) {
     let subsetted = false
     const unicodeRange = toArray(face.unicodeRange)
+    const requested = options.variableAxis && resolveVariationAxes(options.variableAxis)
+    // Instancing means subsetting, so it needs a glyph list: the family's own, or the
+    // characters the face declares it can render.
+    const text = options.glyphs ?? (requested ? unicodeRangeToText(unicodeRange) : undefined)
+    const variationAxes = text ? requested?.axes : undefined
     const src = toArray(face.src).map((src) => {
       const source = typeof src === 'string' ? parseFont(src) : src
       if ('url' in source && hasProtocol(source.url, { acceptRelative: true })) {
@@ -76,13 +86,13 @@ export function normalizeFontData(context: NormalizeFontDataContext, faces: RawF
         const file = [
           // TODO: investigate why negative ignore pattern below is being ignored
           hash(filename(_url) || _url).replace(/^-+/, '').slice(0, MAX_FILENAME_PREFIX_LENGTH),
-          hash(options.glyphs
-            ? { source: hashableSource(context, source), glyphs: options.glyphs }
+          hash(text || variationAxes
+            ? { source: hashableSource(context, source), ...(text && { glyphs: text }), ...(variationAxes && { variationAxes }) }
             : hashableSource(context, source)).replace(/-/, '_') + (extname(source.url) || formatToExtension(source.format) || ''),
         ].filter(Boolean).join('-')
 
-        context.renderedFontURLs.set(file, { url: source.url, init: face.meta?.init, subset: options.glyphs })
-        subsetted ||= Boolean(options.glyphs)
+        context.renderedFontURLs.set(file, { url: source.url, init: face.meta?.init, subset: text, variationAxes })
+        subsetted ||= Boolean(text)
         source.originalURL = source.url
 
         const baseURL = context.baseURL || '/'
@@ -103,6 +113,10 @@ export function normalizeFontData(context: NormalizeFontDataContext, faces: RawF
       // fall through to another face of the same family for a glyph the matched face is
       // missing, so the face has to declare what it can render.
       unicodeRange: unicodeRange ?? (subsetted && options.glyphs ? glyphsToUnicodeRange(options.glyphs) : undefined),
+      // An axis pinned in the file itself no longer exists to be varied.
+      variationSettings: subsetted && variationAxes && requested
+        ? withoutVariationSettings(face.variationSettings, requested.pinned)
+        : face.variationSettings,
       src,
     })
   }
