@@ -49,6 +49,12 @@ const DESCRIPTOR_AXES = new Set(['wght', 'ital'])
 /** Codepoints beyond which a face's `unicode-range` is too large to expand. */
 const MAX_DERIVED_CODEPOINTS = 5000
 
+/** A `unicode-range` entry: a codepoint, an inclusive range, or up to six wildcard positions. */
+const UNICODE_RANGE_ENTRY = /^u\+(?:([0-9a-f]{1,6})(?:-([0-9a-f]{1,6}))?|(?=[0-9a-f?]{1,6}$)([0-9a-f]*)(\?+))$/i
+
+/** The highest codepoint Unicode defines, and so the highest `String.fromCodePoint` accepts. */
+const MAX_CODEPOINT = 0x10FFFF
+
 /**
  * Remove `tags` from a `font-variation-settings` value (`"<tag>" <value>`, comma
  * separated), returning `undefined` if no entry remains.
@@ -129,13 +135,16 @@ export function unicodeRangeToText(unicodeRange?: string[]): string | undefined 
   let text = ''
   let count = 0
   for (const entry of unicodeRange) {
-    const [rawStart, rawEnd] = entry.trim().replace(/^u\+/i, '').split('-')
-    if (!rawStart) {
+    const match = UNICODE_RANGE_ENTRY.exec(entry.trim())
+    if (!match) {
       return undefined
     }
-    const start = Number.parseInt(rawStart.replaceAll('?', '0'), 16)
-    const end = rawEnd ? Number.parseInt(rawEnd, 16) : Number.parseInt(rawStart.replaceAll('?', 'F'), 16)
-    if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
+    const [, single, rangeEnd, prefix, wildcards] = match
+    const start = Number.parseInt(single ?? prefix! + '0'.repeat(wildcards!.length), 16)
+    const end = single
+      ? Number.parseInt(rangeEnd ?? single, 16)
+      : Number.parseInt(prefix! + 'F'.repeat(wildcards!.length), 16)
+    if (end < start || end > MAX_CODEPOINT) {
       return undefined
     }
     count += end - start + 1
@@ -155,12 +164,12 @@ let subsetter: Promise<Subsetter> | undefined
 
 /**
  * `subset-font` is an optional peer dependency, and the harfbuzz wasm it loads is several
- * megabytes, so it is resolved lazily and only by projects that set `glyphs`.
+ * megabytes, so it is resolved lazily and only by projects that subset a font.
  */
 function loadSubsetter(): Promise<Subsetter> {
   subsetter ??= import('subset-font').then(module => module.default, (cause) => {
     subsetter = undefined
-    throw new Error('Subsetting fonts with `glyphs` requires the `subset-font` package. Install it as a dependency of your project, or remove the `glyphs` option.', { cause })
+    throw new Error('Subsetting fonts requires the `subset-font` package. Install it as a dependency of your project, or remove the `glyphs` and `variableAxis` options.', { cause })
   })
   return subsetter
 }

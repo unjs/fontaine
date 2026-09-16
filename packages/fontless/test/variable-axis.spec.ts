@@ -111,6 +111,26 @@ describe('unicodeRangeToText', () => {
     expect(unicodeRangeToText(['nonsense'])).toBeUndefined()
     expect(unicodeRangeToText(['U+0043-0041'])).toBeUndefined()
   })
+
+  it('should require a complete entry rather than reading what it can', () => {
+    expect(unicodeRangeToText(['0041'])).toBeUndefined()
+    expect(unicodeRangeToText(['U+0041junk'])).toBeUndefined()
+    expect(unicodeRangeToText(['U+0041-'])).toBeUndefined()
+    expect(unicodeRangeToText(['U+00 41'])).toBeUndefined()
+    expect(unicodeRangeToText(['U+00000??'])).toBeUndefined()
+  })
+
+  it('should expand a wildcard entry of up to six positions', () => {
+    expect(unicodeRangeToText(['U+00004?'])).toHaveLength(16)
+    expect(unicodeRangeToText(['U+0000??'])).toHaveLength(256)
+  })
+
+  it('should return nothing for a codepoint outside Unicode', () => {
+    expect(unicodeRangeToText(['U+110000'])).toBeUndefined()
+    expect(unicodeRangeToText(['U+0041-110000'])).toBeUndefined()
+    expect(unicodeRangeToText(['U+??????'])).toBeUndefined()
+    expect(unicodeRangeToText(['U+10FFFF'])).toBe('\u{10FFFF}')
+  })
 })
 
 describe('variable axis instancing', () => {
