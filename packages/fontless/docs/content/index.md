@@ -231,7 +231,7 @@ fontless({
 })
 ```
 
-Providers that can instance a font server-side, such as Google Fonts, serve the file already resolved at those values. Otherwise `fontless` applies the axis to the downloaded file with [`subset-font`](https://github.com/papandreou/subset-font) and drops the `font-variation-settings` descriptor for that axis.
+Providers that can instance a font server-side, such as Google Fonts, serve the file already resolved at those values. Otherwise `fontless` applies the axis to the downloaded file with [`subset-font`](https://github.com/papandreou/subset-font). Pinning an axis to a single value removes it from the file, so its `font-variation-settings` descriptor is dropped too. Narrowing an axis to a range leaves the CSS alone, since the axis is still there to vary.
 
 Applying an axis locally means subsetting the file, so it needs a glyph list: either the family's `glyphs`, or the characters the face's `unicode-range` declares. Without either, the file is emitted untouched and the descriptor is kept, so the font still renders at the requested values. An axis a font file does not have is skipped, keeping any glyph subset. Because it is a subsetting pass, the licence caveat under [Glyph Subsetting](#glyph-subsetting) applies to the file you ship.
 
