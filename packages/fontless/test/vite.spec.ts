@@ -141,6 +141,7 @@ describe('fontless vite plugin', () => {
     })
 
     expect(output).toContain('rel="preload"')
+    expect(output).toContain('data-font-family="Inter"')
   })
 
   it('should minify generated declarations with lightningcss when configured', async () => {
