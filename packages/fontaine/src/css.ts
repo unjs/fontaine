@@ -2,8 +2,6 @@ import type { Font } from '@capsizecss/unpack'
 import type { CssNode } from 'css-tree'
 import { generate, parse, walk } from 'css-tree'
 import { char, charIn, createRegExp, oneOrMore } from 'magic-regexp'
-import { isAbsolute } from 'pathe'
-import { hasProtocol } from 'ufo'
 
 // See: https://github.com/seek-oss/capsize/blob/master/packages/core/src/round.ts
 function toPercentage(value: number, fractionDigits = 4) {
@@ -42,7 +40,7 @@ export function withoutQueryOrFragment(source: string): string {
  * resolving against the stylesheet finds nothing.
  */
 export function isStylesheetRelative(source: string): boolean {
-  return !hasProtocol(source, { acceptRelative: true }) && !isAbsolute(source)
+  return !source.startsWith('/') && !URL.canParse(source)
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_cascade/Value_processing#css-wide_keywords

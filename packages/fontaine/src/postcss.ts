@@ -23,8 +23,8 @@ export interface FontainePostcssOptions {
   categoryFallbacks?: Partial<Record<FontCategory, string[]>>
 
   /**
-   * Function to resolve a given path to a valid URL or local path.
-   * This is typically used to resolve font file paths.
+   * Function to resolve a font `src` value declared in a stylesheet to the font file it
+   * refers to, as either a URL or an absolute path on disk.
    * @optional
    */
   resolvePath?: (path: string) => string | URL
@@ -80,7 +80,6 @@ interface FontainePlugin {
 }
 
 function fontaine(options: FontainePostcssOptions): Plugin {
-  const resolvePath = options.resolvePath || (id => id)
   const fallbackName = options.fallbackName || generateFallbackName
   const skipFontFaceGeneration = options.skipFontFaceGeneration || (() => false)
 
@@ -102,7 +101,7 @@ function fontaine(options: FontainePostcssOptions): Plugin {
             continue
 
           const metrics: FontFaceMetrics | null = (await getMetricsForFamily(family))
-            || await readMetricsForSource(source, originatingFile(rule, result), resolvePath).catch(() => null)
+            || await readMetricsForSource(source, originatingFile(rule, result), options.resolvePath).catch(() => null)
 
           if (!metrics)
             continue

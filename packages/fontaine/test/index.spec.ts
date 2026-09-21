@@ -1,11 +1,11 @@
 import { createServer } from 'node:http'
+import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parse } from 'css-tree'
 import { getRandomPort } from 'get-port-please'
-import { dirname } from 'pathe'
 import handler from 'serve-handler'
 import { describe, expect, it } from 'vitest'
-import { generateFallbackName, generateFontFace, parseFontFace } from '../src/css'
+import { generateFallbackName, generateFontFace, isStylesheetRelative, parseFontFace } from '../src/css'
 import { getMetricsForFamily, readMetrics } from '../src/metrics'
 
 const fixtureURL = new URL('../playground/fonts/font.ttf', import.meta.url)
@@ -203,8 +203,25 @@ describe('readMetrics', () => {
     server.close()
   })
   it('ignores non-URL paths', async () => {
-    const metrics = await readMetrics(`/font.ttf`)
-    expect(metrics).toBeNull()
+    expect(await readMetrics(`/font.ttf`)).toBeNull()
+    // absolute on whichever platform the tests run, so this covers a Windows drive letter
+    expect(await readMetrics(resolve('font.ttf'))).toBeNull()
+  })
+})
+
+describe('isStylesheetRelative', () => {
+  it.each([
+    ['fonts/my.woff2', true],
+    ['./my.woff2', true],
+    ['../my.woff2', true],
+    ['~pkg/my.woff2', true],
+    ['pkg/my.woff2', true],
+    ['/fonts/my.woff2', false],
+    ['//example.com/my.woff2', false],
+    ['https://example.com/my.woff2', false],
+    ['data:font/woff2;base64,AA', false],
+  ])('should report `%s` as %s', (source, expected) => {
+    expect(isStylesheetRelative(source)).toBe(expected)
   })
 })
 

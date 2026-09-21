@@ -134,6 +134,19 @@ describe('fontaine transform', () => {
     expect(fromUrl).toHaveBeenCalledWith('https://roe.dev/my.ttf')
   })
 
+  it('should read metrics from an absolute path returned by `resolvePath`', async () => {
+    // @ts-expect-error not typed as mock
+    fromFile.mockReset()
+    const font = fileURLToPath(new URL('./resolve-path.ttf', import.meta.url))
+    await transform(`
+      @font-face {
+        font-family: 'Unique Font';
+        src: url('/fonts/resolve-path.ttf');
+      }
+    `, { resolvePath: () => font })
+    expect(fromFile).toHaveBeenCalledWith(font)
+  })
+
   it('should read metrics from local paths', async () => {
     // @ts-expect-error not typed as mock
     fromFile.mockReset()

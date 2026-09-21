@@ -2,12 +2,11 @@ import type { CssNode } from 'css-tree'
 import type { FontCategory } from './fallbacks'
 import { readFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
+import { isAbsolute } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parse, walk } from 'css-tree'
 import { anyOf, char, createRegExp, exactly, oneOrMore } from 'magic-regexp'
 import MagicString from 'magic-string'
-
-import { isAbsolute } from 'pathe'
 import { createUnplugin } from 'unplugin'
 import { cssWideKeywords, generateFallbackName, generateFontFace, genericCSSFamilies, parseFontFace, withoutQueryOrFragment, withoutQuotes } from './css'
 import { resolveCategoryFallbacks } from './fallbacks'
@@ -42,8 +41,8 @@ export interface FontaineTransformOptions {
   categoryFallbacks?: Partial<Record<FontCategory, string[]>>
 
   /**
-   * Function to resolve a given path to a valid URL or local path.
-   * This is typically used to resolve font file paths.
+   * Function to resolve a font `src` value declared in a stylesheet to the font file it
+   * refers to, as either a URL or an absolute path on disk.
    * @optional
    */
   resolvePath?: (path: string) => string | URL
@@ -200,7 +199,6 @@ function resolveCssImport(specifier: string, importer: string): string | undefin
 export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransformOptions>> = createUnplugin((options: FontaineTransformOptions) => {
   const cssContext = (options.css = options.css || {})
   cssContext.value = ''
-  const resolvePath = options.resolvePath || (id => id)
   const fallbackName = options.fallbackName || options.overrideName || generateFallbackName
 
   const skipFontFaceGeneration = options.skipFontFaceGeneration || (() => false)
@@ -254,7 +252,7 @@ export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransfo
           if (skipFontFaceGeneration(fallbackName(family)))
             continue
 
-          const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsForSource(source, importer, resolvePath).catch(() => null)))
+          const metrics = (await getMetricsForFamily(family)) || (source && (await readMetricsForSource(source, importer, options.resolvePath).catch(() => null)))
 
           /* v8 ignore next 2 */
           if (!metrics)

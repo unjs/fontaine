@@ -1,11 +1,10 @@
 import type { Font } from '@capsizecss/unpack'
 import type { FontFaceMetrics } from './css'
 
+import { isAbsolute } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { fromUrl } from '@capsizecss/unpack'
 import { fromFile } from '@capsizecss/unpack/fs'
-import { isAbsolute } from 'pathe'
-import { parseURL } from 'ufo'
 
 import { isStylesheetRelative, withoutQuotes } from './css'
 
@@ -60,9 +59,10 @@ export async function getMetricsForFamily(family: string): Promise<FontFaceMetri
 const urlRequestCache = new Map<string, Promise<Font>>()
 
 /**
- * Reads font metrics from a specified source URL or file path. This function supports both local files and remote URLs.
+ * Reads font metrics from a source URL, which may be a `file:` URL or a remote one. A string
+ * that is not a URL, such as a bare path or a root-relative one, resolves to `null`.
  * It caches the results to optimise subsequent requests for the same source.
- * @param {URL | string} _source - The source URL or local file path from which to read the font metrics.
+ * @param {URL | string} _source - The source URL from which to read the font metrics.
  * @returns {Promise<FontFaceMetrics | null>} - A promise that resolves to the filtered font metrics or null if the source cannot be processed.
  * @async
  */
@@ -72,12 +72,13 @@ export async function readMetrics(_source: URL | string): Promise<FontFaceMetric
   if (source in metricCache)
     return metricCache[source] ?? null
 
-  const { protocol } = parseURL(source)
-  if (!protocol)
+  // A Windows drive letter is a valid URL scheme, so reject paths before parsing.
+  const url = typeof _source === 'string' ? (isAbsolute(_source) ? null : URL.parse(_source)) : _source
+  if (!url)
     return null
 
   let metrics: Font
-  if (protocol === 'file:') {
+  if (url.protocol === 'file:') {
     metrics = await fromFile(fileURLToPath(source))
   }
   else {
@@ -103,14 +104,23 @@ export async function readMetrics(_source: URL | string): Promise<FontFaceMetric
  * A scheme-less, non-rooted URL is resolved against the stylesheet first, then handed to
  * `resolvePath` if that yields no metrics: bare package specifiers and webpack's `~` prefix
  * look identical to stylesheet-relative paths, and only the caller's resolver can map them.
+ *
+ * `resolvePath` returns a location rather than a URL, so an absolute path it returns is a file
+ * on disk. Without a resolver `source` is still the URL the stylesheet declared, where a leading
+ * slash means the document root.
  */
-export async function readMetricsForSource(source: string, importer: string | undefined, resolvePath: (path: string) => string | URL): Promise<FontFaceMetrics | null> {
+export async function readMetricsForSource(source: string, importer: string | undefined, resolvePath?: (path: string) => string | URL): Promise<FontFaceMetrics | null> {
   if (importer && isAbsolute(importer) && isStylesheetRelative(source)) {
     const metrics = await readMetrics(new URL(source, pathToFileURL(importer))).catch(() => null)
     if (metrics)
       return metrics
   }
-  return readMetrics(resolvePath(source))
+
+  if (!resolvePath)
+    return readMetrics(source)
+
+  const resolved = resolvePath(source)
+  return readMetrics(typeof resolved === 'string' && isAbsolute(resolved) ? pathToFileURL(resolved) : resolved)
 }
 
 // inline `@capsizecss/metrics`
