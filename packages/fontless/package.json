@@ -53,11 +53,15 @@
   },
   "peerDependencies": {
     "jiti": "^2.6.1",
+    "lightningcss": "^1.33.0",
     "subset-font": "^2.5.0",
     "vite": "*"
   },
   "peerDependenciesMeta": {
     "jiti": {
+      "optional": true
+    },
+    "lightningcss": {
       "optional": true
     },
     "subset-font": {
@@ -73,7 +77,6 @@
     "defu": "^6.1.4",
     "exsolve": "^1.1.1",
     "fontaine": "workspace:*",
-    "lightningcss": "^1.33.0",
     "magic-string": "^1.0.0",
     "ohash": "^2.0.11",
     "pathe": "^2.0.3",
@@ -86,6 +89,7 @@
     "@types/subset-font": "2.3.0",
     "@vitest/coverage-v8": "5.0.1",
     "jiti": "2.6.1",
+    "lightningcss": "1.33.0",
     "subset-font": "2.7.0",
     "tinyexec": "1.3.1",
     "tsdown": "0.23.0",

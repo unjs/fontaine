@@ -165,7 +165,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         // reverse order by priority since last rule with overlapping unicode-range wins
         // https://www.w3.org/TR/css-fonts-4/#composite-fonts
         for (const font of fonts.reverse()) {
-          declarations.push(renderDeclaration(generateFontFace(family.name, font), GLOBAL_CSS_ID, cssTransformOptions))
+          declarations.push(await renderDeclaration(generateFontFace(family.name, font), GLOBAL_CSS_ID, cssTransformOptions))
         }
       }
 

@@ -1,12 +1,11 @@
 import type { CssNode, StyleSheet } from 'css-tree'
-import type { TransformOptions as LightningCSSTransformOptions } from 'lightningcss'
+import type { transform as lightningCSSTransform, TransformOptions as LightningCSSTransformOptions } from 'lightningcss'
 import type { FontFaceData, RemoteFontSource } from 'unifont'
 import type { GenericCSSFamily } from './css/parse'
 import type { Awaitable, NormalizedFontFaceData } from './types'
 import { Buffer } from 'node:buffer'
 import { consola } from 'consola'
 import { parse, walk } from 'css-tree'
-import { transform as lightningCSSTransform } from 'lightningcss'
 import MagicString from 'magic-string'
 
 import { dirname } from 'pathe'
@@ -73,13 +72,32 @@ function shouldSkipDeclaration(
   return !property.startsWith(`--${processCSSVariables}-`)
 }
 
+let minifier: Promise<typeof lightningCSSTransform | undefined> | undefined
+
+/**
+ * `lightningcss` is an optional peer dependency whose native binary is several megabytes,
+ * so it is resolved lazily and generated CSS is left unminified when it is absent.
+ */
+function loadMinifier() {
+  minifier ??= import('lightningcss').then(module => module.transform, () => {
+    logger.warn('Minifying generated `@font-face` rules requires the `lightningcss` package. Install it as a dependency of your project to enable minification.')
+    return undefined
+  })
+  return minifier
+}
+
 /**
  * Minify a generated `@font-face` block for output, or leave it readable in dev. `id` is
  * the file the declaration will be written into, and is used for diagnostics only.
  */
-export function renderDeclaration(declaration: string, id: string, options: Pick<FontFamilyInjectionPluginOptions, 'dev' | 'lightningcssOptions'>): string {
+export async function renderDeclaration(declaration: string, id: string, options: Pick<FontFamilyInjectionPluginOptions, 'dev' | 'lightningcssOptions'>): Promise<string> {
   if (options.dev) {
     return `${declaration}\n`
+  }
+
+  const lightningCSSTransform = await loadMinifier()
+  if (!lightningCSSTransform) {
+    return declaration
   }
 
   try {
@@ -136,7 +154,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
     // https://www.w3.org/TR/css-fonts-4/#composite-fonts
     result.fonts.sort((a, b) => -((a.meta?.priority || 0) - (b.meta?.priority || 0)))
 
-    const prefaces: string[] = []
+    const pendingDeclarations: string[] = []
 
     for (const font of result.fonts) {
       const fallbackDeclarations = await generateFontFallbacks(fontFamily, font, fallbackMap)
@@ -147,7 +165,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
       for (const declaration of declarations) {
         if (!injectedDeclarations.has(declaration)) {
           injectedDeclarations.add(declaration)
-          prefaces.push(renderDeclaration(declaration, id, options))
+          pendingDeclarations.push(declaration)
         }
       }
 
@@ -156,6 +174,8 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
         insertFontFamilies = true
       }
     }
+
+    const prefaces = await Promise.all(pendingDeclarations.map(declaration => renderDeclaration(declaration, id, options)))
 
     if (safeInsertionIndex > 0) {
       // Add a newline before font-face declarations when inserting after at-rules

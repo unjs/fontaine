@@ -142,6 +142,16 @@ Fontless uses category-aware fallback presets shared with the [fontaine](https:/
 
 You can override fallbacks for specific generic families in the `defaults.fallbacks` configuration while keeping the shared defaults for others. This ensures consistent font fallback behavior across your application and reduces cumulative layout shift (CLS).
 
+## Minification
+
+Generated `@font-face` rules are minified with `lightningcss`, which is an optional peer dependency. Install it alongside `fontless` to enable minification:
+
+```bash
+pnpm add -D lightningcss
+```
+
+Without it, the generated CSS is emitted unminified and left to the bundler's own minifier.
+
 ## Glyph Subsetting
 
 If you know a family only ever renders a fixed set of characters — a logotype, a specimen, a set of headings — set `glyphs` on it and `fontless` will reduce every file it emits for that family to those glyphs, whichever provider served it.

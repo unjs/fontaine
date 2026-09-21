@@ -229,9 +229,6 @@ importers:
       fontaine:
         specifier: workspace:*
         version: link:../fontaine
-      lightningcss:
-        specifier: ^1.33.0
-        version: 1.33.0
       magic-string:
         specifier: ^1.0.0
         version: 1.4.1
@@ -263,6 +260,9 @@ importers:
       jiti:
         specifier: 2.6.1
         version: 2.6.1
+      lightningcss:
+        specifier: 1.33.0
+        version: 1.33.0
       subset-font:
         specifier: 2.7.0
         version: 2.7.0
