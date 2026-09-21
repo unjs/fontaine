@@ -153,9 +153,6 @@ importers:
       css-tree:
         specifier: ^3.1.0
         version: 3.2.1
-      magic-regexp:
-        specifier: ^0.11.0
-        version: 0.11.0(esbuild@0.28.2)(rolldown@1.2.8)(rollup@4.62.2)(vite@8.3.0(@types/node@24.13.4)(esbuild@0.28.2)(jiti@2.7.0)(less@4.4.0)(sass@1.90.0)(terser@5.46.0)(yaml@2.9.0))(webpack@5.105.0(@swc/core@1.16.0(@swc/helpers@0.5.19))(esbuild@0.28.2))
       magic-string:
         specifier: ^1.0.0
         version: 1.4.1
@@ -184,6 +181,9 @@ importers:
       get-port-please:
         specifier: 3.2.0
         version: 3.2.0
+      magic-regexp:
+        specifier: 0.11.0
+        version: 0.11.0(esbuild@0.28.2)(rolldown@1.2.8)(rollup@4.62.2)(vite@8.3.0(@types/node@24.13.4)(esbuild@0.28.2)(jiti@2.7.0)(less@4.4.0)(sass@1.90.0)(terser@5.46.0)(yaml@2.9.0))(webpack@5.105.0(@swc/core@1.16.0(@swc/helpers@0.5.19))(esbuild@0.28.2))
       postcss:
         specifier: 8.5.28
         version: 8.5.28

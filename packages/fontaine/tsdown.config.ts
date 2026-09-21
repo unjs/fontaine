@@ -1,9 +1,29 @@
+import type { TsdownPlugin } from 'tsdown'
 import fs from 'node:fs'
+import { MagicRegExpTransformPlugin } from 'magic-regexp/transform'
 import { defineConfig } from 'tsdown'
+
+/**
+ * The plugin parses with `this.parse(code)`, which rolldown defaults to `lang: 'js'`, so
+ * TypeScript sources fail to parse. Supply the language the source is actually written in.
+ */
+function magicRegExpPlugin() {
+  const { transform, ...plugin } = MagicRegExpTransformPlugin.rolldown() as TsdownPlugin & {
+    transform: (this: unknown, code: string, id: string) => unknown
+  }
+  return {
+    ...plugin,
+    transform(this: any, code: string, id: string) {
+      const context = { ...this, parse: (code: string, options?: object) => this.parse(code, { lang: 'ts', ...options }) }
+      return transform.call(context, code, id)
+    },
+  } as TsdownPlugin
+}
 
 export default defineConfig({
   entry: ['src/index.ts', 'src/postcss.ts'],
   format: ['es', 'cjs'],
+  plugins: [magicRegExpPlugin()],
   dts: {
     generator: 'oxc',
   },
