@@ -1,6 +1,5 @@
 import type { FontlessOptions, FontlessStorage } from './types'
 
-import { Buffer } from 'node:buffer'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { cwd } from 'node:process'
@@ -31,7 +30,7 @@ function keyToPath(base: string, key: string) {
   return join(base, ...key.split(/[:/\\]+/).filter(Boolean))
 }
 
-async function write(path: string, contents: string | Buffer) {
+async function write(path: string, contents: string | Uint8Array) {
   await mkdir(dirname(path), { recursive: true })
   await writeFile(path, contents)
 }
@@ -66,7 +65,7 @@ function createFsStorage(base: string): FontlessStorage {
       return read(keyToPath(base, key))
     },
     setItemRaw(key, value) {
-      return write(keyToPath(base, key), Buffer.isBuffer(value) ? value : Buffer.from(value as ArrayBuffer))
+      return write(keyToPath(base, key), value)
     },
   }
 }
