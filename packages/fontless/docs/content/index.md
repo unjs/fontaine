@@ -132,7 +132,9 @@ fontless({
     fontsource: true,      // FontSource
     npm: true,             // npm packages (@fontsource/*, etc.)
     // Disable a provider
-    adobe: false
+    adobe: false,
+    // A custom provider, given as a path to a module with a default export
+    custom: './providers/custom.js'
   },
 
   // Provider priority order
@@ -184,6 +186,16 @@ fontless({
     disableLocalFallbacks: false
   }
 })
+```
+
+### Custom providers
+
+A provider given as a string is imported by Node, so the path resolves like any other module specifier: relative paths need their file extension, and TypeScript files are loaded as long as they only use syntax Node can strip.
+
+For anything Node cannot load on its own, such as TypeScript with enums or path aliases from `tsconfig.json`, install [`jiti`](https://github.com/unjs/jiti) and `fontless` will use it as a fallback:
+
+```bash
+pnpm add -D jiti
 ```
 
 ## Glyph Subsetting

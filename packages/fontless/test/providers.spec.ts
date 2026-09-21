@@ -1,8 +1,11 @@
 import { mkdtemp, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { createJiti } from 'jiti'
+import { describe, expect, it, vi } from 'vitest'
 import { resolveProviders } from '../src/providers'
+
+vi.mock('jiti', () => ({ createJiti: vi.fn() }))
 
 const opts = { root: tmpdir(), alias: {} }
 
@@ -28,6 +31,15 @@ describe('resolveProviders', () => {
     const providers = await resolveProviders({ custom: './provider.mjs' }, { root, alias: {} })
 
     expect(typeof providers.custom).toBe('function')
+  })
+
+  it('should fall back to jiti for providers node cannot load', async () => {
+    const provider = () => ({ resolveFont: () => undefined })
+    vi.mocked(createJiti).mockReturnValue({ import: () => Promise.resolve(provider) } as unknown as ReturnType<typeof createJiti>)
+
+    const providers = await resolveProviders({ custom: './does-not-exist.ts' }, opts)
+
+    expect(providers.custom).toBe(provider)
   })
 
   it('should import providers referenced by alias', async () => {
