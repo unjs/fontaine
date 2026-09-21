@@ -118,7 +118,7 @@ fontless({
 
   // Where font metadata and downloaded fonts are cached between builds, defaulting to
   // `node_modules/.cache/fontless/meta`. Accepts a directory (resolved from the Vite
-  // root), `{ dir }`, an `unstorage` instance for a custom driver, or `false` to
+  // root), `{ dir }`, a storage instance such as `unstorage` for a custom driver, or `false` to
   // disable persistent caching.
   cache: '.cache/fonts',
 

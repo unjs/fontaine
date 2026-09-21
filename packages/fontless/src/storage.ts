@@ -1,11 +1,9 @@
-import type { Storage, StorageValue } from 'unstorage'
-import type { FontlessOptions } from './types'
+import type { FontlessOptions, FontlessStorage } from './types'
 
-import { dirname, resolve } from 'node:path'
+import { Buffer } from 'node:buffer'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { dirname, join, resolve } from 'node:path'
 import { cwd } from 'node:process'
-import { createStorage } from 'unstorage'
-import fsDriver from 'unstorage/drivers/fs'
-import memoryDriver from 'unstorage/drivers/memory'
 
 interface FontlessStorageContext {
   /** The Vite project root, which a user-provided relative cache directory is resolved against. */
@@ -14,13 +12,68 @@ interface FontlessStorageContext {
   cacheDir?: string
 }
 
-function isStorage(cache: unknown): cache is Storage<StorageValue> {
-  return !!cache && typeof cache === 'object' && typeof (cache as Storage).getItem === 'function'
+function isStorage(cache: unknown): cache is FontlessStorage {
+  return !!cache && typeof cache === 'object' && typeof (cache as FontlessStorage).getItem === 'function'
 }
 
-export function createFontlessStorage(cache?: FontlessOptions['cache'], context: FontlessStorageContext = {}): Storage<StorageValue> {
+function createMemoryStorage(): FontlessStorage {
+  const store = new Map<string, unknown>()
+  return {
+    getItem: async key => store.get(key) ?? null,
+    setItem: async (key, value) => void store.set(key, value),
+    getItemRaw: async key => store.get(key) ?? null,
+    setItemRaw: async (key, value) => void store.set(key, value),
+  }
+}
+
+/** Cache keys are namespaced with `:` (and `/` by the npm provider); both map to directories on disk. */
+function keyToPath(base: string, key: string) {
+  return join(base, ...key.split(/[:/\\]+/).filter(Boolean))
+}
+
+async function write(path: string, contents: string | Buffer) {
+  await mkdir(dirname(path), { recursive: true })
+  await writeFile(path, contents)
+}
+
+async function read(path: string) {
+  try {
+    return await readFile(path)
+  }
+  catch {
+    return null
+  }
+}
+
+function createFsStorage(base: string): FontlessStorage {
+  return {
+    async getItem(key) {
+      const contents = await read(keyToPath(base, key))
+      if (contents === null) {
+        return null
+      }
+      try {
+        return JSON.parse(contents.toString('utf8'))
+      }
+      catch {
+        return contents.toString('utf8')
+      }
+    },
+    setItem(key, value) {
+      return write(keyToPath(base, key), typeof value === 'string' ? value : JSON.stringify(value))
+    },
+    getItemRaw(key) {
+      return read(keyToPath(base, key))
+    },
+    setItemRaw(key, value) {
+      return write(keyToPath(base, key), Buffer.isBuffer(value) ? value : Buffer.from(value as ArrayBuffer))
+    },
+  }
+}
+
+export function createFontlessStorage(cache?: FontlessOptions['cache'], context: FontlessStorageContext = {}): FontlessStorage {
   if (cache === false) {
-    return createStorage({ driver: memoryDriver() })
+    return createMemoryStorage()
   }
 
   if (isStorage(cache)) {
@@ -34,5 +87,5 @@ export function createFontlessStorage(cache?: FontlessOptions['cache'], context:
     ? resolve(root, dir)
     : resolve(dirname(context.cacheDir ?? resolve(root, 'node_modules/.vite')), '.cache/fontless/meta')
 
-  return createStorage({ driver: fsDriver({ base }) })
+  return createFsStorage(base)
 }

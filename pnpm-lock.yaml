@@ -247,9 +247,6 @@ importers:
       unifont:
         specifier: ^1.0.0-beta.0
         version: 1.0.0-beta.0
-      unstorage:
-        specifier: 1.17.5
-        version: 1.17.5(db0@0.3.4)(ioredis@5.11.1(supports-color@10.2.2))
     devDependencies:
       '@playwright/test':
         specifier: 1.63.0
@@ -278,6 +275,9 @@ importers:
       typescript:
         specifier: 6.0.3
         version: 6.0.3
+      unstorage:
+        specifier: 1.17.5
+        version: 1.17.5(db0@0.3.4)(ioredis@5.11.1(supports-color@10.2.2))
       vite:
         specifier: 8.3.0
         version: 8.3.0(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.6.1)(less@4.4.0)(sass@1.90.0)(terser@5.46.0)(yaml@2.9.0)

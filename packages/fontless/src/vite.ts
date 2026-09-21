@@ -84,7 +84,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
     // cached bytes are never a stale subset of a font whose options have since changed.
     const key = `data:fonts:${file}`
     // Use storage to cache the font data between builds
-    const cached = await storage.getItemRaw<Buffer>(key)
+    const cached = await storage.getItemRaw(key) as Buffer | null
     if (cached) {
       return cached
     }

@@ -1,5 +1,4 @@
 import type { FontFaceData, GoogleFamilyOptions, GoogleiconsFamilyOptions, LocalFontSource, Provider, ProviderFactory, providers, RemoteFontSource, ResolveFontOptions, ResolveFontResult } from 'unifont'
-import type { Storage, StorageValue } from 'unstorage'
 
 import type { GenericCSSFamily } from './css/parse'
 
@@ -12,6 +11,16 @@ export type VariableAxisOptions = NonNullable<ResolveFontOptions['variableAxis']
 export type ResolvedVariableAxisOptions = NonNullable<ResolveFontResult['variableAxis']>
 
 export type Awaitable<T> = T | Promise<T>
+
+/**
+ * The minimal cache surface fontless requires. Any `unstorage` instance satisfies it.
+ */
+export interface FontlessStorage {
+  getItem: (key: string) => Awaitable<any>
+  setItem: (key: string, value: any) => Awaitable<void>
+  getItemRaw: (key: string) => Awaitable<any>
+  setItemRaw: (key: string, value: any) => Awaitable<void>
+}
 
 export interface FontFallback {
   family?: string
@@ -198,12 +207,12 @@ export interface FontlessOptions {
    * Configure how font metadata and downloaded font files are cached between builds.
    *
    * - a string or `{ dir }`: cache to this directory (relative paths are resolved from the Vite root)
-   * - an `unstorage` instance: cache with your own driver
+   * - a storage instance (such as `unstorage`): cache with your own driver
    * - `false`: disable persistent caching (an in-memory cache is used instead)
    *
    * By default, fonts are cached in `node_modules/.cache/fontless/meta`, next to Vite's own cache directory.
    */
-  cache?: false | string | { dir?: string } | Storage<StorageValue>
+  cache?: false | string | { dir?: string } | FontlessStorage
   /** Configure the way font assets are exposed */
   assets?: {
     /**
