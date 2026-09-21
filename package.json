@@ -32,9 +32,9 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "9.5.1",
-    "eslint": "10.10.0",
+    "eslint": "10.11.0",
     "installed-check": "11.0.0",
-    "knip": "6.35.1",
+    "knip": "6.37.0",
     "lint-staged": "17.5.1",
     "pkg-pr-new": "0.0.88",
     "simple-git-hooks": "2.14.0",
