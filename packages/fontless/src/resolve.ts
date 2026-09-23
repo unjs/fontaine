@@ -116,24 +116,14 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
   }
 
   function toProviderNames(keys: Iterable<string>): string[] {
-    const names: string[] = []
-    for (const key of keys) {
-      const name = providerNames.get(key)
-      if (name) {
-        names.push(name)
-      }
-    }
-    return names
+    return Array.from(keys, key => toProviderName(key))
   }
 
   function toProviderName(key: string): string {
     return providerNames.get(key) ?? key
   }
 
-  function remapFamilyOptions(familyOptions: ProviderFamilyOptions | undefined): ProviderFamilyOptions | undefined {
-    if (!familyOptions) {
-      return familyOptions
-    }
+  function remapFamilyOptions(familyOptions: ProviderFamilyOptions): ProviderFamilyOptions {
     const remapped: ProviderFamilyOptions = {}
     for (const key in familyOptions) {
       remapped[toProviderName(key)] = familyOptions[key]

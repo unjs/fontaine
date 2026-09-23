@@ -299,6 +299,20 @@ describe('createResolver', () => {
       expect((calls[0]?.options as { options?: unknown })?.options).toEqual({ variant: 'display' })
     })
 
+    it('should leave family options keyed by an unregistered provider untouched', async () => {
+      const { provider, calls } = createTrackingProvider('custom')
+
+      const resolver = await createResolver({
+        options: { providers: { myFonts: provider } },
+        providers: { myFonts: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      await resolver('Inter', { name: 'Inter', providerOptions: { unknown: { variant: 'display' } } } as unknown as FontFamilyProviderOverride)
+
+      expect((calls[0]?.options as { options?: unknown })?.options).toBeUndefined()
+    })
+
     it('should resolve an explicit provider override by key', async () => {
       const { provider, calls } = createTrackingProvider('custom')
 

@@ -34,7 +34,7 @@ function createStubProvider(url = '/inter.woff2', name = 'stub') {
 }
 
 async function createFixture(files: Record<string, string>) {
-  const root = await fsp.mkdtemp(join(tmpdir(), 'fontless-vite-'))
+  const root = await fsp.realpath(await fsp.mkdtemp(join(tmpdir(), 'fontless-vite-')))
   scratchDirs.push(root)
   await Promise.all(Object.entries(files).map(([file, content]) => fsp.writeFile(join(root, file), content)))
   await fsp.writeFile(join(root, 'inter.woff2'), 'not-really-a-font')
@@ -177,7 +177,7 @@ describe('fontless vite plugin', () => {
   })
 
   it('should give the npm provider a `resolve` that finds packages hoisted above the root', async () => {
-    const workspace = await fsp.mkdtemp(join(tmpdir(), 'fontless-vite-'))
+    const workspace = await fsp.realpath(await fsp.mkdtemp(join(tmpdir(), 'fontless-vite-')))
     scratchDirs.push(workspace)
     const root = join(workspace, 'app')
     await fsp.mkdir(root)
