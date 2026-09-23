@@ -20,6 +20,7 @@ export type {
   FontProviderName,
   FontSource,
   ManualFontDetails,
+  PreloadOption,
   ProviderFamilyOptions,
   ProviderFontDetails,
   ResolvedVariableAxisOptions,

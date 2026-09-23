@@ -138,14 +138,18 @@ type ProviderOption = ((options: any) => Provider) | string | false
 
 /**
  * Enable adding preload links to the initially rendered HTML.
- * Pass `{ subsets }` to preload only fonts covering those subsets,
- * or a function to filter font faces individually.
+ *
+ * `true` preloads a single face per family, preferring the first configured `format`,
+ * then the first configured subset (or Basic Latin coverage, where none matches), then
+ * upright over italic, then the weight closest to 400.
+ * Pass an object to preload every face matching all of the descriptors given, or a
+ * function to filter font faces individually.
  * @default false
- * @example { subsets: ['latin'] }
+ * @example { subsets: ['latin'], styles: ['normal'] }
  */
-type PreloadOption
+export type PreloadOption
   = | boolean
-    | { subsets: string[] }
+    | { subsets?: string[], styles?: string[], weights?: Array<string | number> }
     | ((fontFamily: string, font: FontFaceData) => boolean)
 
 export interface FontlessOptions {
