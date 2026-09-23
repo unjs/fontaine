@@ -329,6 +329,54 @@ describe('createResolver', () => {
     })
   })
 
+  describe('system fonts', () => {
+    const preflightFamilies = ['SFMono-Regular', 'Apple Color Emoji', '-apple-system', 'Georgia', 'segoe ui emoji']
+
+    it('should not send families that ship with the operating system to providers', async () => {
+      const { provider, calls } = createTrackingProvider('test')
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      const results = await Promise.all(preflightFamilies.map(family => resolver(family)))
+
+      expect(calls).toEqual([])
+      expect(results).toEqual(preflightFamilies.map(() => undefined))
+    })
+
+    it('should still resolve a system font that is explicitly configured', async () => {
+      const { provider, calls } = createTrackingProvider('test')
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      const result = await resolver('Noto Color Emoji', { name: 'Noto Color Emoji', provider: 'test' })
+
+      expect(calls).toHaveLength(1)
+      expect(result?.fonts).toHaveLength(1)
+    })
+
+    it('should resolve families that providers do serve', async () => {
+      const { provider, calls } = createTrackingProvider('test')
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      await Promise.all(['Roboto', 'Noto Sans'].map(family => resolver(family)))
+
+      expect(calls.map(call => call.family)).toEqual(['Roboto', 'Noto Sans'])
+    })
+  })
+
   describe('throwOnError option', () => {
     it('should pass throwOnError to unifont when specified', async () => {
       // This test verifies the option is passed - actual error throwing
