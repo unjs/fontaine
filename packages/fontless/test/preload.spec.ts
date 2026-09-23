@@ -40,7 +40,7 @@ describe('selectPreloadFonts', () => {
 
   it('prefers the first configured subset with `preload: true`', () => {
     expect(urls(selectPreloadFonts('Barlow', barlow, true, ['vietnamese', 'latin']))).toEqual(['/vietnamese.woff2'])
-    expect(urls(selectPreloadFonts('Barlow', barlow, true, ['cyrillic']))).toEqual(['/vietnamese.woff2'])
+    expect(urls(selectPreloadFonts('Barlow', barlow, true, ['cyrillic']))).toEqual(['/latin.woff2'])
 
     const unsubsetted: FontFaceData[] = [{ src: [{ url: '/all.woff2' }] }, ...barlow]
     expect(urls(selectPreloadFonts('Barlow', unsubsetted, true, ['latin']))).toEqual(['/latin.woff2'])

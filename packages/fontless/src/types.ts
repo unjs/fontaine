@@ -140,7 +140,7 @@ type ProviderOption = ((options: any) => Provider) | string | false
  * Enable adding preload links to the initially rendered HTML.
  *
  * `true` preloads a single face per family: the upright face closest to weight 400,
- * covering the first configured subset (or Basic Latin, if no subsets are configured).
+ * covering the first configured subset, falling back to Basic Latin coverage.
  * Pass an object to preload every face matching all of the descriptors given, or a
  * function to filter font faces individually.
  * @default false

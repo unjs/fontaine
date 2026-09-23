@@ -230,7 +230,7 @@ fontless({
 
 `preload: true` picks a single face per family: the upright face closest to weight 400, covering the first subset in the family's `subsets` option.
 
-Where no `subsets` are configured, the pick is biased toward Basic Latin: the face whose `unicode-range` covers `U+0041` wins, because no provider reports which subset a site primarily renders. If your site is not primarily latin-script, order `subsets` to put your subset first, or select faces yourself with the callback form.
+Where no `subsets` are configured, or none of them match the faces a provider returns, the pick is biased toward Basic Latin: the face whose `unicode-range` covers `U+0041` wins, because no provider reports which subset a site primarily renders. If your site is not primarily latin-script, order `subsets` to put your subset first, or select faces yourself with the callback form.
 
 For Vite SPA, the selected preload fonts are injected into the HTML, apart from the first `vite dev` render, where the stylesheets have not been transformed yet.
 

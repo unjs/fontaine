@@ -42,11 +42,12 @@ function matchesWeight(font: FontFaceData, weights: Array<string | number>): boo
 }
 
 function subsetRank(font: FontFaceData, subsets: string[] | undefined): number {
+  const latinRank = coversBasicLatin(font) ? 0 : 1
   if (!subsets) {
-    return coversBasicLatin(font) ? 0 : 1
+    return latinRank
   }
   const index = font.meta?.subset ? subsets.indexOf(font.meta.subset) : -1
-  return index === -1 ? subsets.length : index
+  return index === -1 ? subsets.length + latinRank : index
 }
 
 function weightRank(font: FontFaceData): number {
@@ -70,7 +71,7 @@ function compareFaces(a: FontFaceData, b: FontFaceData, subsets: string[] | unde
  * Pick the faces to emit `<link rel="preload">` for, from every face resolved for a family.
  *
  * `preload: true` picks one: the lowest-priority, upright face closest to weight 400,
- * covering the first entry of `subsets`, or Basic Latin where `subsets` is unset.
+ * covering the first matching entry of `subsets`, falling back to Basic Latin coverage.
  */
 export function selectPreloadFonts(fontFamily: string, fonts: FontFaceData[], preload: PreloadOption | undefined, subsets?: string[]): FontFaceData[] {
   if (!preload) {
