@@ -169,15 +169,19 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
   }
 
   /**
-   * Fallback families to generate metrics for, preferring an explicit override, then the generic
-   * family declared alongside the font in CSS, then the category the provider reports for it.
+   * Fallback families to generate metrics for, preferring an explicit override, then the concrete
+   * families declared after the font in CSS, then the generic family declared alongside it, then
+   * the category the provider reports for it.
    */
-  function resolveFallbacks(override: FontFamilyManualOverride | FontFamilyProviderOverride | undefined, generic: GenericCSSFamily | undefined, providerFallbacks?: string[]): string[] {
+  function resolveFallbacks(override: FontFamilyManualOverride | FontFamilyProviderOverride | undefined, fallbackOptions: { fallbacks: string[], generic?: GenericCSSFamily } | undefined, providerFallbacks?: string[]): string[] {
     const explicit = override && 'fallbacks' in override ? override.fallbacks : undefined
     if (explicit) {
       return explicit
     }
-    const category = generic ?? providerFallbacks?.find(fallback => fallback in normalizedDefaults.fallbacks) as GenericCSSFamily | undefined
+    if (fallbackOptions?.fallbacks.length) {
+      return fallbackOptions.fallbacks
+    }
+    const category = fallbackOptions?.generic ?? providerFallbacks?.find(fallback => fallback in normalizedDefaults.fallbacks) as GenericCSSFamily | undefined
     return normalizedDefaults.fallbacks[category || 'sans-serif']
   }
 
@@ -188,7 +192,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
       return
     }
 
-    const fallbacks = resolveFallbacks(override, fallbackOptions?.generic)
+    const fallbacks = resolveFallbacks(override, fallbackOptions)
     const glyphs = override?.glyphs ? normalizeGlyphs(override.glyphs) : defaultGlyphs
     const variableAxis = override?.variableAxis ?? options.defaults?.variableAxis
 
@@ -256,7 +260,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
           fonts: fontsWithLocalFallbacks,
         })
         return {
-          fallbacks: resolveFallbacks(override, fallbackOptions?.generic, result.fallbacks),
+          fallbacks: resolveFallbacks(override, fallbackOptions, result.fallbacks),
           fonts: fontsWithLocalFallbacks,
         }
       }
@@ -289,7 +293,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
       fonts: fontsWithLocalFallbacks,
     })
     return {
-      fallbacks: resolveFallbacks(override, fallbackOptions?.generic, result.fallbacks),
+      fallbacks: resolveFallbacks(override, fallbackOptions, result.fallbacks),
       fonts: fontsWithLocalFallbacks,
     }
   }
