@@ -79,7 +79,7 @@ fontless({
 
   // Default font settings
   defaults: {
-    preload: true, // also accepts { subsets: ['latin'] } or a filter function
+    preload: true, // also accepts { subsets: ['latin'], styles: ['normal'] } or a filter function
     weights: [400, 700],
     styles: ['normal', 'italic'],
     // Fallbacks use category-aware presets from fontaine
@@ -215,18 +215,22 @@ Preloading is opt-in: no font is preloaded unless you ask for it. Enable it for 
 
 ```ts
 fontless({
-  // preload the highest-priority font face of every family
+  // preload one font face per family
   defaults: { preload: true },
   // ...or configure specific families
   families: [
     { name: 'Poppins', preload: true },
-    // preload every face covering a given subset
-    { name: 'Inter', preload: { subsets: ['latin'] } },
+    // preload every face matching all of the descriptors given
+    { name: 'Inter', preload: { subsets: ['latin'], styles: ['normal'] } },
     // or filter faces individually
     { name: 'Roboto', preload: (family, font) => font.style === 'normal' },
   ],
 })
 ```
+
+`preload: true` picks a single face per family: the upright face closest to weight 400, covering the first subset in the family's `subsets` option.
+
+Where no `subsets` are configured, the pick is biased toward Basic Latin: the face whose `unicode-range` covers `U+0041` wins, because no provider reports which subset a site primarily renders. If your site is not primarily latin-script, order `subsets` to put your subset first, or select faces yourself with the callback form.
 
 For Vite SPA, the selected preload fonts are injected into the HTML, apart from the first `vite dev` render, where the stylesheets have not been transformed yet.
 

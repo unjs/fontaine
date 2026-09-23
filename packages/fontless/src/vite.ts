@@ -17,6 +17,7 @@ import { hasProtocol, joinURL } from 'ufo'
 import { normalizeFontData } from './assets'
 import { generateFontFace } from './css/render'
 import { defaultOptions } from './defaults'
+import { selectPreloadFonts } from './preload'
 import { resolveProviders } from './providers'
 import { createResolver } from './resolve'
 import { createFontlessStorage } from './storage'
@@ -111,16 +112,8 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   function selectFontsToPreload(fontFamily: string, fonts: FontFaceData[]): FontFaceData[] {
     const override = options.families?.find(f => f.name === fontFamily)
     const preload = override?.preload ?? options.defaults?.preload
-    if (preload === true) {
-      return [...fonts].sort((a, b) => (a.meta?.priority || 0) - (b.meta?.priority || 0)).slice(0, 1)
-    }
-    if (typeof preload === 'function') {
-      return fonts.filter(f => preload(fontFamily, f))
-    }
-    if (preload && 'subsets' in preload) {
-      return fonts.filter(f => f.meta?.subset && preload.subsets.includes(f.meta.subset))
-    }
-    return []
+    const subsets = (override && 'subsets' in override ? override.subsets : undefined) ?? options.defaults?.subsets
+    return selectPreloadFonts(fontFamily, fonts, preload, subsets)
   }
 
   function getPreloadHrefs() {
