@@ -83,6 +83,28 @@ describe('normalizeGlyphs', () => {
     expect(normalizeGlyphs('Hand')).toBe(normalizeGlyphs(['d', 'n', 'a', 'H', 'a']))
     expect(normalizeGlyphs('Hand')).not.toBe(normalizeGlyphs('Hands'))
   })
+
+  it('should expand unicode ranges to the characters they declare', () => {
+    expect(normalizeGlyphs('U+0048')).toBe('H')
+    expect(normalizeGlyphs('U+0048-004A')).toBe('HIJ')
+    expect(normalizeGlyphs('u+004?')).toBe(normalizeGlyphs('U+0040-004F'))
+    expect(normalizeGlyphs('U+0048, U+0061,U+006E-006E')).toBe(normalizeGlyphs('Han'))
+    expect(normalizeGlyphs(['U+0048-0049', 'and'])).toBe(normalizeGlyphs('HIand'))
+  })
+
+  it('should read anything that is not a unicode range as literal characters', () => {
+    expect(normalizeGlyphs('U+')).toBe(normalizeGlyphs('+U'))
+    expect(normalizeGlyphs('U+D800-DFFF')).toBeUndefined()
+    expect(normalizeGlyphs('Hand, U+0048')).toBe(normalizeGlyphs('Hand, U+0048'.split('')))
+  })
+
+  it('should ignore a unicode range too large to expand', () => {
+    expect(normalizeGlyphs('U+0000-10FFFF')).toBeUndefined()
+    expect(normalizeGlyphs(['U+0000-10FFFF', 'Hand'])).toBe(normalizeGlyphs('Hand'))
+    expect(normalizeGlyphs('U+0048,U+0000-10FFFF')).toBe('H')
+    expect(normalizeGlyphs(['U+10000-1FFFF', 'U+0048'])).toBe(normalizeGlyphs('U+10000-1FFFF'))
+    expect(normalizeGlyphs(['U+10000-17FFF', 'U+0048'])).toContain('H')
+  })
 })
 
 describe('subsetFontData', () => {
@@ -118,6 +140,14 @@ describe('glyph subsetting', () => {
     const fromDefaults = await buildApp(root, { defaults: { glyphs: 'Hand' }, families: [manualFamily('Inter')] })
 
     expect(fromDefaults.fonts[0]).toEqual(fromList.fonts[0])
+  })
+
+  it('should accept glyphs as unicode ranges', { timeout: 20_000 }, async () => {
+    const root = await createFixture(`body { font-family: 'Inter' }`)
+    const fromRange = await buildApp(root, { families: [manualFamily('Inter', 'U+0048,U+0061,U+006E,U+0064')] })
+    const fromCharacters = await buildApp(root, { families: [manualFamily('Inter', 'Hand')] })
+
+    expect(fromRange.fonts[0]).toEqual(fromCharacters.fonts[0])
   })
 
   it('should emit one file per glyph list for the same source font', { timeout: 20_000 }, async () => {

@@ -227,6 +227,14 @@ describe('createResolver', () => {
       })
     })
 
+    it('should expand unicode ranges before passing glyphs to a provider', async () => {
+      const { calls } = await resolveWith('google', {}, { name: 'TestFont', glyphs: 'U+0048-004A' })
+
+      expect((calls[0]?.options as { options: unknown }).options).toEqual({
+        experimental: { glyphs: ['H', 'I', 'J'] },
+      })
+    })
+
     it('should not pass glyphs to providers that read the option as icon names', async () => {
       const { calls } = await resolveWith('googleicons', {}, { name: 'TestFont', glyphs: 'Hand' })
 
