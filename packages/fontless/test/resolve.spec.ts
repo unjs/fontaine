@@ -454,7 +454,31 @@ describe('createResolver', () => {
       })
 
       const result = await resolver('Test Font', undefined, { fallbacks: ['Georgia'], generic: 'serif' })
-      expect(result?.fallbacks).toEqual(['Georgia'])
+      expect(result?.fallbacks?.[0]).toBe('Georgia')
+    })
+
+    it('should keep the category defaults after concrete fallbacks declared in CSS', async () => {
+      const provider = createCategoryProvider(['monospace'])
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      const result = await resolver('Test Font', undefined, { fallbacks: ['Roboto'], generic: 'sans-serif' })
+      expect(result?.fallbacks).toEqual(['Roboto', ...defaultValues.fallbacks['sans-serif']!])
+    })
+
+    it('should not duplicate concrete fallbacks that are also category defaults', async () => {
+      const provider = createCategoryProvider(['monospace'])
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      const result = await resolver('Test Font', undefined, { fallbacks: ['Arial'], generic: 'sans-serif' })
+      expect(result?.fallbacks).toEqual(['Arial', ...defaultValues.fallbacks['sans-serif']!.filter(f => f !== 'Arial')])
     })
 
     it('should prefer explicit family fallbacks over concrete fallbacks declared in CSS', async () => {

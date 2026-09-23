@@ -169,20 +169,21 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
   }
 
   /**
-   * Fallback families to generate metrics for, preferring an explicit override, then the concrete
-   * families declared after the font in CSS, then the generic family declared alongside it, then
-   * the category the provider reports for it.
+   * Fallback families to generate metrics for. An explicit override is used as-is. Otherwise, the
+   * concrete families declared after the font in CSS come first, followed by the defaults for the
+   * generic family declared alongside it or, failing that, the category the provider reports.
    */
   function resolveFallbacks(override: FontFamilyManualOverride | FontFamilyProviderOverride | undefined, fallbackOptions: { fallbacks: string[], generic?: GenericCSSFamily } | undefined, providerFallbacks?: string[]): string[] {
     const explicit = override && 'fallbacks' in override ? override.fallbacks : undefined
     if (explicit) {
       return explicit
     }
-    if (fallbackOptions?.fallbacks.length) {
-      return fallbackOptions.fallbacks
-    }
     const category = fallbackOptions?.generic ?? providerFallbacks?.find(fallback => fallback in normalizedDefaults.fallbacks) as GenericCSSFamily | undefined
-    return normalizedDefaults.fallbacks[category || 'sans-serif']
+    const defaults = normalizedDefaults.fallbacks[category || 'sans-serif']
+    if (fallbackOptions?.fallbacks.length) {
+      return [...new Set([...fallbackOptions.fallbacks, ...defaults])]
+    }
+    return defaults
   }
 
   const defaultGlyphs = normalizeGlyphs(options.defaults?.glyphs)
