@@ -5,6 +5,8 @@ export { generateFontFace, parseFont } from './css/render'
 
 export { defaultOptions, defaultValues } from './defaults'
 
+export { selectPreloadFonts } from './preload'
+
 export { resolveProviders } from './providers'
 
 export { createResolver } from './resolve'

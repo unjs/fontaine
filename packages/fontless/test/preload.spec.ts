@@ -9,8 +9,7 @@ import { fileURLToPath } from 'node:url'
 import { join } from 'pathe'
 import { build } from 'vite'
 import { afterAll, describe, expect, it } from 'vitest'
-import { fontless } from '../src'
-import { selectPreloadFonts } from '../src/preload'
+import { fontless, selectPreloadFonts } from '../src'
 import { transformCSS } from '../src/utils'
 
 // Google's return order for Barlow with the default subsets and styles
