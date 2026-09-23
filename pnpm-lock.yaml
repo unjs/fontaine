@@ -242,8 +242,8 @@ importers:
         specifier: ^1.6.1
         version: 1.6.4
       unifont:
-        specifier: ^1.0.0-beta.0
-        version: 1.0.0-beta.0
+        specifier: ^1.0.1
+        version: 1.0.1
     devDependencies:
       '@playwright/test':
         specifier: 1.63.0
@@ -295,7 +295,7 @@ importers:
         version: 4.5.2(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0(supports-color@10.2.2)))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.0(supports-color@10.2.2)))(@oxc-project/types@0.147.0)(@parcel/watcher@2.5.6)(@types/node@24.13.3)(@vue/compiler-sfc@3.5.43)(cac@6.7.14)(db0@0.3.4)(esbuild@0.28.2)(eslint@10.11.0(jiti@2.7.0)(supports-color@10.2.2))(ioredis@5.11.1(supports-color@10.2.2))(less@4.4.0)(lightningcss@1.33.0)(magicast@0.5.4)(optionator@0.9.4)(oxc-parser@0.143.0)(rolldown@1.2.8)(rollup-plugin-visualizer@7.1.1(rolldown@1.2.8)(rollup@4.62.2))(rollup@4.62.2)(sass@1.90.0)(srvx@0.11.22)(supports-color@10.2.2)(terser@5.46.0)(typescript@6.0.3)(vite@8.3.0(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(less@4.4.0)(sass@1.90.0)(terser@5.46.0)(yaml@2.9.0))(vue-tsc@3.2.5(typescript@6.0.3))(webpack@5.105.0(@swc/core@1.16.0(@swc/helpers@0.5.19))(esbuild@0.28.2))(yaml@2.9.0)
       shadcn-docs-nuxt:
         specifier: ^1.2.2
-        version: 1.2.2(4fa4dc55ecb5fedc3188cbe1e089bbf1)
+        version: 1.2.2(af5edba2212b947680b2d05324aeaf24)
       tailwindcss:
         specifier: ^4.1.17
         version: 4.1.17
@@ -8668,13 +8668,19 @@ packages:
       vite:
         optional: true
 
-  fontless@0.4.5:
-    resolution: {integrity: sha512-Pv8/cScA9b1pWczasxcXoNJEvRbgfGxVvRuk6nBwNgRAJSUowg7g7zNBuxNldL62OO0JgBSuiPOp0xj2M3+3sA==}
+  fontless@1.0.0:
+    resolution: {integrity: sha512-xdXBppWYpExRhDPN4DKO8O7ZDG6QC0q54UPkJr+UtjVwcCfFbqj1M1RfN5DelXqtjgcrQD3qCzLfNFCMa9wa/A==}
     engines: {node: ^20.19.0 || >=22.12.0}
     peerDependencies:
+      jiti: ^2.6.1
+      lightningcss: ^1.33.0
       subset-font: ^2.5.0
       vite: '*'
     peerDependenciesMeta:
+      jiti:
+        optional: true
+      lightningcss:
+        optional: true
       subset-font:
         optional: true
       vite:
@@ -12579,6 +12585,9 @@ packages:
 
   unifont@1.0.0-beta.0:
     resolution: {integrity: sha512-3OP9/hsM5FvhY0Z3mO/nN5AQqRKH4nmuQ3Sg52R3QHgB+PBefzWIsiSPlHf7TvdGrRun/ybYbqD386nskANHWw==}
+
+  unifont@1.0.1:
+    resolution: {integrity: sha512-PeL9ZjJ7z98cjfdHNWd8G+u1+Yr0vim9dwX7UCqFuoLPNTZmvU/HumbGYAHSXYdpuQAqW2KL65F4jpHbrug1JA==}
 
   unimport@6.4.0:
     resolution: {integrity: sha512-JJOOuNMFq8b4ZPBKwQUxEcba4MplskDzYI1Lvrf8rJfWphZTWvPNXWa493qsPngHUmub89w6C7j+SeLWTE/UIQ==}
@@ -21788,44 +21797,23 @@ snapshots:
       - ioredis
       - uploadthing
 
-  fontless@0.4.5(db0@0.3.4)(ioredis@5.11.1(supports-color@10.2.2))(subset-font@2.9.0)(vite@8.3.0(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(less@4.4.0)(sass@1.90.0)(terser@5.46.0)(yaml@2.9.0)):
+  fontless@1.0.0(jiti@2.7.0)(lightningcss@1.33.0)(subset-font@2.9.0)(vite@8.3.0(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(less@4.4.0)(sass@1.90.0)(terser@5.46.0)(yaml@2.9.0)):
     dependencies:
       consola: 3.4.2
       css-tree: 3.2.1
       defu: 6.1.7
       exsolve: 1.1.1
       fontaine: link:packages/fontaine
-      jiti: 2.7.0
-      lightningcss: 1.33.0
       magic-string: 1.4.1
       ohash: 2.0.12
       pathe: 2.0.3
       ufo: 1.6.4
       unifont: 1.0.0-beta.0
-      unstorage: 1.17.5(db0@0.3.4)(ioredis@5.11.1(supports-color@10.2.2))
     optionalDependencies:
+      jiti: 2.7.0
+      lightningcss: 1.33.0
       subset-font: 2.9.0
       vite: 8.3.0(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(less@4.4.0)(sass@1.90.0)(terser@5.46.0)(yaml@2.9.0)
-    transitivePeerDependencies:
-      - '@azure/app-configuration'
-      - '@azure/cosmos'
-      - '@azure/data-tables'
-      - '@azure/identity'
-      - '@azure/keyvault-secrets'
-      - '@azure/storage-blob'
-      - '@capacitor/preferences'
-      - '@deno/kv'
-      - '@netlify/blobs'
-      - '@planetscale/database'
-      - '@upstash/redis'
-      - '@vercel/blob'
-      - '@vercel/functions'
-      - '@vercel/kv'
-      - aws4fetch
-      - db0
-      - idb-keyval
-      - ioredis
-      - uploadthing
     optional: true
 
   fontverter@2.0.0:
@@ -24247,7 +24235,7 @@ snapshots:
 
   nuxt-define@1.0.0: {}
 
-  nuxt-og-image@6.7.8(8459638fc6a486cf05f060b54e4cfb92):
+  nuxt-og-image@6.7.8(0fa84e684f09e183f7910d72281d5dfd):
     dependencies:
       '@clack/prompts': 1.7.0
       '@nuxt/kit': 4.5.2(magic-string@1.4.1)(magicast@0.5.4)(oxc-parser@0.143.0)(rolldown@1.2.8)(unplugin@3.4.0(esbuild@0.28.2)(rolldown@1.2.8)(rollup@4.62.2)(vite@8.3.0(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(less@4.4.0)(sass@1.90.0)(terser@5.46.0)(yaml@2.9.0))(webpack@5.105.0(@swc/core@1.16.0(@swc/helpers@0.5.19))(esbuild@0.28.2)))
@@ -24283,7 +24271,7 @@ snapshots:
       unstorage: 1.17.5(db0@0.3.4)(ioredis@5.11.1(supports-color@10.2.2))
     optionalDependencies:
       '@takumi-rs/core': 1.8.7(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      fontless: 0.4.5(db0@0.3.4)(ioredis@5.11.1(supports-color@10.2.2))(subset-font@2.9.0)(vite@8.3.0(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(less@4.4.0)(sass@1.90.0)(terser@5.46.0)(yaml@2.9.0))
+      fontless: 1.0.0(jiti@2.7.0)(lightningcss@1.33.0)(subset-font@2.9.0)(vite@8.3.0(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(less@4.4.0)(sass@1.90.0)(terser@5.46.0)(yaml@2.9.0))
       nitropack: 2.13.4(@parcel/watcher@2.5.6)(oxc-parser@0.143.0)(rolldown@1.2.8)(srvx@0.11.22)(supports-color@10.2.2)(vite@8.3.0(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(less@4.4.0)(sass@1.90.0)(terser@5.46.0)(yaml@2.9.0))(webpack@5.105.0(@swc/core@1.16.0(@swc/helpers@0.5.19))(esbuild@0.28.2))
       playwright-core: 1.63.0
       sharp: 0.34.5
@@ -26121,7 +26109,7 @@ snapshots:
 
   setprototypeof@1.2.0: {}
 
-  shadcn-docs-nuxt@1.2.2(4fa4dc55ecb5fedc3188cbe1e089bbf1):
+  shadcn-docs-nuxt@1.2.2(af5edba2212b947680b2d05324aeaf24):
     dependencies:
       '@iconify-json/lucide': 1.2.123
       '@iconify-json/vscode-icons': 1.2.73
@@ -26138,7 +26126,7 @@ snapshots:
       class-variance-authority: 0.7.1
       clsx: 2.1.1
       mermaid: 11.16.1
-      nuxt-og-image: 6.7.8(8459638fc6a486cf05f060b54e4cfb92)
+      nuxt-og-image: 6.7.8(0fa84e684f09e183f7910d72281d5dfd)
       reka-ui: 2.10.3(vue@3.5.43(typescript@6.0.3))
       shadcn-nuxt: 2.8.2(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(magicast@0.5.4)
       tailwind-merge: 3.6.0
@@ -27081,6 +27069,14 @@ snapshots:
       undici: 8.10.0
 
   unifont@1.0.0-beta.0:
+    dependencies:
+      css-tree: 3.2.1
+      ohash: 2.0.12
+      std-env: 4.2.0
+      undici: 8.10.0
+    optional: true
+
+  unifont@1.0.1:
     dependencies:
       css-tree: 3.2.1
       ohash: 2.0.12
