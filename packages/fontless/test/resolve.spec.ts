@@ -201,9 +201,9 @@ describe('createResolver', () => {
   })
 
   describe('glyphs option', () => {
-    async function resolveWith(providerName: string, options: FontlessOptions, override?: FontFamilyProviderOverride) {
+    async function resolveWith(providerName: string, options: FontlessOptions, override?: FontFamilyProviderOverride, key: string = providerName) {
       const { provider, calls } = createTrackingProvider(providerName)
-      const providers = { [providerName]: provider }
+      const providers = { [key]: provider }
       const glyphLists: Array<string | undefined> = []
       const resolver = await createResolver({
         options: { ...options, providers },
@@ -229,6 +229,20 @@ describe('createResolver', () => {
 
     it('should not pass glyphs to providers that read the option as icon names', async () => {
       const { calls } = await resolveWith('googleicons', {}, { name: 'TestFont', glyphs: 'Hand' })
+
+      expect((calls[0]?.options as { options: unknown }).options).toBeUndefined()
+    })
+
+    it('should pass glyphs to a subsetting provider configured under another key', async () => {
+      const { calls } = await resolveWith('google', {}, { name: 'TestFont', glyphs: 'Hand' }, 'myFonts')
+
+      expect((calls[0]?.options as { options: unknown }).options).toEqual({
+        experimental: { glyphs: ['H', 'a', 'd', 'n'] },
+      })
+    })
+
+    it('should not pass glyphs to an icon provider configured under the `google` key', async () => {
+      const { calls } = await resolveWith('googleicons', {}, { name: 'TestFont', glyphs: 'Hand' }, 'google')
 
       expect((calls[0]?.options as { options: unknown }).options).toBeUndefined()
     })
