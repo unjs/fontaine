@@ -31,18 +31,18 @@ const NON_DESCRIPTOR_KEYS = new Set(['name', 'global', 'preload', 'fallbacks', '
 const GLYPH_PASSTHROUGH_PROVIDERS = new Set(['google'])
 
 /** Ask providers that support it to serve an already-subsetted file. */
-function withGlyphPassthrough(providerOptions: ProviderFamilyOptions | undefined, glyphs: string | undefined, providerNames: Iterable<string>): ProviderFamilyOptions | undefined {
+function withGlyphPassthrough(providerOptions: ProviderFamilyOptions | undefined, glyphs: string | undefined, keys: Iterable<string>, toName: (key: string) => string): ProviderFamilyOptions | undefined {
   if (!glyphs) {
     return providerOptions
   }
   const options: ProviderFamilyOptions = { ...providerOptions }
-  for (const name of providerNames) {
-    if (!GLYPH_PASSTHROUGH_PROVIDERS.has(name)) {
+  for (const key of keys) {
+    if (!GLYPH_PASSTHROUGH_PROVIDERS.has(toName(key))) {
       continue
     }
-    const existing = options[name] as { experimental?: { glyphs?: string[] } } | undefined
+    const existing = options[key] as { experimental?: { glyphs?: string[] } } | undefined
     if (!existing?.experimental?.glyphs) {
-      options[name] = { ...existing, experimental: { ...existing?.experimental, glyphs: [...glyphs] } }
+      options[key] = { ...existing, experimental: { ...existing?.experimental, glyphs: [...glyphs] } }
     }
   }
   return options
@@ -227,6 +227,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
       override && 'providerOptions' in override ? override.providerOptions : undefined,
       glyphs,
       prioritisedProviders,
+      toProviderName,
     )
 
     // Handle explicit provider
