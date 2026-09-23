@@ -67,7 +67,16 @@ function compareFaces(a: FontFaceData, b: FontFaceData, subsets: string[] | unde
     || weightRank(a) - weightRank(b)
 }
 
-/** Pick the faces to emit `<link rel="preload">` for, from every face resolved for a family. */
+/**
+ * Select the faces to emit `<link rel="preload">` for, from every face resolved for a family.
+ *
+ * - falsy `preload`: no faces.
+ * - `true`: the single best face (lowest priority, then earliest match in `subsets`, normal style, weight closest to 400).
+ * - `{ subsets?, styles?, weights? }`: every face matching all given filters.
+ * - function: every face for which it returns `true`.
+ *
+ * `subsets` is the configured subset order, used to rank faces when `preload` is `true`.
+ */
 export function selectPreloadFonts(fontFamily: string, fonts: FontFaceData[], preload: PreloadOption | undefined, subsets?: string[]): FontFaceData[] {
   if (!preload) {
     return []
