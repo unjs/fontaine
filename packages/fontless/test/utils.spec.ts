@@ -126,3 +126,22 @@ describe('transformCSS', () => {
     expect(result).toContain('font-family: \'Inter\';')
   })
 })
+
+describe('system font stacks', () => {
+  it('should surface only the first non-generic family of each preflight stack', async () => {
+    const resolved: string[] = []
+    await transform(`
+      .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace }
+      .font-sans { font-family: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji' }
+      .font-sans-v3 { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif }
+      .font-serif { font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif }
+    `, {
+      resolveFontFace: (family) => {
+        resolved.push(family)
+        return { fonts: [font] }
+      },
+    })
+
+    expect(resolved).toEqual(['SFMono-Regular', 'Apple Color Emoji', '-apple-system', 'Georgia'])
+  })
+})

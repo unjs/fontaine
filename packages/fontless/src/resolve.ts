@@ -6,7 +6,7 @@ import type { FontFamilyManualOverride, FontFamilyProviderOverride, FontlessOpti
 import type { FontFaceResolution } from './utils'
 import { consola } from 'consola'
 import { createUnifont } from 'unifont'
-import { addLocalFallbacks } from './css/parse'
+import { addLocalFallbacks, isSystemFontFamily } from './css/parse'
 import { defaultValues } from './defaults'
 import { normalizeAxisValues, normalizeGlyphs } from './subset'
 
@@ -184,6 +184,10 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
   const defaultGlyphs = normalizeGlyphs(options.defaults?.glyphs)
 
   return async function resolveFontFaceWithOverride(fontFamily: string, override?: FontFamilyManualOverride | FontFamilyProviderOverride, fallbackOptions?: { fallbacks: string[], generic?: GenericCSSFamily }): Promise<FontFaceResolution | undefined> {
+    if (!override && isSystemFontFamily(fontFamily)) {
+      return
+    }
+
     const fallbacks = resolveFallbacks(override, fallbackOptions?.generic)
     const glyphs = override?.glyphs ? normalizeGlyphs(override.glyphs) : defaultGlyphs
     const variableAxis = override?.variableAxis ?? options.defaults?.variableAxis
@@ -280,7 +284,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
     exposeFont({
       type: 'auto',
       fontFamily,
-      provider: (result.provider && providerKeys.get(result.provider)) || result.provider || 'unknown',
+      provider: (result.provider && providerKeys.get(result.provider)) || 'unknown',
       fonts: fontsWithLocalFallbacks,
     })
     return {

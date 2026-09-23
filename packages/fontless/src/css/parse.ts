@@ -43,6 +43,41 @@ const _genericCSSFamilies = [
 export type GenericCSSFamily = typeof _genericCSSFamilies[number]
 const genericCSSFamilies = new Set(_genericCSSFamilies)
 
+/* Families that ship with an operating system. Names a provider serves, such as `Roboto`, must stay out. */
+const systemFontFamilies = new Set([
+  '-apple-system',
+  'apple color emoji',
+  'blinkmacsystemfont',
+  'cambria',
+  'consolas',
+  'courier',
+  'courier new',
+  'georgia',
+  'helvetica',
+  'helvetica neue',
+  'liberation mono',
+  'liberation sans',
+  'liberation serif',
+  'lucida console',
+  'lucida grande',
+  'menlo',
+  'monaco',
+  'noto color emoji',
+  'segoe ui',
+  'segoe ui emoji',
+  'segoe ui symbol',
+  'sf mono',
+  'sfmono-regular',
+  'tahoma',
+  'times',
+  'times new roman',
+  'verdana',
+])
+
+export function isSystemFontFamily(fontFamily: string): boolean {
+  return systemFontFamilies.has(fontFamily.toLowerCase())
+}
+
 /* Global values */
 const globalCSSValues = new Set([
   'inherit',
