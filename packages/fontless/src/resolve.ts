@@ -280,7 +280,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
     exposeFont({
       type: 'auto',
       fontFamily,
-      provider: (result.provider && providerKeys.get(result.provider)) || result.provider || 'unknown',
+      provider: (result.provider && providerKeys.get(result.provider)) || 'unknown',
       fonts: fontsWithLocalFallbacks,
     })
     return {
