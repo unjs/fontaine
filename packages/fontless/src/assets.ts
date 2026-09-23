@@ -75,7 +75,8 @@ export function normalizeFontData(context: NormalizeFontDataContext, faces: RawF
     const requested = options.variableAxis && resolveVariationAxes(options.variableAxis)
     // Instancing means subsetting, so it needs a glyph list: the family's own, or the
     // characters the face declares it can render.
-    const text = options.glyphs ?? (requested ? unicodeRangeToText(unicodeRange) : undefined)
+    const glyphs = requested || !isCoveredBy(unicodeRange, options.glyphs) ? options.glyphs : undefined
+    const text = glyphs ?? (requested ? unicodeRangeToText(unicodeRange) : undefined)
     const variationAxes = text ? requested?.axes : undefined
     const src = toArray(face.src).map((src) => {
       const source = typeof src === 'string' ? parseFont(src) : src
@@ -112,7 +113,7 @@ export function normalizeFontData(context: NormalizeFontDataContext, faces: RawF
       // A locally subsetted file only contains the requested glyphs, and browsers do not
       // fall through to another face of the same family for a glyph the matched face is
       // missing, so the face has to declare what it can render.
-      unicodeRange: unicodeRange ?? (subsetted && options.glyphs ? glyphsToUnicodeRange(options.glyphs) : undefined),
+      unicodeRange: unicodeRange ?? (subsetted && glyphs ? glyphsToUnicodeRange(glyphs) : undefined),
       // An axis pinned in the file itself no longer exists to be varied.
       variationSettings: subsetted && variationAxes && requested
         ? withoutVariationSettings(face.variationSettings, requested.pinned)
@@ -121,4 +122,17 @@ export function normalizeFontData(context: NormalizeFontDataContext, faces: RawF
     })
   }
   return data
+}
+
+/** Whether every codepoint `unicodeRange` declares is in `glyphs`, so subsetting to them would remove nothing. */
+function isCoveredBy(unicodeRange: string[] | undefined, glyphs: string | undefined): boolean {
+  if (!unicodeRange?.length || !glyphs) {
+    return false
+  }
+  const declared = unicodeRangeToText(unicodeRange, glyphs.length)
+  if (declared === undefined) {
+    return false
+  }
+  const available = new Set(glyphs)
+  return [...declared].every(character => available.has(character))
 }

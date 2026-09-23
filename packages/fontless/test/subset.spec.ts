@@ -150,6 +150,22 @@ describe('glyph subsetting', () => {
     expect(fromRange.fonts[0]).toEqual(fromCharacters.fonts[0])
   })
 
+  it('should emit a face untouched when glyphs cover its whole unicode range', { timeout: 20_000 }, async () => {
+    const root = await createFixture(`body { font-family: 'Inter' }`)
+    const family = { ...manualFamily('Inter', 'Handgloves'), unicodeRange: ['U+0048', 'U+0061', 'U+0064', 'U+006E'] }
+    const { fonts } = await buildApp(root, { families: [family] })
+
+    expect(fonts[0]).toEqual(await fsp.readFile(fixture))
+  })
+
+  it('should subset a face when glyphs cover only part of its unicode range', { timeout: 20_000 }, async () => {
+    const root = await createFixture(`body { font-family: 'Inter' }`)
+    const family = { ...manualFamily('Inter', 'Handgloves'), unicodeRange: ['U+0048', 'U+0061', 'U+0062'] }
+    const { fonts } = await buildApp(root, { families: [family] })
+
+    expect(fonts[0]!.length).toBeLessThan((await fsp.readFile(fixture)).length)
+  })
+
   it('should emit one file per glyph list for the same source font', { timeout: 20_000 }, async () => {
     const root = await createFixture(`h1 { font-family: 'Inter' } p { font-family: 'Erode' }`)
     const { files, fonts } = await buildApp(root, {
