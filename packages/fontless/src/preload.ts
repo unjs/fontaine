@@ -67,12 +67,7 @@ function compareFaces(a: FontFaceData, b: FontFaceData, subsets: string[] | unde
     || weightRank(a) - weightRank(b)
 }
 
-/**
- * Pick the faces to emit `<link rel="preload">` for, from every face resolved for a family.
- *
- * `preload: true` picks one: the lowest-priority, upright face closest to weight 400,
- * covering the first matching entry of `subsets`, falling back to Basic Latin coverage.
- */
+/** Pick the faces to emit `<link rel="preload">` for, from every face resolved for a family. */
 export function selectPreloadFonts(fontFamily: string, fonts: FontFaceData[], preload: PreloadOption | undefined, subsets?: string[]): FontFaceData[] {
   if (!preload) {
     return []
