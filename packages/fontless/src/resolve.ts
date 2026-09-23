@@ -98,6 +98,9 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
 
   const resolvedProviders: Array<Provider> = []
   const prioritisedProviders = new Set<string>()
+  /** `unifont` keys its providers by the name they were defined with, which need not be the key they are configured under. */
+  const providerNames = new Map<string, string>()
+  const providerKeys = new Map<string, string>()
 
   for (const [key, provider] of Object.entries(providers)) {
     if (options.providers?.[key] === false || (options.provider && options.provider !== key)) {
@@ -105,8 +108,37 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
     }
     else {
       const providerOptions = (options[key as 'google' | 'local' | 'adobe' | 'npm'] || {}) as Record<string, unknown>
-      resolvedProviders.push(provider(providerOptions))
+      const resolved = provider(providerOptions)
+      resolvedProviders.push(resolved)
+      providerNames.set(key, resolved._name)
+      providerKeys.set(resolved._name, key)
     }
+  }
+
+  function toProviderNames(keys: Iterable<string>): string[] {
+    const names: string[] = []
+    for (const key of keys) {
+      const name = providerNames.get(key)
+      if (name) {
+        names.push(name)
+      }
+    }
+    return names
+  }
+
+  function toProviderName(key: string): string {
+    return providerNames.get(key) ?? key
+  }
+
+  function remapFamilyOptions(familyOptions: ProviderFamilyOptions | undefined): ProviderFamilyOptions | undefined {
+    if (!familyOptions) {
+      return familyOptions
+    }
+    const remapped: ProviderFamilyOptions = {}
+    for (const key in familyOptions) {
+      remapped[toProviderName(key)] = familyOptions[key]
+    }
+    return remapped
   }
 
   if (resolvedProviders.length === 0) {
@@ -206,10 +238,11 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
     // Handle explicit provider
     if (override?.provider) {
       if (override.provider in providers) {
+        const providerName = toProviderName(override.provider)
         const resolveOptions = providerOptions?.[override.provider]
-          ? { ...defaults, options: { [override.provider]: providerOptions[override.provider] } }
+          ? { ...defaults, options: { [providerName]: providerOptions[override.provider] } }
           : defaults
-        const result = await unifont.resolveFont(fontFamily, resolveOptions as typeof defaults, [override.provider])
+        const result = await unifont.resolveFont(fontFamily, resolveOptions as typeof defaults, [providerName])
         // Rewrite font source URLs to be proxied/local URLs
         const fonts = applyFaceOverrides(override, normalizeFontData(result.fonts, { glyphs, variableAxis: result.variableAxis }))
         if (!fonts.length) {
@@ -239,10 +272,10 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
 
     // Build options with provider-specific family options merged
     const resolveOptions = providerOptions
-      ? { ...defaults, options: providerOptions }
+      ? { ...defaults, options: remapFamilyOptions(providerOptions) }
       : defaults
 
-    const result = await unifont.resolveFont(fontFamily, resolveOptions as typeof defaults, [...prioritisedProviders])
+    const result = await unifont.resolveFont(fontFamily, resolveOptions as typeof defaults, toProviderNames(prioritisedProviders))
     // Rewrite font source URLs to be proxied/local URLs
     const fonts = applyFaceOverrides(override, normalizeFontData(result.fonts, { glyphs, variableAxis: result.variableAxis }))
     if (fonts.length === 0) {
@@ -257,7 +290,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
     exposeFont({
       type: 'auto',
       fontFamily,
-      provider: result.provider || 'unknown',
+      provider: (result.provider && providerKeys.get(result.provider)) || result.provider || 'unknown',
       fonts: fontsWithLocalFallbacks,
     })
     return {

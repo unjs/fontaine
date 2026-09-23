@@ -266,6 +266,55 @@ describe('createResolver', () => {
     })
   })
 
+  describe('providers configured under a different key to their name', () => {
+    it('should resolve fonts from a provider whose name differs from its key', async () => {
+      const { provider, calls } = createTrackingProvider('custom')
+      const exposed: Array<{ provider?: string }> = []
+
+      const resolver = await createResolver({
+        options: { providers: { myFonts: provider } },
+        providers: { myFonts: provider },
+        normalizeFontData: defaultNormalizeFontData,
+        exposeFont: font => void exposed.push(font as { provider?: string }),
+      })
+
+      const result = await resolver('Inter')
+
+      expect(calls).toHaveLength(1)
+      expect(result?.fonts).toHaveLength(1)
+      expect(exposed[0]?.provider).toBe('myFonts')
+    })
+
+    it('should pass family options keyed by provider key to a provider whose name differs', async () => {
+      const { provider, calls } = createTrackingProvider('custom')
+
+      const resolver = await createResolver({
+        options: { providers: { myFonts: provider } },
+        providers: { myFonts: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      await resolver('Inter', { name: 'Inter', providerOptions: { myFonts: { variant: 'display' } } } as unknown as FontFamilyProviderOverride)
+
+      expect((calls[0]?.options as { options?: unknown })?.options).toEqual({ variant: 'display' })
+    })
+
+    it('should resolve an explicit provider override by key', async () => {
+      const { provider, calls } = createTrackingProvider('custom')
+
+      const resolver = await createResolver({
+        options: { providers: { myFonts: provider } },
+        providers: { myFonts: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      const result = await resolver('Inter', { name: 'Inter', provider: 'myFonts' })
+
+      expect(calls).toHaveLength(1)
+      expect(result?.fonts).toHaveLength(1)
+    })
+  })
+
   describe('throwOnError option', () => {
     it('should pass throwOnError to unifont when specified', async () => {
       // This test verifies the option is passed - actual error throwing
