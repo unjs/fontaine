@@ -1167,5 +1167,39 @@ describe('createResolver', () => {
 
       expect(exposed[0]?.provider).toBe('unknown')
     })
+
+    it('should await an async `exposeFont` callback', async () => {
+      const provider = createEmptyProvider('test', { fonts: [{ src: [{ url: '/font.woff2' }] }], provider: 'test' })
+      const exposed: string[] = []
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+        exposeFont: async (font) => {
+          await new Promise(resolve => setTimeout(resolve, 10))
+          exposed.push(font.fontFamily)
+        },
+      })
+
+      await resolver('Inter')
+
+      expect(exposed).toEqual(['Inter'])
+    })
+
+    it('should propagate a rejection from `exposeFont`', async () => {
+      const provider = createEmptyProvider('test', { fonts: [{ src: [{ url: '/font.woff2' }] }], provider: 'test' })
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+        exposeFont: async () => {
+          throw new Error('listener failed')
+        },
+      })
+
+      await expect(resolver('Inter')).rejects.toThrow('listener failed')
+    })
   })
 })

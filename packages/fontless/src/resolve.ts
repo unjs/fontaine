@@ -11,7 +11,7 @@ import { defaultValues } from './defaults'
 import { normalizeAxisValues, normalizeGlyphs } from './subset'
 
 interface ResolverContext {
-  exposeFont?: (font: ManualFontDetails | ProviderFontDetails) => void
+  exposeFont?: (font: ManualFontDetails | ProviderFontDetails) => void | Promise<void>
   normalizeFontData: (faces: RawFontFaceData | FontFaceData[], options?: { glyphs?: string, variableAxis?: ResolvedVariableAxisOptions }) => FontFaceData[]
   logger?: ConsolaInstance
   storage?: UnifontOptions['storage']
@@ -200,7 +200,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
     if (override && 'src' in override) {
       // Nothing resolves these sources, so every requested axis is left to `fontless`.
       const fonts = addFallbacks(fontFamily, normalizeFontData(pickDescriptors(override), { glyphs, variableAxis: variableAxis && normalizeAxisValues(variableAxis) }))
-      exposeFont({
+      await exposeFont({
         type: 'manual',
         fontFamily,
         fonts,
@@ -254,7 +254,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
           return
         }
         const fontsWithLocalFallbacks = addFallbacks(fontFamily, fonts)
-        exposeFont({
+        await exposeFont({
           type: 'override',
           fontFamily,
           provider: override.provider,
@@ -287,7 +287,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
 
     const fontsWithLocalFallbacks = addFallbacks(fontFamily, fonts)
     // TODO: expose provider name in result
-    exposeFont({
+    await exposeFont({
       type: 'auto',
       fontFamily,
       provider: (result.provider && providerKeys.get(result.provider)) || 'unknown',
