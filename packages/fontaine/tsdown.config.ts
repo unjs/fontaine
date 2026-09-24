@@ -9,13 +9,16 @@ import { defineConfig } from 'tsdown'
  */
 function magicRegExpPlugin() {
   const { transform, ...plugin } = MagicRegExpTransformPlugin.rolldown() as TsdownPlugin & {
-    transform: (this: unknown, code: string, id: string) => unknown
+    transform: { filter: unknown, handler: (this: unknown, code: string, id: string) => unknown }
   }
   return {
     ...plugin,
-    transform(this: any, code: string, id: string) {
-      const context = { ...this, parse: (code: string, options?: object) => this.parse(code, { lang: 'ts', ...options }) }
-      return transform.call(context, code, id)
+    transform: {
+      filter: transform.filter,
+      handler(this: any, code: string, id: string) {
+        const context = { ...this, parse: (code: string, options?: object) => this.parse(code, { lang: 'ts', ...options }) }
+        return transform.handler.call(context, code, id)
+      },
     },
   } as TsdownPlugin
 }
