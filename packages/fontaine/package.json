@@ -82,7 +82,7 @@
     "@vitest/coverage-v8": "5.0.1",
     "eslint": "10.11.0",
     "get-port-please": "3.2.0",
-    "magic-regexp": "0.11.0",
+    "magic-regexp": "0.11.2",
     "postcss": "8.5.28",
     "serve-handler": "6.1.7",
     "tsdown": "0.23.0",
