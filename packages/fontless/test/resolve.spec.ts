@@ -533,11 +533,12 @@ describe('createResolver', () => {
         return Promise.resolve({ resolveFont: async () => undefined })
       }, { _name: 'test', _options: {} }) as Provider
 
-      await createResolver({
+      const resolver = await createResolver({
         options: { providers: { test: provider }, apiBase: 'https://proxy.example.com' },
         providers: { test: provider },
         normalizeFontData: defaultNormalizeFontData,
       })
+      await resolver('TestFont')
 
       await providerFetch!('https://fonts.google.com/metadata/fonts')
       expect(requested).toEqual(['https://proxy.example.com/google/v1/fonts'])
