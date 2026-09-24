@@ -169,8 +169,10 @@ fontless({
   families: [
     // a string of text...
     { name: 'Cabinet Grotesk', glyphs: 'Handgloves & 0123' },
-    // ...or an explicit list of characters
+    // ...an explicit list of characters...
     { name: 'Erode', glyphs: ['H', 'a', 'n', 'd'] },
+    // ...or unicode ranges, in the same syntax as `unicode-range`
+    { name: 'Satoshi', glyphs: ['U+0020-007E', 'U+2018-201D', 'U+2026'] },
   ],
 })
 ```

@@ -4,18 +4,51 @@ import { consola } from 'consola'
 
 const logger = consola.withTag('fontless')
 
+/** A `unicode-range` entry: a codepoint, an inclusive range, or up to six wildcard positions. */
+const UNICODE_RANGE_ENTRY = /^u\+(?:([0-9a-f]{1,6})(?:-([0-9a-f]{1,6}))?|(?=[0-9a-f?]{1,6}$)([0-9a-f]*)(\?+))$/i
+
+/** Codepoints beyond which a face's `unicode-range` is too large to expand. */
+const MAX_DERIVED_CODEPOINTS = 5000
+
+/** Codepoints beyond which the ranges written in `glyphs` are too large to expand. */
+const MAX_GLYPH_CODEPOINTS = 65_536
+
 /**
  * Normalise a family's `glyphs` option into a stable string of unique characters.
  *
- * Sorting and deduplicating means an equivalent glyph list always produces the same
- * emitted file name, whichever order it was written in.
+ * Entries that parse as a `unicode-range` value (`U+0020-007E`) are expanded; anything else
+ * is read as literal characters. Sorting and deduplicating means an equivalent glyph list
+ * always produces the same emitted file name.
  */
 export function normalizeGlyphs(glyphs?: string | string[]): string | undefined {
   if (!glyphs) {
     return undefined
   }
-  const characters = [...new Set(Array.isArray(glyphs) ? glyphs.join('') : glyphs)]
+  let text = ''
+  let expandedCount = 0
+  for (const entry of Array.isArray(glyphs) ? glyphs : [glyphs]) {
+    const ranges = toUnicodeRanges(entry)
+    if (!ranges) {
+      text += entry
+      continue
+    }
+    for (const range of ranges) {
+      const expanded = unicodeRangeToText([range], MAX_GLYPH_CODEPOINTS - expandedCount)
+      if (expanded === undefined) {
+        logger.warn(`Ignoring \`${range}\` in \`glyphs\`: unicode ranges may not cover more than ${MAX_GLYPH_CODEPOINTS} codepoints in total.`)
+        continue
+      }
+      expandedCount += [...expanded].length
+      text += expanded
+    }
+  }
+  const characters = [...new Set(text)]
   return characters.length > 0 ? characters.sort().join('') : undefined
+}
+
+function toUnicodeRanges(entry: string): string[] | undefined {
+  const ranges = entry.split(',').map(range => range.trim())
+  return ranges.every(range => UNICODE_RANGE_ENTRY.test(range)) ? ranges : undefined
 }
 
 /**
@@ -45,12 +78,6 @@ export type VariationAxes = Record<string, number | { min: number, max: number }
 
 /** Axes `@font-face` descriptors select, so instancing them would lose faces. */
 const DESCRIPTOR_AXES = new Set(['wght', 'ital'])
-
-/** Codepoints beyond which a face's `unicode-range` is too large to expand. */
-const MAX_DERIVED_CODEPOINTS = 5000
-
-/** A `unicode-range` entry: a codepoint, an inclusive range, or up to six wildcard positions. */
-const UNICODE_RANGE_ENTRY = /^u\+(?:([0-9a-f]{1,6})(?:-([0-9a-f]{1,6}))?|(?=[0-9a-f?]{1,6}$)([0-9a-f]*)(\?+))$/i
 
 /** The highest codepoint Unicode defines, and so the highest `String.fromCodePoint` accepts. */
 const MAX_CODEPOINT = 0x10FFFF
@@ -128,7 +155,7 @@ export function resolveVariationAxes(variableAxis: ResolvedVariableAxisOptions):
  * Expand a face's `unicode-range` into the characters it declares, so a font can be
  * instanced without narrowing what it can render. `undefined` if the range is too large.
  */
-export function unicodeRangeToText(unicodeRange?: string[]): string | undefined {
+export function unicodeRangeToText(unicodeRange?: string[], maxCodepoints: number = MAX_DERIVED_CODEPOINTS): string | undefined {
   if (!unicodeRange?.length) {
     return undefined
   }
@@ -148,10 +175,13 @@ export function unicodeRangeToText(unicodeRange?: string[]): string | undefined 
       return undefined
     }
     count += end - start + 1
-    if (count > MAX_DERIVED_CODEPOINTS) {
+    if (count > maxCodepoints) {
       return undefined
     }
     for (let codepoint = start; codepoint <= end; codepoint++) {
+      if (codepoint >= 0xD800 && codepoint <= 0xDFFF) {
+        continue
+      }
       text += String.fromCodePoint(codepoint)
     }
   }
