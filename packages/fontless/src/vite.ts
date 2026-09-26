@@ -116,8 +116,10 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
     return selectPreloadFonts(fontFamily, fonts, preload, subsets)
   }
 
-  function getPreloadHrefs() {
-    return [...cssTransformOptions.fontsToPreload.values()].flatMap(v => [...v])
+  function getPreloads() {
+    return [...cssTransformOptions.fontsToPreload.entries()].flatMap(([id, hrefs]) =>
+      [...hrefs].map(href => [href, cssTransformOptions.preloadFamilies!.get(id)!.get(href)!] as [string, string]),
+    )
   }
 
   // Fonts referenced only by the global stylesheet, which is not attached to any module
@@ -137,6 +139,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       const families = options.families?.filter(f => f.global) ?? []
       const declarations: string[] = []
       const hrefs = new Set<string>()
+      const preloadFamilies = new Map<string, string>()
 
       for (const family of families) {
         const result = await buildContext.run(
@@ -152,6 +155,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
           const url = font.src.find((s): s is RemoteFontSource => 'url' in s)?.url
           if (url) {
             hrefs.add(url)
+            preloadFamilies.set(url, family.name)
           }
         }
 
@@ -164,6 +168,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
 
       if (hrefs.size > 0) {
         cssTransformOptions.fontsToPreload.set(GLOBAL_CSS_ID, hrefs)
+        cssTransformOptions.preloadFamilies!.set(GLOBAL_CSS_ID, preloadFamilies)
       }
 
       return declarations.join('')
@@ -197,12 +202,13 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
     return globalAssetURLs.reduce((value, [from, to]) => value.replaceAll(from, to), value)
   }
 
-  function toPreloadLinks(hrefs: string[]): LinkAttributes[] {
-    return hrefs.map(href => ({
-      rel: 'preload',
-      as: 'font',
+  function toPreloadLinks(preloads: Array<[string, string]>): LinkAttributes[] {
+    return preloads.map(([href, fontFamily]) => ({
+      'rel': 'preload',
+      'as': 'font',
       href,
-      crossorigin: '',
+      'crossorigin': '',
+      'data-font-family': fontFamily,
     }))
   }
 
@@ -267,6 +273,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         processCSSVariables: options.processCSSVariables,
         selectFontsToPreload,
         fontsToPreload: new Map(),
+        preloadFamilies: new Map(),
         dev: config.mode === 'development',
         async resolveFontFace(fontFamily, fallbackOptions) {
           const override = options.families?.find(f => f.name === fontFamily)
@@ -375,7 +382,9 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         // resolved here rather than discovered.
         const css = withEmittedAssets(await getGlobalFontFaces())
 
-        const tags = toPreloadLinks(getPreloadHrefs().map(withEmittedAssets)).map(attrs => ({
+        const preloads = getPreloads()
+          .map(([href, family]) => [withEmittedAssets(href), family] as [string, string])
+        const tags = toPreloadLinks(preloads).map(attrs => ({
           tag: 'link',
           attrs: attrs as unknown as Record<string, string>,
         }))
@@ -390,7 +399,8 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   }
 
   function getRuntimePreloads(): LinkAttributes[] {
-    return toPreloadLinks(getPreloadHrefs().map(href => publicFontURLs.get(href) ?? href))
+    return toPreloadLinks(getPreloads()
+      .map(([href, family]) => [publicFontURLs.get(href) ?? href, family] as [string, string]))
   }
 
   async function getRuntimeExports() {
