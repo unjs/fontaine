@@ -1,4 +1,6 @@
+import type { Provider, ProviderContext } from 'unifont'
 import type { InlineConfig, Plugin } from 'vite'
+import type { LinkAttributes } from '../src/runtime'
 import type { FontlessOptions } from '../src/types'
 import { promises as fsp } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -42,6 +44,16 @@ function extractHrefs(chunk: string) {
 }
 
 const options: FontlessOptions = { families: [{ name: 'Poppins', preload: true }] }
+
+function createSharedURLProvider() {
+  const provider = () => Object.assign(
+    (_ctx: ProviderContext) => ({
+      resolveFont: () => ({ fonts: [{ src: [{ url: '/shared.woff2', format: 'woff2' }], weight: 400 }] }),
+    }),
+    { _name: 'stub', _options: {} },
+  ) as unknown as Provider
+  return provider as never
+}
 
 describe('`fontless/runtime` in build', () => {
   async function buildApp(config: Omit<InlineConfig, 'root' | 'configFile' | 'logLevel'> = {}, fontlessOptions: FontlessOptions = options) {
@@ -87,7 +99,7 @@ describe('`fontless/runtime` in build', () => {
     expect(chunk).not.toContain('__FONTLESS_RUNTIME_BUILD_PLACEHOLDER__')
     expect(chunk).not.toContain('__VITE_ASSET__')
     expect(chunk).toMatch(/rel:["'`]preload/)
-    expect(chunk).toMatch(/data-font-family:["'`]Poppins/)
+    expect(chunk).toMatch(/data-font-family["']?:["'`]Poppins/)
     expect(hrefs.length).toBeGreaterThan(0)
     for (const href of hrefs) {
       expect(files).toContain(join('assets/_fonts', href.split('/_fonts/')[1]!))
@@ -143,6 +155,41 @@ describe('`fontless/runtime` in dev', () => {
         'data-font-family': 'Poppins',
       })
       expect(after.preloads[0].href).toMatch(/\/assets\/_fonts\/.*\.woff2$/)
+    }
+    finally {
+      await server.close()
+    }
+  })
+
+  it('should expose every family associated with a shared preload URL', { timeout: 20_000 }, async () => {
+    const fixtureRoot = await fsp.mkdtemp(join(tmpdir(), 'fontless-runtime-shared-'))
+    outDirs.push(fixtureRoot)
+    await fsp.mkdir(join(fixtureRoot, 'src'), { recursive: true })
+    await fsp.writeFile(join(fixtureRoot, 'src/style.css'), `body { font-family: 'Inter' } h1 { font-family: 'Roboto' }`)
+
+    const server = await createServer({
+      root: fixtureRoot,
+      configFile: false,
+      logLevel: 'silent',
+      server: { middlewareMode: true },
+      plugins: [entryPlugin(), fontless({
+        provider: 'stub',
+        providers: { stub: createSharedURLProvider() },
+        families: [
+          { name: 'Inter', preload: true },
+          { name: 'Roboto', preload: true },
+        ],
+      })],
+    })
+
+    try {
+      await server.transformRequest('/src/style.css')
+      const { preloads } = await server.ssrLoadModule('fontless/runtime')
+      const typedPreloads = preloads as LinkAttributes[]
+
+      expect(typedPreloads).toHaveLength(2)
+      expect(typedPreloads.map(preload => preload['data-font-family'])).toEqual(expect.arrayContaining(['Inter', 'Roboto']))
+      expect(typedPreloads[0]?.href).toBe(typedPreloads[1]?.href)
     }
     finally {
       await server.close()

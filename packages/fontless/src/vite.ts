@@ -125,7 +125,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
 
   function getPreloads() {
     return [...cssTransformOptions.fontsToPreload.entries()].flatMap(([id, hrefs]) =>
-      [...hrefs].map(href => [href, cssTransformOptions.preloadFamilies!.get(id)!.get(href)!] as [string, string]),
+      [...hrefs].flatMap(href => [...cssTransformOptions.preloadFamilies!.get(id)!.get(href)!].map(family => [href, family] as [string, string])),
     )
   }
 
@@ -146,7 +146,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       const families = options.families?.filter(f => f.global) ?? []
       const declarations: string[] = []
       const hrefs = new Set<string>()
-      const preloadFamilies = new Map<string, string>()
+      const preloadFamilies = new Map<string, Set<string>>()
 
       for (const family of families) {
         const result = await buildContext.run(
@@ -162,7 +162,9 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
           const url = font.src.find((s): s is RemoteFontSource => 'url' in s)?.url
           if (url) {
             hrefs.add(url)
-            preloadFamilies.set(url, family.name)
+            const names = preloadFamilies.get(url) || new Set<string>()
+            names.add(family.name)
+            preloadFamilies.set(url, names)
           }
         }
 

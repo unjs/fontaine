@@ -38,7 +38,7 @@ export interface FontFamilyInjectionPluginOptions {
   processCSSVariables?: boolean | 'font-prefixed-only' | (string & {})
   selectFontsToPreload?: (fontFamily: string, fonts: FontFaceData[]) => FontFaceData[]
   fontsToPreload: Map<string, Set<string>>
-  preloadFamilies?: Map<string, Map<string, string>>
+  preloadFamilies?: Map<string, Map<string, Set<string>>>
 }
 
 function findSafeInsertionIndex(ast: CssNode): number {
@@ -132,7 +132,9 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
         options.fontsToPreload.set(id, urls.add(fontToPreload))
         if (options.preloadFamilies) {
           const families = options.preloadFamilies.get(id) || new Map()
-          options.preloadFamilies.set(id, families.set(fontToPreload, fontFamily))
+          const names = families.get(fontToPreload) || new Set<string>()
+          names.add(fontFamily)
+          options.preloadFamilies.set(id, families.set(fontToPreload, names))
         }
       }
     }
