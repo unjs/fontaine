@@ -137,10 +137,37 @@ describe('fontless vite plugin', () => {
   it('should preload fonts for `global` families', async () => {
     const root = await createFixture({ 'index.html': html, 'style.css': `body { color: red }` })
     const { html: output } = await buildApp(root, {
-      families: [{ name: 'Inter', global: true, preload: true }],
+      families: [
+        { name: 'Inter', global: true, preload: true },
+        { name: 'Roboto', global: true, preload: true },
+      ],
     })
 
     expect(output).toContain('rel="preload"')
+    expect(output).toContain('data-font-family="Inter"')
+    expect(output).toContain('data-font-family="Roboto"')
+    const preloadTags = [...output.matchAll(/<link rel="preload"[^>]*>/g)].map(([tag]) => tag)
+    expect(preloadTags).toHaveLength(2)
+    expect(preloadTags[0]?.match(/href="([^"]+)"/)?.[1]).toBe(preloadTags[1]?.match(/href="([^"]+)"/)?.[1])
+  })
+
+  it('should retain all families that share a module preload URL', async () => {
+    const root = await createFixture({
+      'index.html': html,
+      'style.css': `body { font-family: 'Inter' } h1 { font-family: 'Roboto' }`,
+    })
+    const { html: output } = await buildApp(root, {
+      families: [
+        { name: 'Inter', preload: true },
+        { name: 'Roboto', preload: true },
+      ],
+    })
+
+    expect(output).toContain('data-font-family="Inter"')
+    expect(output).toContain('data-font-family="Roboto"')
+    const preloadTags = [...output.matchAll(/<link rel="preload"[^>]*>/g)].map(([tag]) => tag)
+    expect(preloadTags).toHaveLength(2)
+    expect(preloadTags[0]?.match(/href="([^"]+)"/)?.[1]).toBe(preloadTags[1]?.match(/href="([^"]+)"/)?.[1])
   })
 
   it('should minify generated declarations with lightningcss when configured', async () => {
