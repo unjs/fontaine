@@ -108,6 +108,16 @@ describe('normalizeFontData', () => {
     expect([...context.renderedFontURLs.keys()][0]).toMatch(/\.woff2$/)
   })
 
+  it('should ignore the query and fragment of a URL when naming the emitted file', () => {
+    const context = createContext()
+    normalizeFontData(context, { src: [{ url: 'https://fonts.example.com/font.woff2?v=1.2', format: 'woff2' }] })
+    normalizeFontData(context, { src: [{ url: 'https://fonts.example.com/font.ttf#face', format: 'truetype' }] })
+
+    const files = [...context.renderedFontURLs.keys()]
+    expect(files[0]).toMatch(/^[\w-]+\.woff2$/)
+    expect(files[1]).toMatch(/^[\w-]+\.ttf$/)
+  })
+
   it('should emit no extension when neither the URL nor the format provides one', () => {
     const context = createContext()
     normalizeFontData(context, { src: [{ url: 'https://fonts.example.com/font', format: 'unknown-format' }] })
