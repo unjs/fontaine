@@ -29,6 +29,9 @@ const NON_DESCRIPTOR_KEYS = new Set(['name', 'global', 'preload', 'fallbacks', '
  */
 const GLYPH_PASSTHROUGH_PROVIDERS = new Set(['google'])
 
+/** Providers that resolve fonts from remote stylesheets, whose sources must not point at files on disk. */
+const REMOTE_PROVIDERS = new Set(['adobe', 'bunny', 'fontshare', 'fontsource', 'google', 'googleicons'])
+
 /** Ask providers that support it to serve an already-subsetted file. */
 function withGlyphPassthrough(providerOptions: ProviderFamilyOptions | undefined, glyphs: string | undefined, keys: Iterable<string>, toName: (key: string) => string): ProviderFamilyOptions | undefined {
   if (!glyphs) {
@@ -100,6 +103,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
   /** `unifont` keys its providers by the name they were defined with, which need not be the key they are configured under. */
   const providerNames = new Map<string, string>()
   const providerKeys = new Map<string, string>()
+  const remoteProviders = new Set<string>()
 
   for (const [key, provider] of Object.entries(providers)) {
     if (options.providers?.[key] === false || (options.provider && options.provider !== key)) {
@@ -111,7 +115,29 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
       resolvedProviders.push(resolved)
       providerNames.set(key, resolved._name)
       providerKeys.set(resolved._name, key)
+      if (REMOTE_PROVIDERS.has(resolved._name) || (resolved._name === 'npm' && providerOptions.remote !== false)) {
+        remoteProviders.add(resolved._name)
+      }
     }
+  }
+
+  function withoutFileSources(provider: string | undefined, fonts: FontFaceData[]): FontFaceData[] {
+    if (!provider || !remoteProviders.has(provider)) {
+      return fonts
+    }
+    const kept: FontFaceData[] = []
+    for (const face of fonts) {
+      const src = face.src.filter(source => !('url' in source) || URL.parse(source.url)?.protocol !== 'file:')
+      if (src.length === face.src.length) {
+        kept.push(face)
+        continue
+      }
+      logger.warn(`Ignoring \`file:\` font sources resolved by the \`${providerKeys.get(provider) ?? provider}\` provider.`)
+      if (src.some(source => 'url' in source)) {
+        kept.push({ ...face, src })
+      }
+    }
+    return kept
   }
 
   function toProviderNames(keys: Iterable<string>): string[] {
@@ -243,7 +269,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
           : defaults
         const result = await unifont.resolveFont(fontFamily, resolveOptions as typeof defaults, [providerName])
         // Rewrite font source URLs to be proxied/local URLs
-        const fonts = applyFaceOverrides(override, normalizeFontData(result.fonts, { glyphs, variableAxis: result.variableAxis }))
+        const fonts = applyFaceOverrides(override, normalizeFontData(withoutFileSources(providerName, result.fonts), { glyphs, variableAxis: result.variableAxis }))
         if (!fonts.length) {
           const message = `Could not produce font face declaration from \`${override.provider}\` for font family \`${fontFamily}\`.`
           if (options.throwOnError) {
@@ -276,7 +302,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
 
     const result = await unifont.resolveFont(fontFamily, resolveOptions as typeof defaults, toProviderNames(prioritisedProviders))
     // Rewrite font source URLs to be proxied/local URLs
-    const fonts = applyFaceOverrides(override, normalizeFontData(result.fonts, { glyphs, variableAxis: result.variableAxis }))
+    const fonts = applyFaceOverrides(override, normalizeFontData(withoutFileSources(result.provider, result.fonts), { glyphs, variableAxis: result.variableAxis }))
     if (fonts.length === 0) {
       if (override) {
         logger.warn(`Could not produce font face declaration for \`${fontFamily}\` with override.`)
