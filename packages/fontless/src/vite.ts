@@ -13,7 +13,6 @@ import { defu } from 'defu'
 import { resolveModulePath } from 'exsolve'
 import MagicString from 'magic-string'
 import { join } from 'pathe'
-import { hasProtocol, joinURL } from 'ufo'
 import { normalizeFontData } from './assets'
 import { generateFontFace } from './css/render'
 import { defaultOptions } from './defaults'
@@ -22,6 +21,7 @@ import { resolveProviders } from './providers'
 import { createResolver } from './resolve'
 import { createFontlessStorage } from './storage'
 import { subsetFontData } from './subset'
+import { hasProtocol, joinURL } from './url'
 import { renderDeclaration, transformCSS } from './utils'
 
 // Copied from @tailwindcss-vite
@@ -214,7 +214,6 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       storage = createFontlessStorage(_options?.cache, { root: config.root, cacheDir: config.cacheDir })
 
       assetContext = {
-        dev: config.mode === 'development',
         renderedFontURLs: new Map<string, RenderedFont>(),
         root: config.root,
         assetsBaseURL: options.assets?.prefix || joinURL('/', config.build.assetsDir, '_fonts'),

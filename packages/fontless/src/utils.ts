@@ -9,7 +9,6 @@ import { parse, walk } from 'css-tree'
 import MagicString from 'magic-string'
 
 import { dirname } from 'pathe'
-import { withLeadingSlash } from 'ufo'
 import { extractEndOfFirstChild, extractFontFamilies, extractGeneric } from './css/parse'
 import { generateFontFace, generateFontFallbacks, relativiseFontSources } from './css/render'
 
@@ -160,7 +159,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
       const fallbackDeclarations = await generateFontFallbacks(fontFamily, font, fallbackMap)
       const declarations = result.fallbacksOnly
         ? fallbackDeclarations
-        : [generateFontFace(fontFamily, opts.relative ? relativiseFontSources(font, withLeadingSlash(dirname(id))) : font), ...fallbackDeclarations]
+        : [generateFontFace(fontFamily, opts.relative ? relativiseFontSources(font, dirname(id).replace(/^\/?/, '/')) : font), ...fallbackDeclarations]
 
       for (const declaration of declarations) {
         if (!injectedDeclarations.has(declaration)) {

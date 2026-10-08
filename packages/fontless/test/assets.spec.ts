@@ -16,7 +16,6 @@ function covers(range: string[], character: string): boolean {
 
 function createContext(overrides: Partial<NormalizeFontDataContext> = {}): NormalizeFontDataContext {
   return {
-    dev: false,
     renderedFontURLs: new Map<string, RenderedFont>(),
     assetsBaseURL: '/assets/_fonts',
     ...overrides,
@@ -41,12 +40,10 @@ describe('normalizeFontData', () => {
 
   it('should serve fonts from the assets base URL by default', () => {
     expect(urls(createContext())[0]).toMatch(/^\/assets\/_fonts\//)
-    expect(urls(createContext({ dev: true }))[0]).toMatch(/^\/assets\/_fonts\//)
   })
 
   it('should prefix font URLs with the base URL', () => {
     expect(urls(createContext({ baseURL: '/build/' }))[0]).toMatch(/^\/build\/assets\/_fonts\//)
-    expect(urls(createContext({ baseURL: '/build/', dev: true }))[0]).toMatch(/^\/build\/assets\/_fonts\//)
   })
 
   it('should support a base URL pointing at another origin', () => {

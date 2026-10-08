@@ -2,7 +2,7 @@ import type { RemoteFontSource } from 'unifont'
 import type { FontSource, NormalizedFontFaceData } from '../types'
 import { generateFontFace as generateFallbackFontFace, getMetricsForFamily, readMetrics } from 'fontaine'
 import { extname, relative } from 'pathe'
-import { hasProtocol } from 'ufo'
+import { hasProtocol } from '../url'
 
 export function generateFontFace(family: string, font: NormalizedFontFaceData): string {
   return [
