@@ -103,7 +103,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
   /** `unifont` keys its providers by the name they were defined with, which need not be the key they are configured under. */
   const providerNames = new Map<string, string>()
   const providerKeys = new Map<string, string>()
-  const remoteProviders = new Set<string>()
+  const remoteProviders = new Map<string, string>()
 
   for (const [key, provider] of Object.entries(providers)) {
     if (options.providers?.[key] === false || (options.provider && options.provider !== key)) {
@@ -116,13 +116,14 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
       providerNames.set(key, resolved._name)
       providerKeys.set(resolved._name, key)
       if (REMOTE_PROVIDERS.has(resolved._name) || (resolved._name === 'npm' && providerOptions.remote !== false)) {
-        remoteProviders.add(resolved._name)
+        remoteProviders.set(resolved._name, key)
       }
     }
   }
 
   function withoutFileSources(provider: string | undefined, fonts: FontFaceData[]): FontFaceData[] {
-    if (!provider || !remoteProviders.has(provider)) {
+    const key = provider && remoteProviders.get(provider)
+    if (!key) {
       return fonts
     }
     const kept: FontFaceData[] = []
@@ -132,7 +133,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
         kept.push(face)
         continue
       }
-      logger.warn(`Ignoring \`file:\` font sources resolved by the \`${providerKeys.get(provider) ?? provider}\` provider.`)
+      logger.warn(`Ignoring \`file:\` font sources resolved by the \`${key}\` provider.`)
       if (src.some(source => 'url' in source)) {
         kept.push({ ...face, src })
       }
