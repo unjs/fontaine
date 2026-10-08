@@ -13,7 +13,7 @@ import { normalizeAxisValues, normalizeGlyphs } from './subset'
 interface ResolverContext {
   exposeFont?: (font: ManualFontDetails | ProviderFontDetails) => void | Promise<void>
   normalizeFontData: (faces: RawFontFaceData | FontFaceData[], options?: { glyphs?: string, variableAxis?: ResolvedVariableAxisOptions }) => FontFaceData[]
-  logger?: ConsolaInstance
+  logger?: { warn: (message?: string) => void }
   storage?: UnifontOptions['storage']
   options: FontlessOptions
   providers: Record<string, (opts: unknown) => Provider>
