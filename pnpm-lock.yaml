@@ -214,9 +214,6 @@ importers:
 
   packages/fontless:
     dependencies:
-      consola:
-        specifier: ^3.4.2
-        version: 3.4.2
       css-tree:
         specifier: ^3.1.0
         version: 3.2.1

@@ -1,8 +1,6 @@
 import type { Buffer } from 'node:buffer'
 import type { ResolvedVariableAxisOptions, VariableAxisOptions } from './types'
-import { consola } from 'consola'
-
-const logger = consola.withTag('fontless')
+import { logger } from './logger'
 
 /** A `unicode-range` entry: a codepoint, an inclusive range, or up to six wildcard positions. */
 const UNICODE_RANGE_ENTRY = /^u\+(?:([0-9a-f]{1,6})(?:-([0-9a-f]{1,6}))?|(?=[0-9a-f?]{1,6}$)([0-9a-f]*)(\?+))$/i

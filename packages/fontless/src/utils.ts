@@ -4,15 +4,13 @@ import type { FontFaceData, RemoteFontSource } from 'unifont'
 import type { GenericCSSFamily } from './css/parse'
 import type { Awaitable, NormalizedFontFaceData } from './types'
 import { Buffer } from 'node:buffer'
-import { consola } from 'consola'
 import { parse, walk } from 'css-tree'
 import MagicString from 'magic-string'
 
 import { dirname } from 'pathe'
 import { extractEndOfFirstChild, extractFontFamilies, extractGeneric } from './css/parse'
 import { generateFontFace, generateFontFallbacks, relativiseFontSources } from './css/render'
-
-const logger = consola.withTag('fontless')
+import { logger } from './logger'
 
 export interface FontFaceResolution {
   fonts?: NormalizedFontFaceData[]

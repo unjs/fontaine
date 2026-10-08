@@ -3,10 +3,10 @@ import type { GenericCSSFamily } from './css/parse'
 import type { FontFamilyManualOverride, FontFamilyProviderOverride, FontlessOptions, ManualFontDetails, NormalizedFontFaceData, ProviderFamilyOptions, ProviderFontDetails, RawFontFaceData, ResolvedVariableAxisOptions } from './types'
 
 import type { FontFaceResolution } from './utils'
-import { consola } from 'consola'
 import { createUnifont } from 'unifont'
 import { addLocalFallbacks, isSystemFontFamily } from './css/parse'
 import { defaultValues } from './defaults'
+import { logger as defaultLogger } from './logger'
 import { normalizeAxisValues, normalizeGlyphs } from './subset'
 
 interface ResolverContext {
@@ -138,7 +138,7 @@ export type Resolver = (fontFamily: string, override?: FamilyOverride | FamilyOv
 }) => Promise<FontFaceResolution | undefined>
 
 export async function createResolver(context: ResolverContext): Promise<Resolver> {
-  const { options, normalizeFontData, providers, exposeFont = () => {}, logger = consola.withTag('fontless') } = context
+  const { options, normalizeFontData, providers, exposeFont = () => {}, logger = defaultLogger } = context
 
   const resolvedProviders: Array<Provider> = []
   const prioritisedProviders = new Set<string>()
