@@ -83,6 +83,13 @@ describe('normalizeFontData', () => {
     expect(context.renderedFontURLs.size).toBe(0)
   })
 
+  it('should not download font sources with unsupported protocols', () => {
+    const context = createContext()
+    expect(urls(context, 'javascript:alert(1)')).toEqual(['javascript:alert(1)'])
+    expect(urls(context, 'blob:https://fonts.example.com/0000')).toEqual(['blob:https://fonts.example.com/0000'])
+    expect(context.renderedFontURLs.size).toBe(0)
+  })
+
   it('should hash the whole URL when it has no filename', () => {
     const context = createContext()
     normalizeFontData(context, { src: [{ url: 'https://fonts.example.com/', format: 'woff2' }] })

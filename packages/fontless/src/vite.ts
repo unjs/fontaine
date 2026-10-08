@@ -21,7 +21,7 @@ import { resolveProviders } from './providers'
 import { createResolver } from './resolve'
 import { createFontlessStorage } from './storage'
 import { subsetFontData } from './subset'
-import { hasProtocol, joinURL } from './url'
+import { isFetchableURL, joinURL } from './url'
 import { renderDeclaration, transformCSS } from './utils'
 
 // Copied from @tailwindcss-vite
@@ -221,7 +221,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         // during dev, where every stylesheet is requested from its own path, so fall back
         // to the server root. During build the URL is resolved by Vite instead (see
         // `resolveAssetURL` below), which handles relative bases correctly.
-        baseURL: config.base.startsWith('/') || hasProtocol(config.base) ? config.base : '/',
+        baseURL: config.base.startsWith('/') || isFetchableURL(config.base) ? config.base : '/',
         // During build, hand fonts to Vite's asset pipeline rather than writing literal
         // URLs, so `base`, a relative base and `experimental.renderBuiltUrl` all apply.
         resolveAssetURL: config.command === 'build'

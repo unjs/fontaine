@@ -1,7 +1,10 @@
-const PROTOCOL_RE = /^[\w+.-]{2,}:/
+const FETCHABLE_PROTOCOLS = new Set(['http:', 'https:', 'file:', 'data:'])
 
-export function hasProtocol(url: string, acceptRelative = false): boolean {
-  return PROTOCOL_RE.test(url) || (acceptRelative && url.startsWith('//'))
+export function isFetchableURL(url: string, acceptProtocolRelative = false): boolean {
+  const parsed = url.startsWith('//')
+    ? acceptProtocolRelative && URL.parse(url, 'https://localhost')
+    : URL.parse(url)
+  return !!parsed && FETCHABLE_PROTOCOLS.has(parsed.protocol)
 }
 
 export function joinURL(base: string, ...segments: string[]): string {

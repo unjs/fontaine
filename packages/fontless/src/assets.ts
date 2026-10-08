@@ -7,7 +7,7 @@ import { extname, relative } from 'pathe'
 import { filename } from 'pathe/utils'
 import { formatToExtension, parseFont } from './css/render'
 import { glyphsToUnicodeRange, resolveVariationAxes, unicodeRangeToText, withoutVariationSettings } from './subset'
-import { hasProtocol, joinURL } from './url'
+import { isFetchableURL, joinURL } from './url'
 
 function hashableSource(context: NormalizeFontDataContext, source: { url: string }) {
   if (!source.url.startsWith('file://') || !context.root) {
@@ -81,7 +81,7 @@ export function normalizeFontData(context: NormalizeFontDataContext, faces: RawF
     const variationAxes = text ? requested?.axes : undefined
     const src = toArray(face.src).map((src) => {
       const source = typeof src === 'string' ? parseFont(src) : src
-      if ('url' in source && hasProtocol(source.url, true)) {
+      if ('url' in source && isFetchableURL(source.url, true)) {
         source.url = source.url.replace(/^\/\//, 'https://')
         const _url = source.url.replace(/\?.*/, '')
         const MAX_FILENAME_PREFIX_LENGTH = 50
