@@ -1,4 +1,3 @@
-import type { ConsolaInstance } from 'consola'
 import type { FontFaceData, Provider, UnifontOptions } from 'unifont'
 import type { GenericCSSFamily } from './css/parse'
 import type { FontFamilyManualOverride, FontFamilyProviderOverride, FontlessOptions, ManualFontDetails, NormalizedFontFaceData, ProviderFamilyOptions, ProviderFontDetails, RawFontFaceData, ResolvedVariableAxisOptions } from './types'
@@ -88,7 +87,49 @@ function applyFaceOverrides(override: FontFamilyManualOverride | FontFamilyProvi
   }))
 }
 
-export type Resolver = (fontFamily: string, override?: FontFamilyManualOverride | FontFamilyProviderOverride, fallbackOptions?: {
+type FamilyOverride = FontFamilyManualOverride | FontFamilyProviderOverride
+
+function isManualOverride(override: FamilyOverride): override is FontFamilyManualOverride {
+  return 'src' in override
+}
+
+function mergeFamilyOverrides(entries: FamilyOverride[]): { override?: FamilyOverride, faces: FontFamilyManualOverride[], ignored: number } {
+  const faces = entries.filter(isManualOverride)
+  const selected = faces.length ? faces : entries
+  if (!selected.length) {
+    return { faces, ignored: 0 }
+  }
+  const merged: Record<string, unknown> = {}
+  for (const entry of selected) {
+    for (const key in entry) {
+      const value = entry[key as keyof FamilyOverride]
+      if (merged[key] === undefined && value !== undefined) {
+        merged[key] = value
+      }
+    }
+  }
+  if (selected.some(entry => entry.global)) {
+    merged.global = true
+  }
+  return { override: merged as unknown as FamilyOverride, faces, ignored: entries.length - selected.length }
+}
+
+/**
+ * Combine every `families` entry configured for `fontFamily` into one override. Each option is
+ * taken from the first entry that sets it, and `global` is set if any entry sets it. Entries
+ * with `src` take precedence over provider entries of the same name, which are ignored.
+ */
+export function getFamilyOverride(families: FontlessOptions['families'], fontFamily: string): FamilyOverride | undefined {
+  return mergeFamilyOverrides(families?.filter(f => f.name === fontFamily) ?? []).override
+}
+
+/**
+ * Resolve `@font-face` data for `fontFamily`.
+ *
+ * `override` defaults to every entry in `options.families` named `fontFamily`. Pass an array to
+ * resolve several manual faces as one family, or `[]` to ignore the configured entries.
+ */
+export type Resolver = (fontFamily: string, override?: FamilyOverride | FamilyOverride[], fallbackOptions?: {
   fallbacks: string[]
   generic?: GenericCSSFamily
 }) => Promise<FontFaceResolution | undefined>
@@ -187,8 +228,19 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
   }
 
   const defaultGlyphs = normalizeGlyphs(options.defaults?.glyphs)
+  const warnedMixedFamilies = new Set<string>()
 
-  return async function resolveFontFaceWithOverride(fontFamily: string, override?: FontFamilyManualOverride | FontFamilyProviderOverride, fallbackOptions?: { fallbacks: string[], generic?: GenericCSSFamily }): Promise<FontFaceResolution | undefined> {
+  return async function resolveFontFaceWithOverride(fontFamily: string, overrides?: FamilyOverride | FamilyOverride[], fallbackOptions?: { fallbacks: string[], generic?: GenericCSSFamily }): Promise<FontFaceResolution | undefined> {
+    const entries = overrides === undefined
+      ? options.families?.filter(f => f.name === fontFamily) ?? []
+      : toArray(overrides)
+    const { override, faces, ignored } = mergeFamilyOverrides(entries)
+
+    if (ignored && !warnedMixedFamilies.has(fontFamily)) {
+      warnedMixedFamilies.add(fontFamily)
+      logger.warn(`Font family \`${fontFamily}\` has both \`src\` and provider entries in \`families\`. Only the entries with \`src\` are used.`)
+    }
+
     if (!override && isSystemFontFamily(fontFamily)) {
       return
     }
@@ -199,7 +251,8 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
 
     if (override && 'src' in override) {
       // Nothing resolves these sources, so every requested axis is left to `fontless`.
-      const fonts = addFallbacks(fontFamily, normalizeFontData(pickDescriptors(override), { glyphs, variableAxis: variableAxis && normalizeAxisValues(variableAxis) }))
+      const normalizeOptions = { glyphs, variableAxis: variableAxis && normalizeAxisValues(variableAxis) }
+      const fonts = addFallbacks(fontFamily, faces.flatMap(face => normalizeFontData(pickDescriptors(face), normalizeOptions)))
       await exposeFont({
         type: 'manual',
         fontFamily,

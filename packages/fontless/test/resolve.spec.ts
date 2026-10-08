@@ -581,6 +581,67 @@ describe('createResolver', () => {
     })
   })
 
+  describe('multiple entries for one family', () => {
+    const families: FontlessOptions['families'] = [
+      { name: 'My Font', src: '/regular.woff2', weight: 400 },
+      { name: 'My Font', src: '/black.woff2', weight: 900, fallbacks: ['Arial'] },
+    ]
+
+    it('should resolve every `src` entry configured for a family', async () => {
+      const { provider, calls } = createTrackingProvider('test')
+      const exposed: Array<{ fonts: FontFaceData[] }> = []
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider }, families },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+        exposeFont: font => void exposed.push(font),
+      })
+
+      const result = await resolver('My Font')
+
+      expect(calls).toHaveLength(0)
+      expect(result?.fonts?.map(font => [font.weight, font.src.at(-1)])).toEqual([
+        [400, { url: '/regular.woff2' }],
+        [900, { url: '/black.woff2' }],
+      ])
+      expect(result?.fallbacks).toEqual(['Arial'])
+      expect(exposed).toHaveLength(1)
+      expect(exposed[0]!.fonts).toHaveLength(2)
+    })
+
+    it('should accept an array of overrides', async () => {
+      const { provider } = createTrackingProvider('test')
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider } },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+      })
+
+      expect((await resolver('My Font', families))?.fonts).toHaveLength(2)
+      expect((await resolver('My Font', families[0]))?.fonts).toHaveLength(1)
+    })
+
+    it('should ignore provider entries for a family with `src` entries', async () => {
+      const { provider, calls } = createTrackingProvider('test')
+      const { logger, warnings } = createLogger()
+
+      const resolver = await createResolver({
+        options: { providers: { test: provider }, families: [...families!, { name: 'My Font', provider: 'test' }] },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+        logger,
+      })
+
+      expect((await resolver('My Font'))?.fonts).toHaveLength(2)
+      await resolver('My Font')
+      expect(calls).toHaveLength(0)
+      expect(warnings).toHaveLength(1)
+      expect(warnings[0]).toContain('My Font')
+    })
+  })
+
   describe('provider: none', () => {
     it('should return undefined when provider is none', async () => {
       const { provider, calls } = createTrackingProvider('test')

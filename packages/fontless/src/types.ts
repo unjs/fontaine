@@ -155,7 +155,8 @@ export type PreloadOption
 
 export interface FontlessOptions {
   /**
-   * Specify overrides for individual font families.
+   * Specify overrides for individual font families. Entries sharing a `name` are combined,
+   * and each entry with `src` adds a face to the family.
    *
    * ```ts
    * fonts: {
@@ -166,6 +167,7 @@ export interface FontlessOptions {
    *     { name: 'My Font Family', provider: 'google' },
    *     // specify specific font data
    *     { name: 'Other Font', src: 'https://example.com/font.woff2' },
+   *     { name: 'Other Font', src: 'https://example.com/font-bold.woff2', weight: 700 },
    *   ]
    * }
    * ```

@@ -143,6 +143,46 @@ describe('fontless vite plugin', () => {
     expect(output).toContain('rel="preload"')
   })
 
+  describe('multiple entries for one family', () => {
+    async function createMultiFaceFixture(style = styles) {
+      const root = await createFixture({ 'index.html': html, 'style.css': style, 'black.woff2': 'not-really-a-font-either' })
+      const families = [
+        { name: 'Inter', src: pathToFileURL(join(root, 'inter.woff2')).href, weight: 400 },
+        { name: 'Inter', src: pathToFileURL(join(root, 'black.woff2')).href, weight: 900 },
+      ]
+      return { root, families }
+    }
+
+    it('should emit `@font-face` for every `src` entry', async () => {
+      const { root, families } = await createMultiFaceFixture()
+      const { css } = await buildApp(root, { families })
+
+      expect(css.match(/@font-face\{font-family:Inter;/g)).toHaveLength(2)
+      expect(css).toContain('font-weight:400')
+      expect(css).toContain('font-weight:900')
+    })
+
+    it('should emit `@font-face` for every `src` entry of a `global` family once', async () => {
+      const { root, families } = await createMultiFaceFixture(`body { color: red }`)
+      const { html: output } = await buildApp(root, {
+        families: families.map(family => ({ ...family, global: true })),
+      })
+
+      expect(output.match(/@font-face\{font-family:Inter;/g)).toHaveLength(2)
+      expect(output).toContain('font-weight:400')
+      expect(output).toContain('font-weight:900')
+    })
+
+    it('should preload faces from every `src` entry', async () => {
+      const { root, families } = await createMultiFaceFixture(`body { color: red }`)
+      const { html: output } = await buildApp(root, {
+        families: [{ ...families[0]!, global: true }, { ...families[1]!, preload: { styles: ['normal'] } }],
+      })
+
+      expect(output.match(/rel="preload"/g)).toHaveLength(2)
+    })
+  })
+
   it('should minify generated declarations with lightningcss when configured', async () => {
     const root = await createFixture({ 'index.html': html, 'style.css': styles })
     const { css } = await buildApp(root, {}, { css: { transformer: 'lightningcss', lightningcss: {} } })
