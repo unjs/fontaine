@@ -1,13 +1,17 @@
 import type { FontFaceData } from 'unifont'
 import type { VariationAxes } from './subset'
 import type { RawFontFaceData, ResolvedVariableAxisOptions } from './types'
+import { hash as createHash } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
-import { hash } from 'ohash'
 import { extname, relative } from 'pathe'
 import { filename } from 'pathe/utils'
 import { formatToExtension, parseFont } from './css/render'
 import { glyphsToUnicodeRange, resolveVariationAxes, unicodeRangeToText, withoutVariationSettings } from './subset'
 import { isFetchableURL, joinURL } from './url'
+
+function hash(value: unknown): string {
+  return createHash('sha256', JSON.stringify(value), 'base64url')
+}
 
 function hashableSource(context: NormalizeFontDataContext, source: { url: string }) {
   if (!source.url.startsWith('file://') || !context.root) {
