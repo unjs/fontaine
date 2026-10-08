@@ -2,9 +2,9 @@ import type { FontFaceData } from 'unifont'
 import type { VariationAxes } from './subset'
 import type { RawFontFaceData, ResolvedVariableAxisOptions } from './types'
 import { hash as createHash } from 'node:crypto'
+import { relative } from 'node:path'
+import { basename, extname } from 'node:path/posix'
 import { fileURLToPath } from 'node:url'
-import { extname, relative } from 'pathe'
-import { filename } from 'pathe/utils'
 import { formatToExtension, parseFont } from './css/render'
 import { glyphsToUnicodeRange, resolveVariationAxes, unicodeRangeToText, withoutVariationSettings } from './subset'
 import { isFetchableURL, joinURL } from './url'
@@ -91,7 +91,7 @@ export function normalizeFontData(context: NormalizeFontDataContext, faces: RawF
         const MAX_FILENAME_PREFIX_LENGTH = 50
         const file = [
           // TODO: investigate why negative ignore pattern below is being ignored
-          hash(filename(pathname) || source.url.replace(/[?#].*/, '')).replace(/^-+/, '').slice(0, MAX_FILENAME_PREFIX_LENGTH),
+          hash(basename(pathname, extname(pathname)) || source.url.replace(/[?#].*/, '')).replace(/^-+/, '').slice(0, MAX_FILENAME_PREFIX_LENGTH),
           hash(text || variationAxes
             ? { source: hashableSource(context, source), ...(text && { glyphs: text }), ...(variationAxes && { variationAxes }) }
             : hashableSource(context, source)).replace(/-/, '_') + (extname(pathname) || formatToExtension(source.format) || ''),

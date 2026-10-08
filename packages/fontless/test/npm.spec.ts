@@ -1,6 +1,6 @@
 import { promises as fsp } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'pathe'
+import { join } from 'node:path'
 import { build, createServer } from 'vite'
 import { afterAll, expect, it } from 'vitest'
 import { fontless } from '../src'

@@ -229,9 +229,6 @@ importers:
       magic-string:
         specifier: ^1.0.0
         version: 1.4.2
-      pathe:
-        specifier: ^2.0.3
-        version: 2.0.3
       unifont:
         specifier: ^1.0.2
         version: 1.0.2

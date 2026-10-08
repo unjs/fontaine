@@ -8,11 +8,11 @@ import type { FontFamilyInjectionPluginOptions } from './utils'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { Buffer } from 'node:buffer'
 import { access, readFile } from 'node:fs/promises'
+import { join, posix } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defu } from 'defu'
 import { resolveModulePath } from 'exsolve'
 import MagicString from 'magic-string'
-import { join } from 'pathe'
 import { normalizeFontData } from './assets'
 import { generateFontFace } from './css/render'
 import { defaultOptions } from './defaults'
@@ -56,7 +56,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   // Output file names of emitted fonts, mapped back to their key in `renderedFontURLs`
   const fontFiles = new Map<string, string>()
   function fontFileName(file: string) {
-    const fileName = join(assetContext.assetsBaseURL, file).replace(/^\//, '')
+    const fileName = posix.join(assetContext.assetsBaseURL, file).replace(/^\//, '')
     fontFiles.set(fileName, file)
     return fileName
   }

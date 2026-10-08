@@ -1,7 +1,7 @@
 import { promises as fsp } from 'node:fs'
 import { readFile } from 'node:fs/promises'
+import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { join, resolve } from 'pathe'
 import { build, createBuilder } from 'vite'
 import { describe, expect, it } from 'vitest'
 

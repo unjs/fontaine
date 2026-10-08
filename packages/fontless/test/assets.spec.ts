@@ -1,6 +1,6 @@
 import type { NormalizeFontDataContext, RenderedFont } from '../src/assets'
+import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { join } from 'pathe'
 import { describe, expect, it } from 'vitest'
 import { normalizeFontData } from '../src/assets'
 import { normalizeGlyphs } from '../src/subset'

@@ -1,7 +1,7 @@
 import type { RemoteFontSource } from 'unifont'
 import type { FontSource, NormalizedFontFaceData } from '../types'
+import { extname, relative } from 'node:path/posix'
 import { generateFontFace as generateFallbackFontFace, getMetricsForFamily, readMetrics } from 'fontaine'
-import { extname, relative } from 'pathe'
 import { isFetchableURL } from '../url'
 
 export function generateFontFace(family: string, font: NormalizedFontFaceData): string {
