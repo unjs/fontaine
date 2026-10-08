@@ -13,7 +13,6 @@ import { defu } from 'defu'
 import { resolveModulePath } from 'exsolve'
 import MagicString from 'magic-string'
 import { join } from 'pathe'
-import { hasProtocol, joinURL } from 'ufo'
 import { normalizeFontData } from './assets'
 import { generateFontFace } from './css/render'
 import { defaultOptions } from './defaults'
@@ -22,6 +21,7 @@ import { resolveProviders } from './providers'
 import { createResolver, getFamilyOverride } from './resolve'
 import { createFontlessStorage } from './storage'
 import { subsetFontData } from './subset'
+import { isFetchableURL, joinURL } from './url'
 import { renderDeclaration, transformCSS } from './utils'
 
 // Copied from @tailwindcss-vite
@@ -56,7 +56,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   // Output file names of emitted fonts, mapped back to their key in `renderedFontURLs`
   const fontFiles = new Map<string, string>()
   function fontFileName(file: string) {
-    const fileName = joinURL(assetContext.assetsBaseURL, file).slice(1)
+    const fileName = join(assetContext.assetsBaseURL, file).replace(/^\//, '')
     fontFiles.set(fileName, file)
     return fileName
   }
@@ -214,7 +214,6 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       storage = createFontlessStorage(_options?.cache, { root: config.root, cacheDir: config.cacheDir })
 
       assetContext = {
-        dev: config.mode === 'development',
         renderedFontURLs: new Map<string, RenderedFont>(),
         root: config.root,
         assetsBaseURL: options.assets?.prefix || joinURL('/', config.build.assetsDir, '_fonts'),
@@ -222,7 +221,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         // during dev, where every stylesheet is requested from its own path, so fall back
         // to the server root. During build the URL is resolved by Vite instead (see
         // `resolveAssetURL` below), which handles relative bases correctly.
-        baseURL: config.base.startsWith('/') || hasProtocol(config.base) ? config.base : '/',
+        baseURL: config.base.startsWith('/') || isFetchableURL(config.base) ? config.base : '/',
         // During build, hand fonts to Vite's asset pipeline rather than writing literal
         // URLs, so `base`, a relative base and `experimental.renderBuiltUrl` all apply.
         resolveAssetURL: config.command === 'build'

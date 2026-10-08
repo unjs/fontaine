@@ -1263,4 +1263,49 @@ describe('createResolver', () => {
       await expect(resolver('Inter')).rejects.toThrow('listener failed')
     })
   })
+
+  describe('file sources', () => {
+    const fonts: FontFaceData[] = [
+      { src: [{ url: 'file:///home/user/.ssh/id_rsa' }, { url: 'https://example.com/font.woff2' }], weight: 400 },
+      { src: [{ url: 'FILE:///etc/passwd' }], weight: 700 },
+    ]
+
+    async function resolveWith(name: string, options: Partial<FontlessOptions> = {}, override?: FontFamilyProviderOverride) {
+      const provider = createEmptyProvider(name, { fonts: structuredClone(fonts), provider: name })
+      const { logger, warnings } = createLogger()
+      const resolver = await createResolver({
+        options: { providers: { [name]: provider }, experimental: { disableLocalFallbacks: true }, ...options },
+        providers: { [name]: provider },
+        normalizeFontData: defaultNormalizeFontData,
+        logger,
+      })
+      const result = await resolver('Inter', override)
+      return { sources: result?.fonts?.map(face => face.src), warnings }
+    }
+
+    it('should drop `file:` sources resolved by remote providers', async () => {
+      const { sources, warnings } = await resolveWith('google')
+
+      expect(sources).toEqual([[{ url: 'https://example.com/font.woff2' }]])
+      expect(warnings).toHaveLength(2)
+    })
+
+    it('should drop `file:` sources from a remote provider chosen in an override', async () => {
+      const { sources } = await resolveWith('google', {}, { name: 'Inter', provider: 'google' })
+
+      expect(sources).toEqual([[{ url: 'https://example.com/font.woff2' }]])
+    })
+
+    it('should drop `file:` sources from the npm provider unless it resolves locally', async () => {
+      expect((await resolveWith('npm')).sources).toEqual([[{ url: 'https://example.com/font.woff2' }]])
+      expect((await resolveWith('npm', { npm: { remote: false } })).sources).toEqual(fonts.map(face => face.src))
+    })
+
+    it('should keep `file:` sources from custom providers', async () => {
+      const { sources, warnings } = await resolveWith('custom')
+
+      expect(sources).toEqual(fonts.map(face => face.src))
+      expect(warnings).toEqual([])
+    })
+  })
 })

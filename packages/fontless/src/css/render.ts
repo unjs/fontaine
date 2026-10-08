@@ -2,7 +2,7 @@ import type { RemoteFontSource } from 'unifont'
 import type { FontSource, NormalizedFontFaceData } from '../types'
 import { generateFontFace as generateFallbackFontFace, getMetricsForFamily, readMetrics } from 'fontaine'
 import { extname, relative } from 'pathe'
-import { hasProtocol } from 'ufo'
+import { isFetchableURL } from '../url'
 
 export function generateFontFace(family: string, font: NormalizedFontFaceData): string {
   return [
@@ -132,7 +132,7 @@ export const formatToExtension = (format?: string): string | undefined => format
 
 export function parseFont(font: string): RemoteFontSource | { name: string } {
   // render as `url("url/to/font") format("woff2")`
-  if (font.startsWith('/') || hasProtocol(font)) {
+  if (font.startsWith('/') || isFetchableURL(font)) {
     const extension = extname(font).slice(1)
     const format = formatMap[extension]
 

@@ -5,9 +5,9 @@ import { fileURLToPath } from 'node:url'
 import { hash } from 'ohash'
 import { extname, relative } from 'pathe'
 import { filename } from 'pathe/utils'
-import { hasProtocol, joinRelativeURL, joinURL } from 'ufo'
 import { formatToExtension, parseFont } from './css/render'
 import { glyphsToUnicodeRange, resolveVariationAxes, unicodeRangeToText, withoutVariationSettings } from './subset'
+import { isFetchableURL, joinURL } from './url'
 
 function hashableSource(context: NormalizeFontDataContext, source: { url: string }) {
   if (!source.url.startsWith('file://') || !context.root) {
@@ -39,7 +39,8 @@ export interface NormalizeFontDataOptions {
 }
 
 export interface NormalizeFontDataContext {
-  dev: boolean
+  /** @deprecated No longer used. */
+  dev?: boolean
   renderedFontURLs: Map<string, RenderedFont>
   assetsBaseURL: string
   /**
@@ -80,27 +81,24 @@ export function normalizeFontData(context: NormalizeFontDataContext, faces: RawF
     const variationAxes = text ? requested?.axes : undefined
     const src = toArray(face.src).map((src) => {
       const source = typeof src === 'string' ? parseFont(src) : src
-      if ('url' in source && hasProtocol(source.url, { acceptRelative: true })) {
+      if ('url' in source && isFetchableURL(source.url, true)) {
         source.url = source.url.replace(/^\/\//, 'https://')
-        const _url = source.url.replace(/\?.*/, '')
+        const { pathname } = new URL(source.url)
         const MAX_FILENAME_PREFIX_LENGTH = 50
         const file = [
           // TODO: investigate why negative ignore pattern below is being ignored
-          hash(filename(_url) || _url).replace(/^-+/, '').slice(0, MAX_FILENAME_PREFIX_LENGTH),
+          hash(filename(pathname) || source.url.replace(/[?#].*/, '')).replace(/^-+/, '').slice(0, MAX_FILENAME_PREFIX_LENGTH),
           hash(text || variationAxes
             ? { source: hashableSource(context, source), ...(text && { glyphs: text }), ...(variationAxes && { variationAxes }) }
-            : hashableSource(context, source)).replace(/-/, '_') + (extname(source.url) || formatToExtension(source.format) || ''),
+            : hashableSource(context, source)).replace(/-/, '_') + (extname(pathname) || formatToExtension(source.format) || ''),
         ].filter(Boolean).join('-')
 
         context.renderedFontURLs.set(file, { url: source.url, init: face.meta?.init, subset: text, variationAxes })
         subsetted ||= Boolean(text)
         source.originalURL = source.url
 
-        const baseURL = context.baseURL || '/'
         source.url = context.resolveAssetURL?.(file, source.url)
-          ?? (context.dev
-            ? joinRelativeURL(baseURL, context.assetsBaseURL, file)
-            : joinURL(baseURL, context.assetsBaseURL, file))
+          ?? joinURL(context.baseURL || '/', context.assetsBaseURL, file)
 
         context.callback?.(file, source.url)
       }

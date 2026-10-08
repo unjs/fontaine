@@ -13,7 +13,6 @@ const fixture = fileURLToPath(new URL('fixtures/font.woff2', import.meta.url))
 
 function createContext(): NormalizeFontDataContext {
   return {
-    dev: false,
     renderedFontURLs: new Map<string, RenderedFont>(),
     assetsBaseURL: '/assets/_fonts',
   }

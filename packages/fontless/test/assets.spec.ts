@@ -16,7 +16,6 @@ function covers(range: string[], character: string): boolean {
 
 function createContext(overrides: Partial<NormalizeFontDataContext> = {}): NormalizeFontDataContext {
   return {
-    dev: false,
     renderedFontURLs: new Map<string, RenderedFont>(),
     assetsBaseURL: '/assets/_fonts',
     ...overrides,
@@ -41,12 +40,10 @@ describe('normalizeFontData', () => {
 
   it('should serve fonts from the assets base URL by default', () => {
     expect(urls(createContext())[0]).toMatch(/^\/assets\/_fonts\//)
-    expect(urls(createContext({ dev: true }))[0]).toMatch(/^\/assets\/_fonts\//)
   })
 
   it('should prefix font URLs with the base URL', () => {
     expect(urls(createContext({ baseURL: '/build/' }))[0]).toMatch(/^\/build\/assets\/_fonts\//)
-    expect(urls(createContext({ baseURL: '/build/', dev: true }))[0]).toMatch(/^\/build\/assets\/_fonts\//)
   })
 
   it('should support a base URL pointing at another origin', () => {
@@ -86,6 +83,13 @@ describe('normalizeFontData', () => {
     expect(context.renderedFontURLs.size).toBe(0)
   })
 
+  it('should not download font sources with unsupported protocols', () => {
+    const context = createContext()
+    expect(urls(context, 'javascript:alert(1)')).toEqual(['javascript:alert(1)'])
+    expect(urls(context, 'blob:https://fonts.example.com/0000')).toEqual(['blob:https://fonts.example.com/0000'])
+    expect(context.renderedFontURLs.size).toBe(0)
+  })
+
   it('should hash the whole URL when it has no filename', () => {
     const context = createContext()
     normalizeFontData(context, { src: [{ url: 'https://fonts.example.com/', format: 'woff2' }] })
@@ -102,6 +106,16 @@ describe('normalizeFontData', () => {
     normalizeFontData(context, { src: [{ url: 'https://fonts.example.com/font', format: 'woff2' }] })
 
     expect([...context.renderedFontURLs.keys()][0]).toMatch(/\.woff2$/)
+  })
+
+  it('should ignore the query and fragment of a URL when naming the emitted file', () => {
+    const context = createContext()
+    normalizeFontData(context, { src: [{ url: 'https://fonts.example.com/font.woff2?v=1.2', format: 'woff2' }] })
+    normalizeFontData(context, { src: [{ url: 'https://fonts.example.com/font.ttf#face', format: 'truetype' }] })
+
+    const files = [...context.renderedFontURLs.keys()]
+    expect(files[0]).toMatch(/^[\w-]+\.woff2$/)
+    expect(files[1]).toMatch(/^[\w-]+\.ttf$/)
   })
 
   it('should emit no extension when neither the URL nor the format provides one', () => {
