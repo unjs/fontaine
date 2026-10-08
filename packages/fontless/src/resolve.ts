@@ -1,4 +1,3 @@
-import type { ConsolaInstance } from 'consola'
 import type { FontFaceData, Provider, UnifontOptions } from 'unifont'
 import type { GenericCSSFamily } from './css/parse'
 import type { FontFamilyManualOverride, FontFamilyProviderOverride, FontlessOptions, ManualFontDetails, NormalizedFontFaceData, ProviderFamilyOptions, ProviderFontDetails, RawFontFaceData, ResolvedVariableAxisOptions } from './types'
