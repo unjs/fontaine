@@ -103,11 +103,16 @@ fontless({
       name: 'Cabinet Grotesk',
       glyphs: 'Handgloves & 0123'
     },
-    // Manual font configuration
+    // Manual font configuration, with one entry per face
     {
       name: 'CustomFont',
-      src: [{ url: '/fonts/custom-font.woff2', format: 'woff2' }],
-      weight: [400]
+      src: [{ url: '/fonts/custom-font-regular.woff2', format: 'woff2' }],
+      weight: 400
+    },
+    {
+      name: 'CustomFont',
+      src: [{ url: '/fonts/custom-font-black.woff2', format: 'woff2' }],
+      weight: 900
     }
   ],
 
@@ -128,6 +133,8 @@ fontless({
   }
 })
 ```
+
+Entries in `families` that share a `name` configure one family. Every entry with `src` contributes its own `@font-face`. Family-level options such as `preload`, `fallbacks`, and `glyphs` are taken from the first entry that sets them, and the family is `global` if any entry sets `global`. If a family has both `src` entries and provider entries, only the `src` entries are used.
 
 ### Category-Aware Fallbacks
 

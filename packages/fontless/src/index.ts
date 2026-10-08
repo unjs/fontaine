@@ -9,7 +9,7 @@ export { selectPreloadFonts } from './preload'
 
 export { resolveProviders } from './providers'
 
-export { createResolver } from './resolve'
+export { createResolver, getFamilyOverride } from './resolve'
 
 export type { Resolver } from './resolve'
 export type {

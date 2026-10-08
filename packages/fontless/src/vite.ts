@@ -19,7 +19,7 @@ import { generateFontFace } from './css/render'
 import { defaultOptions } from './defaults'
 import { selectPreloadFonts } from './preload'
 import { resolveProviders } from './providers'
-import { createResolver } from './resolve'
+import { createResolver, getFamilyOverride } from './resolve'
 import { createFontlessStorage } from './storage'
 import { subsetFontData } from './subset'
 import { renderDeclaration, transformCSS } from './utils'
@@ -110,7 +110,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   }
 
   function selectFontsToPreload(fontFamily: string, fonts: FontFaceData[]): FontFaceData[] {
-    const override = options.families?.find(f => f.name === fontFamily)
+    const override = getFamilyOverride(options.families, fontFamily)
     const preload = override?.preload ?? options.defaults?.preload
     const subsets = (override && 'subsets' in override ? override.subsets : undefined) ?? options.defaults?.subsets
     return selectPreloadFonts(fontFamily, fonts, preload, subsets)
@@ -134,21 +134,21 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
    */
   function getGlobalFontFaces(): Promise<string> {
     globalFontFaces ??= (async () => {
-      const families = options.families?.filter(f => f.global) ?? []
+      const families = new Set(options.families?.map(f => f.name).filter(name => getFamilyOverride(options.families, name)?.global))
       const declarations: string[] = []
       const hrefs = new Set<string>()
 
       for (const family of families) {
         const result = await buildContext.run(
           { collect: globalFontFiles },
-          () => resolveFontFaceWithOverride(family.name, family),
+          () => resolveFontFaceWithOverride(family),
         )
         if (!result?.fonts?.length) {
           continue
         }
 
         const fonts = [...result.fonts].sort((a, b) => (a.meta?.priority || 0) - (b.meta?.priority || 0))
-        for (const font of selectFontsToPreload(family.name, fonts)) {
+        for (const font of selectFontsToPreload(family, fonts)) {
           const url = font.src.find((s): s is RemoteFontSource => 'url' in s)?.url
           if (url) {
             hrefs.add(url)
@@ -158,7 +158,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         // reverse order by priority since last rule with overlapping unicode-range wins
         // https://www.w3.org/TR/css-fonts-4/#composite-fonts
         for (const font of fonts.reverse()) {
-          declarations.push(await renderDeclaration(generateFontFace(family.name, font), GLOBAL_CSS_ID, cssTransformOptions))
+          declarations.push(await renderDeclaration(generateFontFace(family, font), GLOBAL_CSS_ID, cssTransformOptions))
         }
       }
 
@@ -269,12 +269,11 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         fontsToPreload: new Map(),
         dev: config.mode === 'development',
         async resolveFontFace(fontFamily, fallbackOptions) {
-          const override = options.families?.find(f => f.name === fontFamily)
-          const result = await resolveFontFaceWithOverride(fontFamily, override, fallbackOptions)
+          const result = await resolveFontFaceWithOverride(fontFamily, undefined, fallbackOptions)
 
           // The primary `@font-face` is emitted once into the global stylesheet, but usage
           // sites in this file still need their fallback metric faces
-          if (result && override?.global) {
+          if (result && getFamilyOverride(options.families, fontFamily)?.global) {
             return { ...result, fallbacksOnly: true }
           }
 
