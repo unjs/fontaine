@@ -56,7 +56,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   // Output file names of emitted fonts, mapped back to their key in `renderedFontURLs`
   const fontFiles = new Map<string, string>()
   function fontFileName(file: string) {
-    const fileName = joinURL(assetContext.assetsBaseURL, file).slice(1)
+    const fileName = join(assetContext.assetsBaseURL, file).replace(/^\//, '')
     fontFiles.set(fileName, file)
     return fileName
   }

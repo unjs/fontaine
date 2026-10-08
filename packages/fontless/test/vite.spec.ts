@@ -250,6 +250,16 @@ describe('fontless vite plugin', () => {
     expect(await fsp.readFile(join(outDir, font!), 'utf-8')).toBe('not-really-a-font')
   })
 
+  it.each(['/fonts', 'fonts', './fonts/'])('should emit fonts into the `%s` assets prefix', async (prefix) => {
+    const root = await createFixture({ 'index.html': html, 'style.css': styles })
+    const { provider } = createStubProvider(pathToFileURL(join(root, 'inter.woff2')).href)
+    const { css, files } = await buildApp(root, { providers: { stub: provider }, assets: { prefix } })
+
+    const font = files.find(file => file.endsWith('.woff2'))
+    expect(font).toMatch(/^fonts\/[^/]+\.woff2$/)
+    expect(css).toContain(`/${font}`)
+  })
+
   it('should serve fonts that providers resolve to local files during dev', async () => {
     const root = await createFixture({ 'index.html': html, 'style.css': styles })
     const { provider } = createStubProvider(pathToFileURL(join(root, 'inter.woff2')).href)
