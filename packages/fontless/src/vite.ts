@@ -1,8 +1,10 @@
+import type { DevframeDefinition } from 'devframe'
 import type { FontFaceData, RemoteFontSource } from 'unifont'
 import type { Plugin, Rollup, ViteDevServer } from 'vite'
 import type { NormalizeFontDataContext, RenderedFont } from './assets'
+import type { FontlessDevframe } from './devtools'
 import type { LinkAttributes } from './runtime'
-import type { FontlessOptions } from './types'
+import type { FontlessOptions, ManualFontDetails, ProviderFontDetails } from './types'
 import type { FontFamilyInjectionPluginOptions } from './utils'
 
 import { AsyncLocalStorage } from 'node:async_hooks'
@@ -36,6 +38,11 @@ const GLOBAL_CSS_ID = '\0fontless:global.css'
 
 const CSS_EXTENSIONS_RE = /\.(?:css|scss|sass|postcss|pcss|less|stylus|styl)(?:\?[^.]+)?$/
 
+/** The parts of the Vite DevTools plugin context used to mount the fontless devframe. */
+interface DevToolsContext {
+  install: (definition: DevframeDefinition) => Promise<void>
+}
+
 export function fontless(_options?: FontlessOptions): Plugin[] {
   const options = defu(_options, defaultOptions satisfies FontlessOptions) as FontlessOptions
 
@@ -46,6 +53,18 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   const PACKAGE_NAME = 'fontless'
   const RUNTIME_NAME = `${PACKAGE_NAME}/runtime`
   let storage: ReturnType<typeof createFontlessStorage>
+
+  // Families resolved before Vite DevTools mounts the devframe
+  const exposedFonts = new Map<string, ManualFontDetails | ProviderFontDetails>()
+  let devframe: FontlessDevframe | undefined
+  function exposeFont(font: ManualFontDetails | ProviderFontDetails) {
+    if (devframe) {
+      devframe.exposeFont(font)
+    }
+    else {
+      exposedFonts.set(JSON.stringify(font), font)
+    }
+  }
 
   // `emit` is only available while a CSS module is being transformed, as it needs that
   // transform's plugin context to emit into the right environment's bundle. `collect`
@@ -209,6 +228,20 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   const mainPlugin: Plugin = {
     name: 'vite-plugin-fontless',
     apply: (_config, env) => !env.isPreview,
+    ...(options.devtools !== false && {
+      devtools: {
+        capabilities: { build: false },
+        async setup(ctx: DevToolsContext) {
+          const { createFontlessDevframe } = await import('./devtools')
+          devframe ??= createFontlessDevframe()
+          for (const font of exposedFonts.values()) {
+            devframe.exposeFont(font)
+          }
+          exposedFonts.clear()
+          await ctx.install(devframe.definition)
+        },
+      },
+    }),
     async configResolved(config) {
       command = config.command
       storage = createFontlessStorage(_options?.cache, { root: config.root, cacheDir: config.cacheDir })
@@ -260,6 +293,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         providers,
         storage,
         normalizeFontData: normalizeFontData.bind({}, assetContext),
+        exposeFont: config.command === 'serve' && options.devtools !== false ? exposeFont : undefined,
       })
 
       cssTransformOptions = {

@@ -1,0 +1,59 @@
+html {
+  background-color: #fff;
+}
+
+html.dark {
+  background-color: #151515;
+  color: #fff;
+  color-scheme: dark;
+}
+
+html:not(.dark) {
+  color-scheme: light;
+}
+
+::selection {
+  background: #8884;
+}
+
+.splitpanes__splitter {
+  position: relative;
+}
+
+.splitpanes__splitter::before {
+  content: '';
+  left: 0;
+  position: absolute;
+  top: 0;
+  transition: opacity 0.4s;
+  z-index: 1;
+}
+
+.splitpanes__splitter:hover::before {
+  background: #8881;
+  opacity: 1;
+}
+
+.splitpanes--vertical > .splitpanes__splitter {
+  width: 0 !important;
+  min-width: 0 !important;
+  border-right: 1px solid rgb(156 163 175 / 0.2);
+}
+
+.splitpanes--horizontal > .splitpanes__splitter {
+  height: 0 !important;
+  min-height: 0 !important;
+  border-top: 1px solid rgb(156 163 175 / 0.2);
+}
+
+.splitpanes--vertical > .splitpanes__splitter::before {
+  height: 100%;
+  left: -5px;
+  right: -4px;
+}
+
+.splitpanes--horizontal > .splitpanes__splitter::before {
+  bottom: -4px;
+  top: -5px;
+  width: 100%;
+}

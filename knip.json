@@ -4,6 +4,7 @@
   "workspaces": {
     "packages/fontless": {
       "ignoreDependencies": [
+        "@iconify-json/carbon",
         "vite"
       ]
     },

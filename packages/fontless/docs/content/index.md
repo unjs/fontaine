@@ -328,6 +328,19 @@ For SSR meta-frameworks, `fontless/runtime` exposes the same declarations as a s
 import { globalFontFaces } from 'fontless/runtime'
 ```
 
+## DevTools
+
+When [Vite DevTools](https://devtools.vite.dev) is enabled, Fontless adds a **Fonts** panel to its dock during `vite dev`, listing every resolved family with its faces, file sizes and generated `@font-face` CSS.
+
+```js
+export default defineConfig({
+  devtools: true,
+  plugins: [fontless()],
+})
+```
+
+Pass `devtools: false` to `fontless()` to leave the panel out. The panel is a [devframe](https://devfra.me), exported from `fontless/devtools` as `createFontlessDevframe()` for other devframe hosts to mount.
+
 ## How It Works
 
 `Fontless` works by:

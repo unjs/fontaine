@@ -21,6 +21,7 @@
     "skipLibCheck": true
   },
   "exclude": [
+    "packages/fontless/client/*",
     "packages/fontless/examples/*",
     "packages/fontless/docs/*"
   ]
