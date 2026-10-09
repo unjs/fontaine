@@ -1,6 +1,7 @@
 import type { RemoteFontSource } from 'unifont'
 import type { FontSource, NormalizedFontFaceData } from '../types'
 import { extname, relative } from 'node:path/posix'
+import { setTimeout as sleep } from 'node:timers/promises'
 import { generateFontFace as generateFallbackFontFace, getMetricsForFamily, readMetrics } from 'fontaine'
 import { isFetchableURL } from '../url'
 
@@ -98,13 +99,30 @@ function resolveProviderMetrics(data: NormalizedFontFaceData, knownMetrics: Fall
   }
 }
 
+const METRICS_RETRIES = 2
+const METRICS_RETRY_DELAY = 500
+
+async function readSourceMetrics(family: string, source: string) {
+  for (let retries = METRICS_RETRIES; ; retries--) {
+    try {
+      return await readMetrics(source)
+    }
+    catch (error) {
+      if (retries <= 0) {
+        throw new Error(`Could not read metrics for \`${family}\` from \`${source}\`.`, { cause: error })
+      }
+      await sleep(METRICS_RETRY_DELAY)
+    }
+  }
+}
+
 export async function generateFontFallbacks(family: string, data: NormalizedFontFaceData, fallbacks?: Array<{ name: string, font: string }>): Promise<string[]> {
   if (!fallbacks?.length)
     return []
 
   const fontURL = data.src!.find(s => 'url' in s) as RemoteFontSource | undefined
   const knownMetrics = await getMetricsForFamily(family)
-  const metrics = resolveProviderMetrics(data, knownMetrics) || knownMetrics || (fontURL && await readMetrics(fontURL.originalURL || fontURL.url))
+  const metrics = resolveProviderMetrics(data, knownMetrics) || knownMetrics || (fontURL && await readSourceMetrics(family, fontURL.originalURL || fontURL.url))
 
   if (!metrics)
     return []
