@@ -252,13 +252,15 @@ describe('createFontlessDevframe', () => {
     devframe.exposeFont(poppins)
     devframe.exposeUsage('/a.css', [poppinsUsage(), { fontFamily: 'Missing', resolved: false, fallbacks: [], preloads: [] }])
     await vi.waitFor(async () => {
-      expect((await getState()).families[0]!.usages).toEqual(['/a.css'])
-    })
+      const [family] = (await getState()).families
+      expect(family!.usages).toEqual(['/a.css'])
+      expect(family!.fallbackCSS).toContain('Poppins Fallback: Arial')
+    }, FALLBACK_TIMEOUT)
 
     devframe.exposeUsage('/a.css', [])
     await vi.waitFor(async () => {
       const state = await getState()
-      expect(state.families[0]!.usages).toEqual([])
+      expect(state.families[0]).toMatchObject({ usages: [], fallbacks: [], fallbackCSS: '' })
       expect(state.unresolved).toEqual([])
     })
   })

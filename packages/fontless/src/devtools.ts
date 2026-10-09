@@ -170,6 +170,9 @@ export function createFontlessDevframe(options: FontlessDevframeOptions = {}): F
     const family = families.get(fontFamily)
     const { fallbacks } = summarise(fontFamily)
     if (!family || !fallbacks.length) {
+      if (fallbackCSS.delete(fontFamily)) {
+        scheduleFlush()
+      }
       return
     }
     const face = family.fonts.find(font => !font.style || font.style === 'normal') ?? family.fonts[0]!
@@ -201,8 +204,9 @@ export function createFontlessDevframe(options: FontlessDevframeOptions = {}): F
   }
 
   function exposeUsage(id: string | undefined, usages: FontFamilyUsage[]) {
+    const previous = stylesheets.get(id ?? GLOBAL_USAGE) ?? []
     stylesheets.set(id ?? GLOBAL_USAGE, JSON.parse(JSON.stringify(usages)))
-    for (const fontFamily of unique(usages.map(usage => usage.fontFamily))) {
+    for (const fontFamily of unique([...previous, ...usages].map(usage => usage.fontFamily))) {
       void renderFallbacks(fontFamily)
     }
     scheduleFlush()
