@@ -202,6 +202,24 @@ describe('readMetrics', () => {
     `)
     server.close()
   })
+  it('retries a URL after a failed request', async () => {
+    let requests = 0
+    const server = createServer((request, response) => {
+      if (requests++ === 0) {
+        response.statusCode = 500
+        response.end()
+        return
+      }
+      handler(request, response, { public: dirname(fileURLToPath(fixtureURL)) })
+    })
+    const port = await getRandomPort()
+    server.listen(port, '127.0.0.1')
+    const url = `http://127.0.0.1:${port}/font.ttf`
+
+    await expect(readMetrics(url)).rejects.toThrow()
+    expect(await readMetrics(url)).toMatchObject({ ascent: 1050, descent: -350, unitsPerEm: 1000 })
+    server.close()
+  })
   it('ignores non-URL paths', async () => {
     expect(await readMetrics(`/font.ttf`)).toBeNull()
     // absolute on whichever platform the tests run, so this covers a Windows drive letter
