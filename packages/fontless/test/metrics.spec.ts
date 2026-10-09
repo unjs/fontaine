@@ -4,6 +4,8 @@ import { promises as fsp } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { readMetrics } from 'fontaine'
+import { createStorage } from 'unstorage'
+import memoryDriver from 'unstorage/drivers/memory'
 import { createServer } from 'vite'
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest'
 import { fontless } from '../src'
@@ -70,5 +72,20 @@ describe('fallback metrics', () => {
     await expect(transformStyles('https://127.0.0.1:1/switzer.woff2'))
       .rejects
       .toThrow('Could not read metrics for `Switzer` from `https://127.0.0.1:1/switzer.woff2`.')
+  })
+
+  it('should read metrics of remote fonts from the cache', async () => {
+    const url = 'https://cdn.example.com/switzer.woff2'
+    const read = vi.mocked(readMetrics).mockResolvedValue(metrics)
+    const cache = createStorage({ driver: memoryDriver() })
+
+    const first = await transformStyles(url, { cache })
+    const second = await transformStyles(url, { cache })
+
+    for (const code of [first, second]) {
+      expect(code).toContain('Switzer Fallback: Arial')
+      expect(code).toContain('size-adjust: 112.1577%')
+    }
+    expect(read.mock.calls.filter(([source]) => source === url)).toHaveLength(1)
   })
 })
