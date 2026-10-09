@@ -1,18 +1,22 @@
 import type { Server } from 'node:http'
 import type { Plugin } from 'vite'
+import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import vue from '@vitejs/plugin-vue'
 import { createFontlessDevframe } from 'fontless/devtools'
 import UnoCSS from 'unocss/vite'
 import { defineConfig } from 'vite'
-import { createFixtures } from './fixtures.ts'
+import { createFixtures, usages, warnings } from './fixtures.ts'
 
-const devframe = createFontlessDevframe()
+const devframe = createFontlessDevframe({
+  reportsUsage: true,
+  ui: { primaryColor: process.env.FONTLESS_DEVTOOLS_PRIMARY_COLOR },
+})
 const base = `/__${devframe.definition.id}/`
 
 /**
  * Serve the devframe's RPC backend from the Vite dev server, under the same base the SPA is
- * mounted at by devframe hosts, with fixture fonts exposed.
+ * mounted at by devframe hosts, with fixture fonts, usages and warnings exposed.
  */
 function devBridge(): Plugin {
   return {
@@ -22,6 +26,12 @@ function devBridge(): Plugin {
       const { initDevframe } = await import('devframe/initiate')
       for (const font of createFixtures(base)) {
         devframe.exposeFont(font)
+      }
+      for (const [id, stylesheetUsages] of usages) {
+        devframe.exposeUsage(id, stylesheetUsages)
+      }
+      for (const warning of warnings) {
+        devframe.exposeWarning(warning)
       }
       const instance = initDevframe(devframe.definition, {
         base,

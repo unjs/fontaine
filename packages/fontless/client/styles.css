@@ -1,5 +1,14 @@
 html {
+  --fontless-primary: #6366f1;
   background-color: #fff;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html.dark {

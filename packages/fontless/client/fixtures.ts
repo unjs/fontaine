@@ -1,4 +1,4 @@
-import type { ManualFontDetails, ProviderFontDetails } from 'fontless'
+import type { FontFamilyUsage, ManualFontDetails, ProviderFontDetails } from 'fontless'
 import { fileURLToPath } from 'node:url'
 
 const LATIN = ['U+0000-00FF', 'U+0131', 'U+0152-0153', 'U+02BB-02BC', 'U+02C6', 'U+02DA', 'U+02DC', 'U+0304', 'U+0308', 'U+0329', 'U+2000-206F', 'U+20AC', 'U+2122', 'U+2191', 'U+2193', 'U+2212', 'U+2215', 'U+FEFF', 'U+FFFD']
@@ -43,3 +43,21 @@ export function createFixtures(base: string): Array<ManualFontDetails | Provider
     },
   ]
 }
+
+export const usages: Array<[id: string | undefined, usages: FontFamilyUsage[]]> = [
+  ['/src/style.css', [
+    { fontFamily: 'Poppins', resolved: true, fallbacks: ['Arial', 'Helvetica Neue'], preloads: ['https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecnFHGPc.woff2'] },
+    { fontFamily: 'Not A Real Font', resolved: false, fallbacks: [], preloads: [] },
+    { fontFamily: 'Helvetica', resolved: false, fallbacks: [], preloads: [] },
+  ]],
+  ['/src/code.css', [
+    { fontFamily: 'Fira Code', resolved: true, fallbacks: ['Courier New'], preloads: [] },
+  ]],
+  [undefined, [
+    { fontFamily: 'Poppins', resolved: true, fallbacks: [], preloads: [] },
+  ]],
+]
+
+export const warnings = [
+  'Unknown provider `missing` for font family `Lato`. Falling back to default providers.',
+]

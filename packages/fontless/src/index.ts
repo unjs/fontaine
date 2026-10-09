@@ -30,6 +30,6 @@ export type {
 } from './types'
 
 export { transformCSS } from './utils'
-export type { FontFamilyInjectionPluginOptions } from './utils'
+export type { FontFamilyInjectionPluginOptions, FontFamilyUsage } from './utils'
 
 export { fontless } from './vite'

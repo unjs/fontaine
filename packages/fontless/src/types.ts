@@ -30,6 +30,10 @@ export interface FontFallback {
 interface SharedFontDetails {
   fontFamily: string
   fonts: FontFaceData[]
+  /** Characters the emitted files are reduced to, when the family sets `glyphs`. */
+  glyphs?: string
+  /** Variable font axis values requested for the family. */
+  variableAxis?: VariableAxisOptions
 }
 
 export interface ManualFontDetails extends SharedFontDetails {

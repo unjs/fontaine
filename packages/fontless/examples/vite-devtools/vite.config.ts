@@ -6,7 +6,9 @@ export default defineConfig({
   plugins: [
     fontless({
       families: [
+        { name: 'Poppins', preload: true },
         { name: 'Fira Code', provider: 'google', weights: [400, 700] },
+        { name: 'Lobster', global: true },
       ],
     }),
   ],

@@ -1,5 +1,5 @@
 import type { FontFaceData, InitializedProvider, Provider, ProviderContext } from 'unifont'
-import type { FontFamilyProviderOverride, FontlessOptions, RawFontFaceData } from '../src/types'
+import type { FontFamilyProviderOverride, FontlessOptions, ManualFontDetails, ProviderFontDetails, RawFontFaceData } from '../src/types'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { defaultValues } from '../src/defaults'
 import { createResolver } from '../src/resolve'
@@ -1246,6 +1246,34 @@ describe('createResolver', () => {
       await resolver('Inter')
 
       expect(exposed).toEqual(['Inter'])
+    })
+
+    it('should expose the glyphs and variable axes requested for a family', async () => {
+      const provider = createEmptyProvider('test', { fonts: [{ src: [{ url: '/font.woff2' }] }], provider: 'test' })
+      const exposed: Array<ManualFontDetails | ProviderFontDetails> = []
+
+      const resolver = await createResolver({
+        options: {
+          providers: { test: provider },
+          families: [
+            { name: 'Inter', glyphs: 'ab', variableAxis: { CASL: [1] } },
+            { name: 'Manual', src: '/manual.woff2', glyphs: 'cd' },
+          ],
+        },
+        providers: { test: provider },
+        normalizeFontData: defaultNormalizeFontData,
+        exposeFont: font => void exposed.push(font),
+      })
+
+      await resolver('Inter')
+      await resolver('Manual')
+      await resolver('Plain')
+
+      expect(exposed.map(({ fontFamily, glyphs, variableAxis }) => ({ fontFamily, glyphs, variableAxis }))).toEqual([
+        { fontFamily: 'Inter', glyphs: 'ab', variableAxis: { CASL: [1] } },
+        { fontFamily: 'Manual', glyphs: 'cd', variableAxis: undefined },
+        { fontFamily: 'Plain', glyphs: undefined, variableAxis: undefined },
+      ])
     })
 
     it('should propagate a rejection from `exposeFont`', async () => {

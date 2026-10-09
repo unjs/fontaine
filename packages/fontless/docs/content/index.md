@@ -330,7 +330,7 @@ import { globalFontFaces } from 'fontless/runtime'
 
 ## DevTools
 
-When [Vite DevTools](https://devtools.vite.dev) is enabled, Fontless adds a **Fonts** panel to its dock during `vite dev`, listing every resolved family with its faces, file sizes and generated `@font-face` CSS.
+When [Vite DevTools](https://devtools.vite.dev) is enabled, Fontless adds a **Fonts** panel to its dock during `vite dev`. For every resolved family it shows the faces with their file sizes, which faces are preloaded, the stylesheets using the family, the generated `@font-face` CSS, and a preview of each metric-override fallback laid over the web font. Families that are used but could not be resolved, and warnings logged while resolving, are listed too.
 
 ```js
 export default defineConfig({

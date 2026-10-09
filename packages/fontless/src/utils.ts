@@ -34,6 +34,22 @@ export interface FontFamilyInjectionPluginOptions {
   processCSSVariables?: boolean | 'font-prefixed-only' | (string & {})
   selectFontsToPreload?: (fontFamily: string, fonts: FontFaceData[]) => FontFaceData[]
   fontsToPreload: Map<string, Set<string>>
+  /**
+   * Called once per stylesheet with every font family it uses, whether or not they resolved.
+   * The list replaces any reported earlier for the same stylesheet.
+   */
+  exposeUsage?: (id: string, usages: FontFamilyUsage[]) => void
+}
+
+/** A font family used by a stylesheet, or declared `global`. */
+export interface FontFamilyUsage {
+  fontFamily: string
+  /** Whether `@font-face` declarations were generated for the family. */
+  resolved: boolean
+  /** Families that metric-override fallbacks were generated for. */
+  fallbacks: string[]
+  /** URLs of the faces preloaded for this usage. */
+  preloads: string[]
 }
 
 function findSafeInsertionIndex(ast: CssNode): number {
@@ -120,6 +136,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
   const safeInsertionIndex = findSafeInsertionIndex(ast)
 
   const promises = [] as Promise<unknown>[]
+  const usages: FontFamilyUsage[] = []
 
   async function addFontFaceDeclaration(fontFamily: string, fallbackOptions: {
     generic?: GenericCSSFamily
@@ -131,19 +148,23 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
       fallbacks: fallbackOptions.fallbacks,
     }) || {}
 
-    if (!result.fonts || result.fonts.length === 0)
+    if (!result.fonts || result.fonts.length === 0) {
+      usages.push({ fontFamily, resolved: false, fallbacks: [], preloads: [] })
       return
+    }
 
     const fallbackMap = result.fallbacks?.map(f => ({ font: f, name: `${fontFamily} Fallback: ${f}` })) || []
     let insertFontFamilies = false
 
     result.fonts.sort((a, b) => (a.meta?.priority || 0) - (b.meta?.priority || 0))
     const fontsToPreload = result.fallbacksOnly ? [] : (options.selectFontsToPreload?.(fontFamily, result.fonts) ?? [])
+    const preloads: string[] = []
     for (const font of fontsToPreload) {
       const fontToPreload = font.src.find((s): s is RemoteFontSource => 'url' in s)?.url
       if (fontToPreload) {
         const urls = options.fontsToPreload.get(id) || new Set()
         options.fontsToPreload.set(id, urls.add(fontToPreload))
+        preloads.push(fontToPreload)
       }
     }
 
@@ -171,6 +192,13 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
         insertFontFamilies = true
       }
     }
+
+    usages.push({
+      fontFamily,
+      resolved: true,
+      fallbacks: insertFontFamilies ? fallbackMap.map(f => f.font) : [],
+      preloads,
+    })
 
     const prefaces = await Promise.all(pendingDeclarations.map(declaration => renderDeclaration(declaration, id, options)))
 
@@ -240,6 +268,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
   processNode(ast)
 
   await Promise.all(promises)
+  options.exposeUsage?.(id, usages)
 
   return s
 }
