@@ -5,11 +5,11 @@ describe('fallbacks module', () => {
   describe('default category fallbacks', () => {
     it('should export default category fallbacks', () => {
       expect(DEFAULT_CATEGORY_FALLBACKS).toBeDefined()
-      expect(DEFAULT_CATEGORY_FALLBACKS['sans-serif']).toEqual(['BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'])
+      expect(DEFAULT_CATEGORY_FALLBACKS['sans-serif']).toEqual(['Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'])
       expect(DEFAULT_CATEGORY_FALLBACKS.serif).toEqual(['Times New Roman', 'Georgia', 'Noto Serif'])
       expect(DEFAULT_CATEGORY_FALLBACKS.monospace).toEqual(['Courier New', 'Roboto Mono', 'Noto Sans Mono'])
-      expect(DEFAULT_CATEGORY_FALLBACKS.display).toEqual(['BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'])
-      expect(DEFAULT_CATEGORY_FALLBACKS.handwriting).toEqual(['BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'])
+      expect(DEFAULT_CATEGORY_FALLBACKS.display).toEqual(['Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'])
+      expect(DEFAULT_CATEGORY_FALLBACKS.handwriting).toEqual(['Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'])
     })
   })
 

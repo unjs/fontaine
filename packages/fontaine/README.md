@@ -53,7 +53,7 @@ import { defineConfig } from 'astro/config'
 
 const options = {
   // You can specify fallbacks as an array (applies to all fonts)
-  fallbacks: ['BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'],
+  fallbacks: ['Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'],
 
   // Or as an object to configure specific fallbacks per font family
   // fallbacks: {
@@ -146,7 +146,7 @@ For these setups, use the PostCSS plugin instead. It runs over fully-compiled CS
 module.exports = {
   plugins: [
     require('fontaine/postcss')({
-      fallbacks: ['BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'],
+      fallbacks: ['Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'],
     }),
     // ...any other plugins, such as autoprefixer or cssnano
   ],
@@ -183,7 +183,7 @@ const options = {
 
 ### Default Category Fallbacks
 
-- **sans-serif**: `BlinkMacSystemFont`, `Segoe UI`, `Helvetica Neue`, `Arial`, `Noto Sans`
+- **sans-serif**: `Segoe UI`, `Helvetica Neue`, `Arial`, `Noto Sans`
 - **serif**: `Times New Roman`, `Georgia`, `Noto Serif`
 - **monospace**: `Courier New`, `Roboto Mono`, `Noto Sans Mono`
 - **display** & **handwriting**: Same as sans-serif
@@ -229,8 +229,8 @@ Example:
 /* This additional font-face declaration will be added to your CSS. */
 @font-face {
   font-family: 'Roboto fallback';
-  src: local('BlinkMacSystemFont'), local('Segoe UI'), local('Helvetica Neue'),
-      local('Arial'), local('Noto Sans');
+  src: local('Segoe UI'), local('Helvetica Neue'), local('Arial'),
+      local('Noto Sans');
   ascent-override: 92.7734375%;
   descent-override: 24.4140625%;
   line-gap-override: 0%;

@@ -606,14 +606,6 @@ describe('fontaine transform', () => {
             line-gap-override: 8.8672%;
           }
           @font-face {
-            font-family: "Poppins fallback";
-            src: local("BlinkMacSystemFont");
-            size-adjust: 120.0469%;
-            ascent-override: 87.4658%;
-            descent-override: 29.1553%;
-            line-gap-override: 8.3301%;
-          }
-          @font-face {
               font-family: Poppins;
               src: url('poppins.ttf');
             }"
@@ -774,14 +766,6 @@ describe('fontaine transform', () => {
             size-adjust: 112.7753%;
             ascent-override: 88.6719%;
             descent-override: 17.7344%;
-            line-gap-override: 0%;
-          }
-          @font-face {
-            font-family: "UnknownFont fallback";
-            src: local("BlinkMacSystemFont");
-            size-adjust: 120.0469%;
-            ascent-override: 83.3008%;
-            descent-override: 16.6602%;
             line-gap-override: 0%;
           }
           @font-face {

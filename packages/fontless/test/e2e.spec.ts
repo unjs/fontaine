@@ -41,12 +41,12 @@ describe.each(fixtures)('e2e %s', (fixture) => {
     const content = await readFile(join(outputDir!, css!), 'utf-8')
     expect(content).toMatch(/url\((?:\.\.\/)*\/?assets\/_fonts/)
     if (fixture === 'vanilla-app') {
-      expect(content).toMatch(/--font-test-variable:\s*"Press Start 2P", "Press Start 2P Fallback: BlinkMacSystemFont", "Press Start 2P Fallback: Segoe UI", "Press Start 2P Fallback: Helvetica Neue", "Press Start 2P Fallback: Arial", "Press Start 2P Fallback: Noto Sans", sans-serif/)
+      expect(content).toMatch(/--font-test-variable:\s*"Press Start 2P", "Press Start 2P Fallback: Segoe UI", "Press Start 2P Fallback: Helvetica Neue", "Press Start 2P Fallback: Arial", "Press Start 2P Fallback: Noto Sans", sans-serif/)
       const html = files.find(file => file.endsWith('.html'))!
       expect(await readFile(join(outputDir!, html), 'utf-8')).toContain('rel="preload"')
     }
     if (fixture === 'tailwind') {
-      expect(content).toMatch(/--font-sans:\s*"Geist", "Geist Fallback: BlinkMacSystemFont", "Geist Fallback: Segoe UI", "Geist Fallback: Helvetica Neue", "Geist Fallback: Arial", "Geist Fallback: Noto Sans",\s*sans-serif/)
+      expect(content).toMatch(/--font-sans:\s*"Geist", "Geist Fallback: Segoe UI", "Geist Fallback: Helvetica Neue", "Geist Fallback: Arial", "Geist Fallback: Noto Sans",\s*sans-serif/)
       expect(content).toContain('format("woff2")')
       const html = files.find(file => file.endsWith('.html'))!
       const htmlContent = await readFile(join(outputDir!, html), 'utf-8')

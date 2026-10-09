@@ -13,7 +13,7 @@ describe('fontless defaults', () => {
     it('should map generic families to category presets', () => {
       // Core generic families should use category presets
       expect(defaultValues.fallbacks.serif).toEqual(['Times New Roman', 'Georgia', 'Noto Serif'])
-      expect(defaultValues.fallbacks['sans-serif']).toEqual(['BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'])
+      expect(defaultValues.fallbacks['sans-serif']).toEqual(['Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'])
       expect(defaultValues.fallbacks.monospace).toEqual(['Courier New', 'Roboto Mono', 'Noto Sans Mono'])
     })
 
