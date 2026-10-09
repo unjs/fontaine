@@ -2,6 +2,7 @@ import type { CssNode, StyleSheet } from 'css-tree'
 import type { transform as lightningCSSTransform, TransformOptions as LightningCSSTransformOptions } from 'lightningcss'
 import type { FontFaceData, RemoteFontSource } from 'unifont'
 import type { GenericCSSFamily } from './css/parse'
+import type { FontFallbackOptions } from './css/render'
 import type { Awaitable, NormalizedFontFaceData } from './types'
 import { Buffer } from 'node:buffer'
 import { dirname } from 'node:path/posix'
@@ -27,7 +28,7 @@ export interface FontFaceResolution {
   fallbacksOnly?: boolean
 }
 
-export interface FontFamilyInjectionPluginOptions {
+export interface FontFamilyInjectionPluginOptions extends FontFallbackOptions {
   lightningcssOptions?: Partial<LightningCSSTransformOptions<any>>
   resolveFontFace: (fontFamily: string, fallbackOptions?: { fallbacks: string[], generic?: GenericCSSFamily }) => Awaitable<undefined | FontFaceResolution>
   dev: boolean
@@ -154,7 +155,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
     const pendingDeclarations: string[] = []
 
     for (const font of result.fonts) {
-      const fallbackDeclarations = await generateFontFallbacks(fontFamily, font, fallbackMap)
+      const fallbackDeclarations = await generateFontFallbacks(fontFamily, font, fallbackMap, options)
       const declarations = result.fallbacksOnly
         ? fallbackDeclarations
         : [generateFontFace(fontFamily, opts.relative ? relativiseFontSources(font, dirname(id).replace(/^\/?/, '/')) : font), ...fallbackDeclarations]

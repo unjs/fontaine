@@ -86,7 +86,10 @@ export async function readMetrics(_source: URL | string): Promise<FontFaceMetric
       metrics = await urlRequestCache.get(source)!
     }
     else {
-      const requestPromise = fromUrl(source)
+      const requestPromise = fromUrl(source).catch((error) => {
+        urlRequestCache.delete(source)
+        throw error
+      })
       urlRequestCache.set(source, requestPromise)
 
       metrics = await requestPromise

@@ -9,11 +9,13 @@ import type { FontFamilyInjectionPluginOptions } from './utils'
 
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { Buffer } from 'node:buffer'
+import { hash } from 'node:crypto'
 import { access, readFile } from 'node:fs/promises'
 import { join, posix } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defu } from 'defu'
 import { resolveModulePath } from 'exsolve'
+import { readMetrics } from 'fontaine'
 import MagicString from 'magic-string'
 import { normalizeFontData } from './assets'
 import { generateFontFace } from './css/render'
@@ -116,6 +118,20 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
     const res = subset ? await subsetFontData(downloaded, subset, url, variationAxes) : downloaded
     await storage.setItemRaw(key, res)
     return res
+  }
+
+  async function readCachedMetrics(source: string) {
+    if (!/^https?:\/\//.test(source)) {
+      return readMetrics(source)
+    }
+    const key = `data:metrics:${hash('sha256', source, 'base64url')}.json`
+    const cached = await storage.getItem(key) as Awaited<ReturnType<typeof readMetrics>>
+    if (cached) {
+      return cached
+    }
+    const metrics = await readMetrics(source)
+    await storage.setItem(key, metrics)
+    return metrics
   }
 
   // URLs of emitted fonts as the browser will request them, keyed by the URL that was
@@ -299,6 +315,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       cssTransformOptions = {
         processCSSVariables: options.processCSSVariables,
         selectFontsToPreload,
+        readMetrics: readCachedMetrics,
         fontsToPreload: new Map(),
         dev: config.mode === 'development',
         async resolveFontFace(fontFamily, fallbackOptions) {
