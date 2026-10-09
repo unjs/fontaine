@@ -330,9 +330,10 @@ describe('fontless vite plugin', () => {
 
   it('should skip stylesheets with no `font-family` when CSS variables are not processed', async () => {
     const root = await createFixture({ 'index.html': html, 'style.css': `:root { --heading: 'Inter' }` })
-    const { css } = await buildApp(root, { processCSSVariables: false })
-
-    expect(css).not.toContain('@font-face')
+    for (const devtools of [true, false]) {
+      const { css } = await buildApp(root, { processCSSVariables: false, devtools })
+      expect(css).not.toContain('@font-face')
+    }
   })
 
   it('should preload fonts that were not rewritten into emitted assets', async () => {

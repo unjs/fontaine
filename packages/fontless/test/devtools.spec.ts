@@ -343,6 +343,23 @@ describe('fontless vite plugin devtools', () => {
     warn.mockRestore()
   })
 
+  it('should forget the families a stylesheet stops using when CSS variables are not processed', async () => {
+    const { root, server, plugin } = await startServer({ processCSSVariables: false })
+    await server.transformRequest('/inter.css')
+    const { getState } = await install(plugin)
+    await vi.waitFor(async () => {
+      expect((await getState()).families[0]!.usages).toEqual([join(root, 'inter.css')])
+    })
+
+    await fsp.writeFile(join(root, 'inter.css'), `body { color: red }`)
+    server.moduleGraph.invalidateAll()
+    await server.transformRequest('/inter.css')
+
+    await vi.waitFor(async () => {
+      expect((await getState()).families[0]!.usages).toEqual([])
+    })
+  })
+
   it('should not add a DevTools panel when `devtools` is disabled', async () => {
     const { server, plugin } = await startServer({ devtools: false })
     await server.transformRequest('/inter.css')

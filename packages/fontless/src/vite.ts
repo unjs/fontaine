@@ -37,6 +37,8 @@ const EMPTY_SOURCE = new Uint8Array()
 // keyed by this synthetic id in `fontsToPreload` and in minification diagnostics.
 const GLOBAL_CSS_ID = '\0fontless:global.css'
 
+const FONT_FAMILY_RE = /font-family\s*:/
+
 const CSS_EXTENSIONS_RE = /\.(?:css|scss|sass|postcss|pcss|less|stylus|styl)(?:\?[^.]+)?$/
 
 /** The parts of the Vite DevTools plugin context used to mount the fontless devframe. */
@@ -378,11 +380,16 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
           include: [CSS_EXTENSIONS_RE, CSS_LANG_QUERY_RE, INLINE_STYLE_ID_RE],
         },
         code: {
-          // Early return if no font-family is used in this CSS
-          exclude: !options.processCSSVariables ? [/^(?!.*font-family\s*:).*$/s] : undefined,
+          // Early return if no font-family is used in this CSS, unless DevTools may be enabled,
+          // where such stylesheets clear the families they previously used
+          exclude: !options.processCSSVariables && options.devtools === false ? [/^(?!.*font-family\s*:).*$/s] : undefined,
         },
       },
       async handler(code, id) {
+        if (!options.processCSSVariables && !exposeToDevtools && !FONT_FAMILY_RE.test(code)) {
+          return
+        }
+
         // Font data is downloaded in `generateBundle`; rolldown requires a source up front
         // and has no `setAssetSource`, so emit a placeholder and fill it in there
         const emit = (file: string) => `__VITE_ASSET__${this.emitFile({
