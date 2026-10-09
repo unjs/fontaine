@@ -275,6 +275,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
     const fallbacks = resolveFallbacks(override, fallbackOptions)
     const glyphs = override?.glyphs ? normalizeGlyphs(override.glyphs) : defaultGlyphs
     const variableAxis = override?.variableAxis ?? options.defaults?.variableAxis
+    const transforms = { ...(glyphs && { glyphs }), ...(variableAxis && { variableAxis }) }
 
     if (override && 'src' in override) {
       // Nothing resolves these sources, so every requested axis is left to `fontless`.
@@ -284,6 +285,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
         type: 'manual',
         fontFamily,
         fonts,
+        ...transforms,
       })
       return {
         fallbacks,
@@ -339,6 +341,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
           fontFamily,
           provider: override.provider,
           fonts: fontsWithLocalFallbacks,
+          ...transforms,
         })
         return {
           fallbacks: resolveFallbacks(override, fallbackOptions, result.fallbacks),
@@ -372,6 +375,7 @@ export async function createResolver(context: ResolverContext): Promise<Resolver
       fontFamily,
       provider: (result.provider && providerKeys.get(result.provider)) || 'unknown',
       fonts: fontsWithLocalFallbacks,
+      ...transforms,
     })
     return {
       fallbacks: resolveFallbacks(override, fallbackOptions, result.fallbacks),

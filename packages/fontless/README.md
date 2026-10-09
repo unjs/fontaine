@@ -360,7 +360,7 @@ An empty string means no families are configured with `global: true`, that none 
 
 ## DevTools
 
-When [Vite DevTools](https://devtools.vite.dev) is enabled, Fontless adds a **Fonts** panel to its dock during `vite dev`, listing every resolved family with its faces, file sizes and generated `@font-face` CSS.
+When [Vite DevTools](https://devtools.vite.dev) is enabled, Fontless adds a **Fonts** panel to its dock during `vite dev`. For every resolved family it shows the faces with their file sizes, which faces are preloaded, the stylesheets using the family, the generated `@font-face` CSS, and a preview of each metric-override fallback laid over the web font. Families that are used but could not be resolved, and warnings logged while resolving, are listed too.
 
 ```ts
 export default defineConfig({
@@ -371,16 +371,39 @@ export default defineConfig({
 
 Pass `devtools: false` to `fontless()` to leave the panel out.
 
-The panel is a [devframe](https://devfra.me), so other devframe hosts can mount it too. `fontless/devtools` exports the definition along with a callback to pass to `createResolver`:
+The panel is a [devframe](https://devfra.me), so other devframe hosts can mount it too. `fontless/devtools` exports the definition along with callbacks to pass to `createResolver` and `transformCSS`:
 
 ```ts
-import { createResolver } from 'fontless'
+import { createResolver, transformCSS } from 'fontless'
 import { createFontlessDevframe } from 'fontless/devtools'
 
-const { definition, exposeFont } = createFontlessDevframe()
+const { definition, exposeFont, exposeUsage, exposeWarning } = createFontlessDevframe()
 
-const resolve = await createResolver({ /* ... */ exposeFont })
+const resolve = await createResolver({
+  /* ... */
+  exposeFont,
+  logger: { warn: (message) => { console.warn(message); exposeWarning(message) } },
+})
+await transformCSS({ /* ... */ exposeUsage }, code, id)
 // mount `definition` in a devframe host, e.g. `kit.install(definition)`
+```
+
+`createFontlessDevframe()` also accepts options to fit the panel into its host:
+
+```ts
+createFontlessDevframe({
+  // `exposeUsage` is passed to `transformCSS` for every stylesheet, so families
+  // that no stylesheet uses any more can be marked as unused
+  reportsUsage: true,
+  ui: {
+    // accent colour; defaults to the host's brand colour, where it sets one
+    primaryColor: '#00dc82',
+    // how the `families` option is written in your config, for hints
+    familiesOption: 'fonts.families',
+    // documentation linked from the panel
+    docsURL: 'https://fonts.nuxt.com',
+  },
+})
 ```
 
 `fontless/devtools` requires `devframe` to be installed for its types.

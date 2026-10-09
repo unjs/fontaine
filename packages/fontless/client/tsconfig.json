@@ -3,6 +3,7 @@
   "compilerOptions": {
     "lib": ["es2022", "esnext", "dom", "dom.iterable"],
     "types": ["vite/client"],
+    "allowImportingTsExtensions": true,
     "isolatedDeclarations": false
   },
   "include": ["**/*.ts", "**/*.vue"],

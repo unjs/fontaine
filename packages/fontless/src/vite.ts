@@ -5,7 +5,7 @@ import type { NormalizeFontDataContext, RenderedFont } from './assets'
 import type { FontlessDevframe } from './devtools'
 import type { LinkAttributes } from './runtime'
 import type { FontlessOptions, ManualFontDetails, ProviderFontDetails } from './types'
-import type { FontFamilyInjectionPluginOptions } from './utils'
+import type { FontFamilyInjectionPluginOptions, FontFamilyUsage } from './utils'
 
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { Buffer } from 'node:buffer'
@@ -20,6 +20,7 @@ import MagicString from 'magic-string'
 import { normalizeFontData } from './assets'
 import { generateFontFace } from './css/render'
 import { defaultOptions } from './defaults'
+import { logger } from './logger'
 import { selectPreloadFonts } from './preload'
 import { resolveProviders } from './providers'
 import { createResolver, getFamilyOverride } from './resolve'
@@ -37,6 +38,8 @@ const EMPTY_SOURCE = new Uint8Array()
 // Fonts declared `global` have no stylesheet of their own, so their declarations are
 // keyed by this synthetic id in `fontsToPreload` and in minification diagnostics.
 const GLOBAL_CSS_ID = '\0fontless:global.css'
+
+const FONT_FAMILY_RE = /font-family\s*:/
 
 const CSS_EXTENSIONS_RE = /\.(?:css|scss|sass|postcss|pcss|less|stylus|styl)(?:\?[^.]+)?$/
 
@@ -56,16 +59,27 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   const RUNTIME_NAME = `${PACKAGE_NAME}/runtime`
   let storage: ReturnType<typeof createFontlessStorage>
 
-  // Families resolved before Vite DevTools mounts the devframe
-  const exposedFonts = new Map<string, ManualFontDetails | ProviderFontDetails>()
+  // Calls made before Vite DevTools mounts the devframe, keyed to drop repeats
+  const devframeCalls = new Map<string, (devframe: FontlessDevframe) => void>()
   let devframe: FontlessDevframe | undefined
-  function exposeFont(font: ManualFontDetails | ProviderFontDetails) {
+  let exposeToDevtools = false
+  function toDevframe(key: string, call: (devframe: FontlessDevframe) => void) {
     if (devframe) {
-      devframe.exposeFont(font)
+      call(devframe)
     }
     else {
-      exposedFonts.set(JSON.stringify(font), font)
+      devframeCalls.set(key, call)
     }
+  }
+  const devtools = {
+    exposeFont: (font: ManualFontDetails | ProviderFontDetails) => toDevframe(`font:${JSON.stringify(font)}`, d => d.exposeFont(font)),
+    exposeUsage: (id: string | undefined, usages: FontFamilyUsage[]) => toDevframe(`usage:${id ?? ''}`, d => d.exposeUsage(id, usages)),
+    logger: {
+      warn: (message = '') => {
+        logger.warn(message)
+        toDevframe(`warning:${message}`, d => d.exposeWarning(message))
+      },
+    },
   }
 
   // `emit` is only available while a CSS module is being transformed, as it needs that
@@ -172,6 +186,7 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
       const families = new Set(options.families?.map(f => f.name).filter(name => getFamilyOverride(options.families, name)?.global))
       const declarations: string[] = []
       const hrefs = new Set<string>()
+      const globalUsages: FontFamilyUsage[] = []
 
       for (const family of families) {
         const result = await buildContext.run(
@@ -179,16 +194,20 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
           () => resolveFontFaceWithOverride(family),
         )
         if (!result?.fonts?.length) {
+          globalUsages.push({ fontFamily: family, resolved: false, fallbacks: [], preloads: [] })
           continue
         }
 
         const fonts = [...result.fonts].sort((a, b) => (a.meta?.priority || 0) - (b.meta?.priority || 0))
+        const preloads: string[] = []
         for (const font of selectFontsToPreload(family, fonts)) {
           const url = font.src.find((s): s is RemoteFontSource => 'url' in s)?.url
           if (url) {
             hrefs.add(url)
+            preloads.push(url)
           }
         }
+        globalUsages.push({ fontFamily: family, resolved: true, fallbacks: [], preloads })
 
         // reverse order by priority since last rule with overlapping unicode-range wins
         // https://www.w3.org/TR/css-fonts-4/#composite-fonts
@@ -199,6 +218,9 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
 
       if (hrefs.size > 0) {
         cssTransformOptions.fontsToPreload.set(GLOBAL_CSS_ID, hrefs)
+      }
+      if (exposeToDevtools) {
+        devtools.exposeUsage(undefined, globalUsages)
       }
 
       return declarations.join('')
@@ -249,11 +271,11 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         capabilities: { build: false },
         async setup(ctx: DevToolsContext) {
           const { createFontlessDevframe } = await import('./devtools')
-          devframe ??= createFontlessDevframe()
-          for (const font of exposedFonts.values()) {
-            devframe.exposeFont(font)
+          devframe ??= createFontlessDevframe({ reportsUsage: true })
+          for (const call of devframeCalls.values()) {
+            call(devframe)
           }
-          exposedFonts.clear()
+          devframeCalls.clear()
           await ctx.install(devframe.definition)
         },
       },
@@ -304,15 +326,18 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         root: config.root,
       })
 
+      exposeToDevtools = config.command === 'serve' && options.devtools !== false
+
       resolveFontFaceWithOverride = await createResolver({
         options,
         providers,
         storage,
         normalizeFontData: normalizeFontData.bind({}, assetContext),
-        exposeFont: config.command === 'serve' && options.devtools !== false ? exposeFont : undefined,
+        ...(exposeToDevtools && { exposeFont: devtools.exposeFont, logger: devtools.logger }),
       })
 
       cssTransformOptions = {
+        exposeUsage: exposeToDevtools ? devtools.exposeUsage : undefined,
         processCSSVariables: options.processCSSVariables,
         selectFontsToPreload,
         readMetrics: readCachedMetrics,
@@ -356,8 +381,10 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
             next()
             return
           }
+          const data = await loadFont(filename, font)
           res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
-          res.end(await loadFont(filename, font))
+          res.setHeader('Content-Length', data.byteLength)
+          res.end(req.method === 'HEAD' ? undefined : data)
         }
         catch (e) {
           next(e)
@@ -370,11 +397,16 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
           include: [CSS_EXTENSIONS_RE, CSS_LANG_QUERY_RE, INLINE_STYLE_ID_RE],
         },
         code: {
-          // Early return if no font-family is used in this CSS
-          exclude: !options.processCSSVariables ? [/^(?!.*font-family\s*:).*$/s] : undefined,
+          // Early return if no font-family is used in this CSS, unless DevTools may be enabled,
+          // where such stylesheets clear the families they previously used
+          exclude: !options.processCSSVariables && options.devtools === false ? [/^(?!.*font-family\s*:).*$/s] : undefined,
         },
       },
       async handler(code, id) {
+        if (!options.processCSSVariables && !exposeToDevtools && !FONT_FAMILY_RE.test(code)) {
+          return
+        }
+
         // Font data is downloaded in `generateBundle`; rolldown requires a source up front
         // and has no `setAssetSource`, so emit a placeholder and fill it in there
         const emit = (file: string) => `__VITE_ASSET__${this.emitFile({

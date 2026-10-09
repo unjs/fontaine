@@ -1,4 +1,4 @@
-import type { FontFamilyInjectionPluginOptions } from '../src/utils'
+import type { FontFamilyInjectionPluginOptions, FontFamilyUsage } from '../src/utils'
 import { describe, expect, it } from 'vitest'
 import { transformCSS } from '../src/utils'
 
@@ -124,6 +124,41 @@ describe('transformCSS', () => {
     })
 
     expect(result).toContain('font-family: \'Inter\';')
+  })
+
+  it('should expose every family a stylesheet uses', async () => {
+    const exposed: Array<[string, FontFamilyUsage[]]> = []
+    await transform(`h1 { font-family: 'Poppins', sans-serif } p { font-family: 'Unknown' }`, {
+      exposeUsage: (id, usages) => void exposed.push([id, usages]),
+      resolveFontFace: family => family === 'Poppins'
+        ? { fonts: [{ src: [{ url: '/poppins.woff2', format: 'woff2' }] }], fallbacks: ['Arial'] }
+        : undefined,
+      selectFontsToPreload: (_family, fonts) => fonts,
+    })
+
+    expect(exposed).toHaveLength(1)
+    expect(exposed[0]![0]).toBe('/css/style.css')
+    expect(exposed[0]![1]).toEqual(expect.arrayContaining([
+      { fontFamily: 'Poppins', resolved: true, fallbacks: ['Arial'], preloads: ['/poppins.woff2'] },
+      { fontFamily: 'Unknown', resolved: false, fallbacks: [], preloads: [] },
+    ]))
+  })
+
+  it('should expose a stylesheet that uses no families', async () => {
+    const exposed: Array<[string, FontFamilyUsage[]]> = []
+    await transform(`body { color: red }`, { exposeUsage: (id, usages) => void exposed.push([id, usages]) })
+
+    expect(exposed).toEqual([['/css/style.css', []]])
+  })
+
+  it('should expose no fallbacks for a usage when none could be generated', async () => {
+    let exposed: FontFamilyUsage[] = []
+    await transform(`:root { font-family: 'Unknown Font' }`, {
+      exposeUsage: (_id, usages) => void (exposed = usages),
+      resolveFontFace: () => ({ fonts: [font], fallbacks: ['Arial'] }),
+    })
+
+    expect(exposed).toEqual([{ fontFamily: 'Unknown Font', resolved: true, fallbacks: [], preloads: [] }])
   })
 })
 

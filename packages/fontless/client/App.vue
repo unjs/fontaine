@@ -1,20 +1,50 @@
 <script lang="ts" setup>
-import type { FontFaceData } from 'unifont'
-import { computed, onMounted, ref, watchEffect } from 'vue'
-import AppBadge from './components/AppBadge.vue'
-import AppCard from './components/AppCard.vue'
-import AppCodeBlock from './components/AppCodeBlock.vue'
+import type { FamilyTab } from './components/FamilyDetails.vue'
+import { computed, onMounted, ref, watch, watchEffect } from 'vue'
 import AppNavbar from './components/AppNavbar.vue'
-import AppSection from './components/AppSection.vue'
 import AppSplitPane from './components/AppSplitPane.vue'
-import FontFileSize from './components/FontFileSize.vue'
-import { useFonts } from './composables'
+import FamilyCard from './components/FamilyCard.vue'
+import FamilyDetails from './components/FamilyDetails.vue'
+import IssuesPanel from './components/IssuesPanel.vue'
+import { DEFAULT_DOCS_URL, useFontless } from './composables'
 
-const fonts = useFonts()
+type Filter = 'all' | 'preloaded' | 'global' | 'subset' | 'unused'
+
+const { state, status, openInEditor } = useFontless()
+const fonts = computed(() => state.value?.families ?? [])
+const reportsUsage = computed(() => !!state.value?.reportsUsage)
+const isUnused = (family: (typeof fonts.value)[number]) => reportsUsage.value && !family.usages.length && !family.global
+const issueCount = computed(() => (state.value?.unresolved.filter(family => !family.system).length ?? 0) + (state.value?.warnings.length ?? 0))
+
 const search = ref('')
-const selectedId = ref<number>()
-const selected = computed(() => fonts.value.find(font => font.id === selectedId.value))
-const filtered = computed(() => fonts.value.filter(font => font.fontFamily.toLowerCase().includes(search.value.toLowerCase())))
+const filter = ref<Filter>('all')
+const filters = computed(() => [
+  { id: 'all', label: 'All', icon: 'i-carbon-text-font', count: fonts.value.length },
+  { id: 'preloaded', label: 'Preloaded', icon: 'i-carbon-flash', count: fonts.value.filter(family => family.preloads.length).length },
+  { id: 'global', label: 'Global', icon: 'i-carbon-earth', count: fonts.value.filter(family => family.global).length },
+  { id: 'subset', label: 'Subsetted', icon: 'i-carbon-cut', count: fonts.value.filter(family => family.glyphs).length },
+  { id: 'unused', label: 'Unused', icon: 'i-carbon-unlink', count: fonts.value.filter(isUnused).length },
+] satisfies Array<{ id: Filter, label: string, icon: string, count: number }>)
+const filtered = computed(() => fonts.value.filter(family =>
+  family.fontFamily.toLowerCase().includes(search.value.toLowerCase())
+  && (filter.value === 'all'
+    || (filter.value === 'preloaded' && family.preloads.length)
+    || (filter.value === 'global' && family.global)
+    || (filter.value === 'subset' && family.glyphs)
+    || (filter.value === 'unused' && isUnused(family))),
+))
+
+const view = ref<{ kind: 'family', id: number } | { kind: 'issues' }>()
+const selected = computed(() => view.value?.kind === 'family' ? fonts.value.find(font => font.id === (view.value as { id: number }).id) : undefined)
+
+const tab = ref<FamilyTab>(persisted('fontless-devtools:tab', 'overview'))
+const sampleText = ref(persisted('fontless-devtools:sample-text', 'The quick brown fox jumps over the lazy dog'))
+watch(tab, value => localStorage.setItem('fontless-devtools:tab', value))
+watch(sampleText, value => localStorage.setItem('fontless-devtools:sample-text', value))
+
+function persisted<T extends string>(key: string, fallback: T): T {
+  return (localStorage.getItem(key) as T | null) || fallback
+}
 
 onMounted(() => {
   const media = window.matchMedia('(prefers-color-scheme: dark)')
@@ -24,15 +54,8 @@ onMounted(() => {
 
 const fontFaces = document.head.appendChild(document.createElement('style'))
 watchEffect(() => {
-  fontFaces.textContent = fonts.value.map(family => family.css).join('\n')
+  fontFaces.textContent = fonts.value.map(family => `${family.css}\n${family.fallbackCSS}`).join('\n')
 })
-
-function prettyURL(font: FontFaceData) {
-  const firstRemoteSource = font.src.find(i => 'url' in i)
-  if (firstRemoteSource) {
-    return firstRemoteSource.originalURL || firstRemoteSource.url
-  }
-}
 </script>
 
 <template>
@@ -43,172 +66,114 @@ function prettyURL(font: FontFaceData) {
   >
     <template #left>
       <AppNavbar v-model:search="search">
-        <div class="text-xs">
-          <span
-            v-if="search"
-            class="op-40"
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <button
+            v-for="item of filters"
+            v-show="item.id === 'all' || item.count"
+            :key="item.id"
+            class="chip"
+            :class="{ 'chip-active': filter === item.id }"
+            @click="filter = item.id"
           >
-            {{ filtered.length }} matched ·
-          </span>
-          <span class="op-40">
-            {{ fonts.length }} fonts in total
-          </span>
+            <div :class="item.icon" />
+            {{ item.label }}
+            <span class="op-60">{{ item.count }}</span>
+          </button>
+          <button
+            v-if="issueCount"
+            class="chip text-orange border-orange/40!"
+            :class="{ 'chip-active': view?.kind === 'issues' }"
+            title="Families that could not be resolved, and warnings"
+            @click="view = { kind: 'issues' }"
+          >
+            <div class="i-carbon-warning-alt" />
+            Issues
+            <span class="op-75">{{ issueCount }}</span>
+          </button>
+          <a
+            class="ml-auto flex items-center gap-1 op-60 hover:(op-100 text-primary)"
+            :href="state?.ui.docsURL || DEFAULT_DOCS_URL"
+            target="_blank"
+            rel="noopener"
+            title="Documentation"
+          >
+            <div class="i-carbon-help" />
+            Docs
+          </a>
         </div>
       </AppNavbar>
+
       <div
-        :grid="`~ ${selected ? 'cols-3' : 'cols-5'}`"
-        class="p-4 gap-4 text-center"
+        v-if="status !== 'connected'"
+        class="p-8 text-center hint"
       >
-        <AppCard
-          v-for="family of filtered"
-          :key="family.id"
-          :title="family.fontFamily"
-          class="truncate text-gray-500/75 p-4 cursor-pointer hover:bg-active"
-          :class="{ 'bg-active!': selectedId === family.id }"
-          @click="selectedId = family.id"
-        >
-          <h1
-            text="base 5xl"
-            class="mb-2"
-            :style="{ fontFamily: family.fontFamily }"
-          >
-            Aa
-          </h1>
-          <small>
-            {{ family.fontFamily }}
-          </small>
-        </AppCard>
+        <template v-if="status === 'connecting'">
+          Connecting…
+        </template>
+        <template v-else-if="status === 'unauthorized'">
+          Not authorised. Open the panel from your DevTools, or from the link printed by your dev server.
+        </template>
+        <template v-else>
+          Disconnected from the dev server. Reload to reconnect.
+        </template>
       </div>
+      <div
+        v-else-if="!fonts.length"
+        class="p-8 text-center hint"
+      >
+        <div class="i-carbon-text-font text-4xl op-50 mb-2" />
+        <p>No fonts resolved yet.</p>
+        <p>Fonts are resolved as your stylesheets are requested, so load a page of your app.</p>
+      </div>
+      <template v-else>
+        <p
+          v-if="!view"
+          class="hint px-4 pt-4"
+        >
+          Select a family to see its faces, fallbacks and where it's used.
+        </p>
+        <div
+          class="grid p-4 gap-4"
+          :class="view ? 'grid-cols-[repeat(auto-fill,minmax(9rem,1fr))]' : 'grid-cols-[repeat(auto-fill,minmax(11rem,1fr))]'"
+        >
+          <FamilyCard
+            v-for="family of filtered"
+            :key="family.id"
+            :family="family"
+            :active="selected?.id === family.id"
+            :reports-usage="reportsUsage"
+            @click="view = { kind: 'family', id: family.id }"
+          />
+        </div>
+        <p
+          v-if="!filtered.length"
+          class="hint px-4"
+        >
+          No families match.
+        </p>
+      </template>
     </template>
     <template
-      v-if="selected"
+      v-if="selected || view?.kind === 'issues'"
       #right
     >
-      <AppNavbar>
-        <template #actions>
-          <div class="flex justify-between items-center w-full py-2">
-            <div
-              class="font-bold flex items-center gap-2"
-              :style="{ fontFamily: selected.fontFamily }"
-            >
-              <AppBadge>
-                <div class="i-carbon-text-font flex-none" />
-              </AppBadge>
-              {{ selected.fontFamily }}
-            </div>
-            <div class="flex items-center gap-2">
-              <AppBadge
-                v-if="'provider' in selected"
-                class="flex items-center gap-2 px-3 py-1 bg-green/10 text-green"
-                title="Provider"
-              >
-                <div class="i-carbon-load-balancer-global flex-none" />
-                {{ selected.provider }}
-              </AppBadge>
-              <button
-                class="icon-button text-red"
-                title="Close"
-                @click="selectedId = undefined"
-              >
-                <div class="i-carbon-close-large" />
-              </button>
-            </div>
-          </div>
-        </template>
-      </AppNavbar>
-      <div class="p-4 overflow-hidden">
-        <AppSection
-          text="Properties"
-          icon="i-carbon-information"
-          container-class="font-mono text-xs"
-        >
-          <div class="flex items-center gap-2">
-            <div class="op-60">
-              type:
-            </div>
-            <div>
-              {{ selected.type }}
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <div class="op-60">
-              provider:
-            </div>
-            <div v-if="'provider' in selected">
-              {{ selected.provider }}
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <div class="op-60">
-              font family:
-            </div>
-            <div>
-              {{ selected.fontFamily }}
-            </div>
-          </div>
-        </AppSection>
-        <AppSection
-          text="Fonts"
-          icon="i-carbon-text-align-left"
-          container-class="font-mono text-xs flex flex-col gap-y-2"
-        >
-          <div
-            v-for="font, index of selected.fonts"
-            :key="`${selected.fontFamily}-${index}`"
-            class="flex justify-between items-center gap-2 mt-2"
-          >
-            <div class="flex flex-col gap-1 min-w-0">
-              <span class="line-clamp-1">
-                {{ prettyURL(font) }}
-              </span>
-              <span class="flex flex-row gap-1 opacity-75">
-                <div class="shrink-0">
-                  {{ font.style || 'normal' }}
-                  {{ Array.isArray(font.weight) ? font.weight.join('-') : font.weight }}
-                </div>
-                <span
-                  v-if="font.unicodeRange"
-                  class="flex gap-1"
-                >
-                  <span class="opacity-75">
-                    |
-                  </span>
-                  <span
-                    class="line-clamp-1"
-                  >
-                    {{ font.unicodeRange?.join(', ') }}
-                  </span>
-                </span>
-              </span>
-              <span class="flex flex-row">
-                <Suspense>
-                  <FontFileSize :font="font" />
-                </Suspense>
-              </span>
-            </div>
-            <a
-              class="icon-button text-blue"
-              title="Download"
-              download
-              target="_blank"
-              :href="font.src.find((i) => 'url' in i)?.url"
-            >
-              <div class="i-carbon-download" />
-            </a>
-          </div>
-        </AppSection>
-        <AppSection
-          text="Generated CSS"
-          icon="i-carbon-paint-brush"
-        >
-          <AppCodeBlock
-            v-if="selected.css"
-            :code="selected.css"
-            lang="css"
-            class="overflow-x-scroll border border-base rounded-lg text-xs py-2"
-          />
-        </AppSection>
-      </div>
+      <FamilyDetails
+        v-if="selected"
+        v-model:tab="tab"
+        v-model:sample-text="sampleText"
+        :family="selected"
+        :root="state?.root"
+        :reports-usage="reportsUsage"
+        :families-option="state?.ui.familiesOption"
+        @close="view = undefined"
+        @open="openInEditor"
+      />
+      <IssuesPanel
+        v-else-if="state"
+        :state="state"
+        @close="view = undefined"
+        @open="openInEditor"
+      />
     </template>
   </AppSplitPane>
 </template>
@@ -219,26 +184,14 @@ pre:has(code) {
   border-radius: 10px;
 }
 
-details {
-  border: 0;
-  border-right: 1px solid rgb(156 163 175 / 0.2)!important;
-  border-left: 1px solid rgb(156 163 175 / 0.2)!important;
+.specimen {
+  field-sizing: content;
 }
 
-details:first-of-type {
-  border-top: 1px solid rgb(156 163 175 / 0.2);
-}
-
-details:not(:first-of-type):not(:last-of-type) {
-  border: 1px solid rgb(156 163 175 / 0.2);
-  border-left: 1px solid rgb(156 163 175 / 0.2);
-}
-
-details:last-of-type {
-  border-bottom: 1px solid rgb(156 163 175 / 0.2);
-}
-
-details[open] summary {
-  border-bottom: 1px solid rgb(156 163 175 / 0.2)!important;
+.hint code {
+  font-size: 0.85em;
+  padding: 0 0.25em;
+  border-radius: 0.25em;
+  background: rgb(156 163 175 / 0.15);
 }
 </style>

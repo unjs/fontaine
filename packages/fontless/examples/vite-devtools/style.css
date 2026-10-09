@@ -5,3 +5,7 @@
 .fira-code {
   font-family: 'Fira Code', monospace;
 }
+
+.unknown {
+  font-family: 'Not A Real Font', Helvetica, sans-serif;
+}

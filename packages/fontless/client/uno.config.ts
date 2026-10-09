@@ -16,7 +16,20 @@ export default defineConfig({
   transformers: [
     transformerVariantGroup(),
   ],
+  theme: {
+    colors: {
+      primary: 'color-mix(in srgb, var(--fontless-primary) calc(%alpha * 100%), transparent)',
+    },
+  },
   shortcuts: {
+    'chip': 'inline-flex items-center gap-1 border border-base rounded-full px-2.5 py-1 op-80 hover:(op-100 bg-active) transition-all duration-200',
+    'chip-active': 'op-100 bg-primary/10 border-primary/50 text-primary',
+    'tab': 'inline-flex items-center gap-1.5 px-3 py-2 border-b-2 border-transparent op-60 hover:op-100 whitespace-nowrap transition-all duration-200',
+    'tab-active': 'op-100 border-primary text-primary',
+    'link': 'text-primary hover:underline',
+    'hint': 'text-sm op-60 leading-relaxed max-w-prose',
+    'label': 'text-[0.68rem] uppercase tracking-wider font-medium op-50',
+    'tag': 'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.25',
     'bg-base': 'bg-white dark:bg-[#151515]',
     'text-base': 'text-[#151515] dark:text-white',
     'bg-active': 'bg-gray:5',
