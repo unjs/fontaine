@@ -21,6 +21,12 @@ overrides:
   unstorage: 1.17.5
   vue: 3.5.43
 
+packageExtensions:
+  # Imports `h3` without declaring it, so would otherwise pick up whichever major is hoisted
+  '@analogjs/vite-plugin-nitro':
+    dependencies:
+      h3: ^1.15.11
+
 allowBuilds:
   '@parcel/watcher': false
   '@swc/core': false

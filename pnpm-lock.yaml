@@ -170,6 +170,8 @@ overrides:
   unstorage: 1.17.5
   vue: 3.5.43
 
+packageExtensionsChecksum: sha256-pONTyQPIsn6DEPUNp5u77edbYuj1UfIMpX0c/iRFIMI=
+
 importers:
 
   .:
@@ -13637,6 +13639,7 @@ snapshots:
     dependencies:
       defu: 6.1.7
       esbuild: 0.25.12
+      h3: 1.15.11
       nitropack: 2.13.4(@parcel/watcher@2.5.6)(oxc-parser@0.150.0)(rolldown@1.2.11)(srvx@0.12.5)(supports-color@10.2.2)(vite@8.3.2(@types/node@24.19.1)(esbuild@0.25.9)(jiti@2.7.0)(less@4.4.0)(sass@1.90.0)(terser@5.43.1)(yaml@2.9.1))(webpack@5.105.0(@swc/core@1.16.0(@swc/helpers@0.5.19))(esbuild@0.25.9))
       radix3: 1.1.2
       xmlbuilder2: 4.0.3
