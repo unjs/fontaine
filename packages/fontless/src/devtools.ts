@@ -179,7 +179,10 @@ export function createFontlessDevframe(options: FontlessDevframeOptions = {}): F
     }
     fallbackCSS.set(fontFamily, { key, css: '' })
     const css = await generateFontFallbacks(fontFamily, face, fallbacks.map(font => ({ font, name: `${fontFamily} Fallback: ${font}` })))
-      .then(declarations => declarations.join('\n'), () => '')
+      .then(declarations => declarations.join('\n'), (error: Error) => {
+        exposeWarning(error.message)
+        return ''
+      })
     if (fallbackCSS.get(fontFamily)?.key === key) {
       fallbackCSS.set(fontFamily, { key, css })
       scheduleFlush()

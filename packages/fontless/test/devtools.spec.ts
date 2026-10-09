@@ -189,15 +189,27 @@ describe('createFontlessDevframe', () => {
     const devframe = createFontlessDevframe()
     const { getState } = await mount(devframe.definition)
     const italic = { ...poppins.fonts[0]!, style: 'italic', src: [{ url: 'file:///missing/italic.woff2' }] }
-    devframe.exposeFont({ ...poppins, fontFamily: 'Unknown', fonts: [italic] })
     const upright = { ...poppins.fonts[0]!, src: [{ url: new URL('../examples/vanilla-app/src/black-fox.ttf', import.meta.url).href }] }
-    devframe.exposeFont({ ...poppins, fontFamily: 'Unknown Upright', fonts: [italic, upright] })
-    devframe.exposeUsage('/a.css', [{ ...poppinsUsage(), fontFamily: 'Unknown' }, { ...poppinsUsage(), fontFamily: 'Unknown Upright' }])
+    devframe.exposeFont({ ...poppins, fontFamily: 'Unknown', fonts: [italic, upright] })
+    devframe.exposeUsage('/a.css', [{ ...poppinsUsage(), fontFamily: 'Unknown' }])
 
     await vi.waitFor(async () => {
-      const { families } = await getState()
+      const { families, warnings } = await getState()
+      expect(families[0]!.fallbackCSS).toContain('font-family: "Unknown Fallback: Arial"')
+      expect(warnings).toEqual([])
+    }, FALLBACK_TIMEOUT)
+  })
+
+  it('should list fallbacks that could not be rendered as warnings', async () => {
+    const devframe = createFontlessDevframe()
+    const { getState } = await mount(devframe.definition)
+    devframe.exposeFont({ ...poppins, fontFamily: 'Unknown', fonts: [{ ...poppins.fonts[0]!, style: 'italic', src: [{ url: 'file:///missing/font.woff2' }] }] })
+    devframe.exposeUsage('/a.css', [{ ...poppinsUsage(), fontFamily: 'Unknown' }])
+
+    await vi.waitFor(async () => {
+      const { families, warnings } = await getState()
       expect(families[0]!.fallbackCSS).toBe('')
-      expect(families[1]!.fallbackCSS).toContain('font-family: "Unknown Upright Fallback: Arial"')
+      expect(warnings).toEqual([expect.stringContaining('missing/font.woff2')])
     }, FALLBACK_TIMEOUT)
   })
 
