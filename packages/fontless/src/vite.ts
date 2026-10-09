@@ -55,14 +55,14 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
   let storage: ReturnType<typeof createFontlessStorage>
 
   // Families resolved before Vite DevTools mounts the devframe
-  const exposedFonts: Array<ManualFontDetails | ProviderFontDetails> = []
+  const exposedFonts = new Map<string, ManualFontDetails | ProviderFontDetails>()
   let devframe: FontlessDevframe | undefined
   function exposeFont(font: ManualFontDetails | ProviderFontDetails) {
     if (devframe) {
       devframe.exposeFont(font)
     }
     else {
-      exposedFonts.push(font)
+      exposedFonts.set(JSON.stringify(font), font)
     }
   }
 
@@ -234,9 +234,10 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
         async setup(ctx: DevToolsContext) {
           const { createFontlessDevframe } = await import('./devtools')
           devframe ??= createFontlessDevframe()
-          for (const font of exposedFonts.splice(0)) {
+          for (const font of exposedFonts.values()) {
             devframe.exposeFont(font)
           }
+          exposedFonts.clear()
           await ctx.install(devframe.definition)
         },
       },
