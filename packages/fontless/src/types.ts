@@ -277,6 +277,12 @@ export interface FontlessOptions {
    */
   throwOnError?: boolean
   /**
+   * Add a Fonts panel to [Vite DevTools](https://devtools.vite.dev) during `vite dev`, when
+   * Vite DevTools is enabled.
+   * @default true
+   */
+  devtools?: boolean
+  /**
    * Base URL of a `unifont` proxy to route provider API requests through, for environments
    * (browsers, web containers) that cannot call the provider APIs directly. Providers whose APIs
    * are already reachable cross-origin, such as `npm`, are unaffected.

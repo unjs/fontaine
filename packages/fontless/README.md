@@ -358,6 +358,33 @@ function Head() {
 
 An empty string means no families are configured with `global: true`, that none of them resolved to a font, or that `fontless/runtime` was not transformed by the plugin.
 
+## DevTools
+
+When [Vite DevTools](https://devtools.vite.dev) is enabled, Fontless adds a **Fonts** panel to its dock during `vite dev`, listing every resolved family with its faces, file sizes and generated `@font-face` CSS.
+
+```ts
+export default defineConfig({
+  devtools: true,
+  plugins: [fontless()],
+})
+```
+
+Pass `devtools: false` to `fontless()` to leave the panel out.
+
+The panel is a [devframe](https://devfra.me), so other devframe hosts can mount it too. `fontless/devtools` exports the definition along with a callback to pass to `createResolver`:
+
+```ts
+import { createResolver } from 'fontless'
+import { createFontlessDevframe } from 'fontless/devtools'
+
+const { definition, exposeFont } = createFontlessDevframe()
+
+const resolve = await createResolver({ /* ... */ exposeFont })
+// mount `definition` in a devframe host, e.g. `kit.install(definition)`
+```
+
+`fontless/devtools` requires `devframe` to be installed for its types.
+
 ## How It Works
 
 Fontless works by:
