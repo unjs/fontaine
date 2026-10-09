@@ -339,8 +339,10 @@ export function fontless(_options?: FontlessOptions): Plugin[] {
             next()
             return
           }
+          const data = await loadFont(filename, font)
           res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
-          res.end(await loadFont(filename, font))
+          res.setHeader('Content-Length', data.byteLength)
+          res.end(req.method === 'HEAD' ? undefined : data)
         }
         catch (e) {
           next(e)

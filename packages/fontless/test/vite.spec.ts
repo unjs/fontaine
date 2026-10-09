@@ -317,8 +317,11 @@ describe('fontless vite plugin', () => {
       const file = transformed!.code.match(/\/assets\/_fonts\/([\w-]+\.woff2)/)![1]
 
       const response = await fetch(new URL(`/assets/_fonts/${file}`, server.resolvedUrls!.local[0]))
+      const head = await fetch(new URL(`/assets/_fonts/${file}`, server.resolvedUrls!.local[0]), { method: 'HEAD' })
 
       expect(await response.text()).toBe('not-really-a-font')
+      expect(head.headers.get('content-length')).toBe('17')
+      expect(await head.text()).toBe('')
     }
     finally {
       await server.close()
