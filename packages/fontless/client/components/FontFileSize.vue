@@ -6,10 +6,19 @@ const props = defineProps<{
   font: FontFaceData
 }>()
 
-// TODO: Should just use HEAD. But seems like Vite devserver is not handling HEADs properly. Needs investigation.
-const { headers, status } = await fetch(new URL(props.font.src.find(i => 'url' in i)!.url, location.origin))
-
-const fileSize = Number(headers.get('content-length')!)
+const url = props.font.src.find(i => 'url' in i)?.url
+let status: number | undefined
+let fileSize: number | undefined
+if (url) {
+  try {
+    // TODO: Should just use HEAD. But seems like Vite devserver is not handling HEADs properly. Needs investigation.
+    const response = await fetch(new URL(url, location.origin))
+    status = response.status
+    const length = response.headers.get('content-length')
+    fileSize = length === null ? undefined : Number(length)
+  }
+  catch {}
+}
 
 function formatBytes(bytes: number) {
   if (bytes === 0)
@@ -22,7 +31,7 @@ function formatBytes(bytes: number) {
   return `${formattedSize}${sizes[i]}`
 }
 
-const badgeColor = status !== 200 ? 'bg-red-600 text-white' : fileSize < 30000 ? '' : fileSize < 100000 ? 'text-yellow' : 'text-red'
+const badgeColor = status !== 200 ? 'bg-red-600 text-white' : fileSize === undefined || fileSize < 30000 ? '' : fileSize < 100000 ? 'text-yellow' : 'text-red'
 </script>
 
 <template>
@@ -33,10 +42,13 @@ const badgeColor = status !== 200 ? 'bg-red-600 text-white' : fileSize < 30000 ?
     <div
       v-if="status !== 200"
     >
-      {{ status }}
+      {{ status ?? 'Unknown' }}
+    </div>
+    <div v-else-if="fileSize !== undefined">
+      {{ formatBytes(fileSize) }}
     </div>
     <div v-else>
-      {{ formatBytes(fileSize) }}
+      Unknown
     </div>
   </AppBadge>
 </template>
