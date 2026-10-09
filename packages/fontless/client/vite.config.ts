@@ -2,10 +2,10 @@ import type { Server } from 'node:http'
 import type { Plugin } from 'vite'
 import { fileURLToPath } from 'node:url'
 import vue from '@vitejs/plugin-vue'
+import { createFontlessDevframe } from 'fontless/devtools'
 import UnoCSS from 'unocss/vite'
 import { defineConfig } from 'vite'
-import { createFontlessDevframe } from '../src/devtools'
-import { createFixtures } from './fixtures'
+import { createFixtures } from './fixtures.ts'
 
 const devframe = createFontlessDevframe()
 const base = `/__${devframe.definition.id}/`
