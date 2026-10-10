@@ -45,13 +45,22 @@ export function createFixtures(base: string): Array<ManualFontDetails | Provider
 }
 
 export const usages: Array<[id: string | undefined, usages: FontFamilyUsage[]]> = [
-  ['/src/style.css', [
+  [fileURLToPath(new URL('./styles.css', import.meta.url)), [
     { fontFamily: 'Poppins', resolved: true, fallbacks: ['Arial', 'Helvetica Neue'], preloads: ['https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecnFHGPc.woff2'] },
     { fontFamily: 'Not A Real Font', resolved: false, fallbacks: [], preloads: [] },
     { fontFamily: 'Helvetica', resolved: false, fallbacks: [], preloads: [] },
   ]],
-  ['/src/code.css', [
+  [`${fileURLToPath(new URL('./App.vue', import.meta.url))}?vue&type=style&index=0&lang.css`, [
     { fontFamily: 'Fira Code', resolved: true, fallbacks: ['Courier New'], preloads: [] },
+  ]],
+  [`${fileURLToPath(new URL('./App.vue', import.meta.url))}?vue&type=style&index=0&inline&lang.css`, [
+    { fontFamily: 'Fira Code', resolved: true, fallbacks: ['Courier New'], preloads: [] },
+  ]],
+  ['\0/__uno.css', [
+    { fontFamily: 'Fira Code', resolved: true, fallbacks: [], preloads: [] },
+  ]],
+  ['\0/\0/__uno.css', [
+    { fontFamily: 'Fira Code', resolved: true, fallbacks: [], preloads: [] },
   ]],
   [undefined, [
     { fontFamily: 'Poppins', resolved: true, fallbacks: [], preloads: [] },

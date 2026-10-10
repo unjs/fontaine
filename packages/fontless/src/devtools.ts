@@ -2,6 +2,8 @@ import type { DevframeDefinition } from 'devframe'
 import type { SharedState } from 'devframe/utils/shared-state'
 import type { ManualFontDetails, ProviderFontDetails } from './types'
 import type { FontFamilyUsage } from './utils'
+import { existsSync } from 'node:fs'
+import { isAbsolute } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { description, version } from '../package.json'
 import { isSystemFontFamily } from './css/parse'
@@ -17,11 +19,19 @@ type StoredFamily = (ManualFontDetails | ProviderFontDetails) & {
   css: string
 }
 
+/** A stylesheet using a family. */
+export interface FontlessDevframeUsage {
+  /** Module id of the stylesheet, without its query or any virtual module prefix. */
+  id: string
+  /** Whether `id` is a file on disk, so it can be opened in an editor. */
+  file: boolean
+}
+
 interface FamilyUsageSummary {
   /** Families that metric-override fallbacks were generated for, across every usage. */
   fallbacks: string[]
   /** Stylesheets using the family. */
-  usages: string[]
+  usages: FontlessDevframeUsage[]
   /** Whether the family is declared `global`. */
   global: boolean
   /** URLs of the faces that are preloaded. */
@@ -38,7 +48,7 @@ export interface FontlessDevframeUnresolvedFamily {
   fontFamily: string
   /** Whether the family is provided by the operating system, so is never resolved. */
   system: boolean
-  usages: string[]
+  usages: FontlessDevframeUsage[]
 }
 
 /** How the panel presents itself, so it can match the host it is mounted in. */
@@ -99,9 +109,33 @@ export interface FontlessDevframe {
 const MAX_WARNINGS = 100
 const FLUSH_DELAY = 50
 const GLOBAL_USAGE = ''
+const VIRTUAL_PREFIX_RE = /^(?:\/?(?:\0|virtual:))+/
 
 function unique<T>(values: Iterable<T>): T[] {
   return [...new Set(values)]
+}
+
+function toUsage(id: string): FontlessDevframeUsage {
+  const path = id.replace(/\?.*$/, '')
+  const stripped = path.replace(VIRTUAL_PREFIX_RE, '')
+  return {
+    id: stripped.replaceAll('\0', ''),
+    file: stripped === path && isAbsolute(path) && existsSync(path),
+  }
+}
+
+function uniqueUsages(usages: FontlessDevframeUsage[]): FontlessDevframeUsage[] {
+  const files = new Map<string, boolean>()
+  for (const usage of usages) {
+    files.set(usage.id, files.get(usage.id) || usage.file)
+  }
+  return [...files].map(([id, file]) => ({ id, file }))
+}
+
+interface Stylesheet {
+  /** `undefined` for families declared `global`. */
+  usage?: FontlessDevframeUsage
+  families: FontFamilyUsage[]
 }
 
 /**
@@ -110,29 +144,31 @@ function unique<T>(values: Iterable<T>): T[] {
  */
 export function createFontlessDevframe(options: FontlessDevframeOptions = {}): FontlessDevframe {
   const families = new Map<string, StoredFamily>()
-  const stylesheets = new Map<string, FontFamilyUsage[]>()
+  const stylesheets = new Map<string, Stylesheet>()
   const fallbackCSS = new Map<string, { key: string, css: string }>()
   const warnings = new Set<string>()
   const states = new Set<SharedState<FontlessDevframeState>>()
   let nextId = 0
 
-  function usagesOf(fontFamily: string): Array<[id: string, usage: FontFamilyUsage]> {
-    return [...stylesheets].flatMap(([id, usages]) => usages.filter(usage => usage.fontFamily === fontFamily).map(usage => [id, usage] as [string, FontFamilyUsage]))
+  function usagesOf(fontFamily: string): Array<[stylesheet: FontlessDevframeUsage | undefined, usage: FontFamilyUsage]> {
+    return [...stylesheets.values()].flatMap(({ usage: stylesheet, families }) => families
+      .filter(usage => usage.fontFamily === fontFamily)
+      .map(usage => [stylesheet, usage] as [FontlessDevframeUsage | undefined, FontFamilyUsage]))
   }
 
   function summarise(fontFamily: string): FamilyUsageSummary {
     const list = usagesOf(fontFamily)
     return {
       fallbacks: unique(list.flatMap(([, usage]) => usage.fallbacks)),
-      usages: unique(list.flatMap(([id]) => id === GLOBAL_USAGE ? [] : [id])),
-      global: list.some(([id]) => id === GLOBAL_USAGE),
+      usages: uniqueUsages(list.flatMap(([stylesheet]) => stylesheet ? [stylesheet] : [])),
+      global: list.some(([stylesheet]) => !stylesheet),
       preloads: unique(list.flatMap(([, usage]) => usage.preloads)),
     }
   }
 
   function snapshot(): Omit<FontlessDevframeState, 'root'> {
     const unresolved: FontlessDevframeUnresolvedFamily[] = []
-    for (const fontFamily of unique([...stylesheets.values()].flatMap(usages => usages.map(usage => usage.fontFamily)))) {
+    for (const fontFamily of unique([...stylesheets.values()].flatMap(({ families }) => families.map(usage => usage.fontFamily)))) {
       if (!families.has(fontFamily) && !usagesOf(fontFamily).some(([, usage]) => usage.resolved)) {
         unresolved.push({ fontFamily, system: isSystemFontFamily(fontFamily), usages: summarise(fontFamily).usages })
       }
@@ -194,9 +230,7 @@ export function createFontlessDevframe(options: FontlessDevframeOptions = {}): F
 
   function exposeFont(font: ManualFontDetails | ProviderFontDetails) {
     const details = JSON.parse(JSON.stringify(font)) as ManualFontDetails | ProviderFontDetails
-    const css = details.type !== 'manual' && details.provider === 'local'
-      ? ''
-      : details.fonts.map(face => `${generateFontFace(details.fontFamily, face)}\n`).join('')
+    const css = details.fonts.map(face => `${generateFontFace(details.fontFamily, face)}\n`).join('')
     const id = families.get(details.fontFamily)?.id ?? nextId++
     families.set(details.fontFamily, { ...details, id, css })
     void renderFallbacks(details.fontFamily)
@@ -204,8 +238,11 @@ export function createFontlessDevframe(options: FontlessDevframeOptions = {}): F
   }
 
   function exposeUsage(id: string | undefined, usages: FontFamilyUsage[]) {
-    const previous = stylesheets.get(id ?? GLOBAL_USAGE) ?? []
-    stylesheets.set(id ?? GLOBAL_USAGE, JSON.parse(JSON.stringify(usages)))
+    const previous = stylesheets.get(id ?? GLOBAL_USAGE)?.families ?? []
+    stylesheets.set(id ?? GLOBAL_USAGE, {
+      usage: id ? toUsage(id) : undefined,
+      families: JSON.parse(JSON.stringify(usages)),
+    })
     for (const fontFamily of unique([...previous, ...usages].map(usage => usage.fontFamily))) {
       void renderFallbacks(fontFamily)
     }
