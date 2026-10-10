@@ -92,8 +92,7 @@ export function formatBytes(bytes: number): string {
   return `${(bytes / 1000 ** i).toFixed(i ? 1 : 0)} ${units[i]}`
 }
 
-/** The path of a stylesheet id relative to `root`, without its query. */
+/** The path of a stylesheet id relative to `root`. */
 export function displayPath(id: string, root?: string): string {
-  const path = id.replace(/\?.*$/, '')
-  return root && path.startsWith(`${root}/`) ? path.slice(root.length + 1) : path
+  return root && id.startsWith(`${root}/`) ? id.slice(root.length + 1) : id
 }
