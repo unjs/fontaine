@@ -139,6 +139,9 @@ const sortedFallbacks = computed(() => [...props.family.fallbacks].sort((a, b) =
 
 function urlOf(font: FontFaceData) {
   const source = font.src.find(i => 'url' in i)
+  if (source?.originalURL?.startsWith('file:')) {
+    return displayPath(decodeURIComponent(new URL(source.originalURL).pathname), props.root)
+  }
   return source && (source.originalURL || source.url)
 }
 
@@ -411,7 +414,7 @@ function isPreloaded(font: FontFaceData) {
 
       <template v-else-if="tab === 'usage'">
         <p class="hint">
-          Stylesheets that use {{ family.fontFamily }}. Click one to open it in your editor.
+          Stylesheets that use {{ family.fontFamily }}. Click a file to open it in your editor.
         </p>
         <div class="flex flex-col">
           <div
@@ -422,17 +425,29 @@ function isPreloaded(font: FontFaceData) {
             <span>HTML <code class="font-mono text-xs">&lt;head&gt;</code></span>
             <span class="ml-auto label">global</span>
           </div>
-          <button
+          <template
             v-for="usage of family.usages"
-            :key="usage"
-            class="flex items-center gap-3 py-2 border-b border-base last:border-0 text-left text-sm group"
-            title="Open in editor"
-            @click="emit('open', usage.replace(/\?.*$/, ''))"
+            :key="usage.id"
           >
-            <div class="i-carbon-document op-50" />
-            <span class="font-mono text-xs truncate group-hover:text-primary">{{ displayPath(usage, root) }}</span>
-            <div class="i-carbon-launch ml-auto op-0 group-hover:op-60" />
-          </button>
+            <button
+              v-if="usage.file"
+              class="flex items-center gap-3 py-2 border-b border-base last:border-0 text-left text-sm group"
+              title="Open in editor"
+              @click="emit('open', usage.id)"
+            >
+              <div class="i-carbon-document op-50" />
+              <span class="font-mono text-xs truncate group-hover:text-primary">{{ displayPath(usage.id, root) }}</span>
+              <div class="i-carbon-launch ml-auto op-0 group-hover:op-60" />
+            </button>
+            <div
+              v-else
+              class="flex items-center gap-3 py-2 border-b border-base last:border-0 text-sm"
+            >
+              <div class="i-carbon-code op-50" />
+              <span class="font-mono text-xs truncate">{{ displayPath(usage.id, root) }}</span>
+              <span class="ml-auto label">virtual</span>
+            </div>
+          </template>
           <div
             v-if="!family.global && !family.usages.length"
             class="hint"
@@ -447,17 +462,10 @@ function isPreloaded(font: FontFaceData) {
           The <code>@font-face</code> declarations fontless injects for this family.
         </p>
         <AppCodeBlock
-          v-if="family.css"
           :code="family.css"
           lang="css"
           class="overflow-x-auto border border-base rounded-lg text-xs"
         />
-        <div
-          v-else
-          class="hint"
-        >
-          Not shown for fonts from the <code>local</code> provider.
-        </div>
       </template>
     </div>
   </div>

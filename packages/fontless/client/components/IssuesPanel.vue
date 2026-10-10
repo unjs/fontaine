@@ -56,17 +56,29 @@ const system = computed(() => props.state.unresolved.filter(family => family.sys
           class="flex flex-col gap-1 py-2 border-b border-base last:border-0"
         >
           <span class="text-lg">{{ family.fontFamily }}</span>
-          <button
+          <template
             v-for="usage of family.usages"
-            :key="usage"
-            class="flex items-center gap-2 text-left text-xs font-mono op-60 hover:op-100 group"
-            title="Open in editor"
-            @click="emit('open', usage.replace(/\?.*$/, ''))"
+            :key="usage.id"
           >
-            <div class="i-carbon-document" />
-            <span class="group-hover:text-primary">{{ displayPath(usage, state.root) }}</span>
-            <div class="i-carbon-launch op-0 group-hover:op-60" />
-          </button>
+            <button
+              v-if="usage.file"
+              class="flex items-center gap-2 text-left text-xs font-mono op-60 hover:op-100 group"
+              title="Open in editor"
+              @click="emit('open', usage.id)"
+            >
+              <div class="i-carbon-document" />
+              <span class="group-hover:text-primary">{{ displayPath(usage.id, state.root) }}</span>
+              <div class="i-carbon-launch op-0 group-hover:op-60" />
+            </button>
+            <div
+              v-else
+              class="flex items-center gap-2 text-xs font-mono op-60"
+              title="Virtual module"
+            >
+              <div class="i-carbon-code" />
+              <span>{{ displayPath(usage.id, state.root) }}</span>
+            </div>
+          </template>
         </div>
       </section>
 
