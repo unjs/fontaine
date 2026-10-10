@@ -275,7 +275,7 @@ describe('createFontlessDevframe', () => {
     const { getState } = await mount(devframe.definition)
     const file = fileURLToPath(import.meta.url)
     devframe.exposeUsage('\0/__uno.css', [poppinsUsage()])
-    devframe.exposeUsage('\0/\0/__uno.css', [poppinsUsage()])
+    devframe.exposeUsage('\0/\uFFFD/__uno.css', [poppinsUsage()])
     devframe.exposeUsage(`${file}?vue&type=style&index=0&lang.css`, [poppinsUsage()])
     devframe.exposeUsage(`${file}?vue&type=style&index=0&inline&lang.css`, [poppinsUsage()])
     devframe.exposeUsage('virtual:fonts.css', [poppinsUsage()])

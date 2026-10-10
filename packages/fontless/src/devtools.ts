@@ -109,7 +109,7 @@ export interface FontlessDevframe {
 const MAX_WARNINGS = 100
 const FLUSH_DELAY = 50
 const GLOBAL_USAGE = ''
-const VIRTUAL_PREFIX_RE = /^(?:\/?(?:\0|virtual:))+/
+const VIRTUAL_PREFIX_RE = /^(?:\/?(?:[\0\uFFFD]|virtual:))+/
 
 function unique<T>(values: Iterable<T>): T[] {
   return [...new Set(values)]
