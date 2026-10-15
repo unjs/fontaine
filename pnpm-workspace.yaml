@@ -19,7 +19,7 @@ overrides:
   fontaine: 'workspace:*'
   fontless: 'workspace:*'
   unstorage: 1.17.5
-  vue: 3.5.43
+  vue: 3.5.44
 
 packageExtensions:
   # Imports `h3` without declaring it, so would otherwise pick up whichever major is hoisted
