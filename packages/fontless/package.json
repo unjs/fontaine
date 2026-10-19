@@ -93,7 +93,7 @@
     "@types/subset-font": "2.3.0",
     "@unocss/reset": "66.10.5",
     "@vitejs/plugin-vue": "6.0.10",
-    "@vitest/coverage-v8": "5.0.3",
+    "@vitest/coverage-v8": "5.0.5",
     "devframe": "1.2.3",
     "jiti": "2.7.0",
     "lightningcss": "1.33.0",
@@ -107,7 +107,7 @@
     "unstorage": "1.17.5",
     "vite": "8.3.4",
     "vite7": "npm:vite@7.3.7",
-    "vitest": "5.0.3",
+    "vitest": "5.0.5",
     "vue": "3.5.44",
     "vue-tsc": "3.3.12"
   }
