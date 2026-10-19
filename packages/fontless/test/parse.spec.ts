@@ -28,7 +28,7 @@ describe('parsing', () => {
         }
         @font-face {
           font-family: "Gabarito Fallback: Times New Roman";
-          src: local("Times New Roman");
+          src: local("Times New Roman"), local("Times New Roman Regular"), local("TimesNewRoman-Regular"), local("TimesNewRomanPSMT");
           size-adjust: 108.8%;
           ascent-override: 86.3971%;
           descent-override: 23.8971%;
@@ -57,7 +57,7 @@ body { font-family: "Inter", sans-serif; }`))
         }
         @font-face {
           font-family: "Inter Fallback: Times New Roman";
-          src: local("Times New Roman");
+          src: local("Times New Roman"), local("Times New Roman Regular"), local("TimesNewRoman-Regular"), local("TimesNewRomanPSMT");
           size-adjust: 117.5481%;
           ascent-override: 82.4131%;
           descent-override: 20.5202%;
@@ -114,7 +114,7 @@ body { font-family: "Inter", sans-serif; }`))
         }
         @font-face {
           font-family: "Open Sans Fallback: Times New Roman";
-          src: local("Times New Roman");
+          src: local("Times New Roman"), local("Times New Roman Regular"), local("TimesNewRoman-Regular"), local("TimesNewRomanPSMT");
           size-adjust: 115.3846%;
           ascent-override: 92.6335%;
           descent-override: 25.3906%;
@@ -175,7 +175,7 @@ body { font-family: "Inter", sans-serif; }`))
         }
         @font-face {
           font-family: "Poppins Fallback: Times New Roman";
-          src: local("Times New Roman");
+          src: local("Times New Roman"), local("Times New Roman Regular"), local("TimesNewRoman-Regular"), local("TimesNewRomanPSMT");
           size-adjust: 123.0769%;
           ascent-override: 85.3125%;
           descent-override: 28.4375%;
@@ -184,7 +184,7 @@ body { font-family: "Inter", sans-serif; }`))
 
         @font-face {
           font-family: "Poppins Fallback: Arial";
-          src: local("Arial");
+          src: local("Arial"), local("Arial Regular"), local("Arial-Regular"), local("ArialMT");
           size-adjust: 112.1577%;
           ascent-override: 93.6182%;
           descent-override: 31.2061%;
@@ -226,7 +226,7 @@ describe('parsing css', () => {
       }
       @font-face {
         font-family: "Lato Fallback: Times New Roman";
-        src: local("Times New Roman");
+        src: local("Times New Roman"), local("Times New Roman Regular"), local("TimesNewRoman-Regular"), local("TimesNewRomanPSMT");
         size-adjust: 107.2%;
         ascent-override: 92.0709%;
         descent-override: 19.8694%;
@@ -240,7 +240,7 @@ describe('parsing css', () => {
       }
       @font-face {
         font-family: "Poppins Fallback: Times New Roman";
-        src: local("Times New Roman");
+        src: local("Times New Roman"), local("Times New Roman Regular"), local("TimesNewRoman-Regular"), local("TimesNewRomanPSMT");
         size-adjust: 123.0769%;
         ascent-override: 85.3125%;
         descent-override: 28.4375%;
@@ -357,25 +357,25 @@ const slugify = (str: string) => str.toLowerCase().replace(/\W/g, '-')
 describe('lightningcss integration', () => {
   it('should transform CSS with lightningcss in production mode', async () => {
     const result = await transformLightningCSS(`:root { font-family: 'Poppins' }`)
-    expect(result).toMatchInlineSnapshot(`"@font-face{font-family:Poppins;src:url(/poppins.woff2)format("woff2");font-display:swap}@font-face{font-family:Poppins Fallback\\: Times New Roman;src:local(Times New Roman);size-adjust:123.077%;ascent-override:85.3125%;descent-override:28.4375%;line-gap-override:8.125%}:root { font-family: 'Poppins', "Poppins Fallback: Times New Roman" }"`)
+    expect(result).toMatchInlineSnapshot(`"@font-face{font-family:Poppins;src:url(/poppins.woff2)format("woff2");font-display:swap}@font-face{font-family:Poppins Fallback\\: Times New Roman;src:local(Times New Roman),local(Times New Roman Regular),local(TimesNewRoman-Regular),local(TimesNewRomanPSMT);size-adjust:123.077%;ascent-override:85.3125%;descent-override:28.4375%;line-gap-override:8.125%}:root { font-family: 'Poppins', "Poppins Fallback: Times New Roman" }"`)
   })
 
   it('should handle multiple font families with lightningcss', async () => {
     const result = await transformLightningCSS(`:root { font-family: 'Inter', 'Arial', sans-serif }`)
-    expect(result).toMatchInlineSnapshot(`"@font-face{font-family:Inter;src:url(/inter.woff2)format("woff2");font-display:swap}@font-face{font-family:Inter Fallback\\: Times New Roman;src:local(Times New Roman);size-adjust:117.548%;ascent-override:82.4131%;descent-override:20.5202%;line-gap-override:0%}@font-face{font-family:Inter Fallback\\: Arial;src:local(Arial);size-adjust:107.119%;ascent-override:90.4365%;descent-override:22.518%;line-gap-override:0%}:root { font-family: 'Inter', "Inter Fallback: Times New Roman", "Inter Fallback: Arial", 'Arial', sans-serif }"`)
+    expect(result).toMatchInlineSnapshot(`"@font-face{font-family:Inter;src:url(/inter.woff2)format("woff2");font-display:swap}@font-face{font-family:Inter Fallback\\: Times New Roman;src:local(Times New Roman),local(Times New Roman Regular),local(TimesNewRoman-Regular),local(TimesNewRomanPSMT);size-adjust:117.548%;ascent-override:82.4131%;descent-override:20.5202%;line-gap-override:0%}@font-face{font-family:Inter Fallback\\: Arial;src:local(Arial),local(Arial Regular),local(Arial-Regular),local(ArialMT);size-adjust:107.119%;ascent-override:90.4365%;descent-override:22.518%;line-gap-override:0%}:root { font-family: 'Inter', "Inter Fallback: Times New Roman", "Inter Fallback: Arial", 'Arial', sans-serif }"`)
   })
 
   it('should preserve import rules with lightningcss', async () => {
     const result = await transformLightningCSS(`@import url("reset.css"); body { font-family: "Lato"; }`)
     expect(result).toMatchInlineSnapshot(`
       "@import url("reset.css");
-      @font-face{font-family:Lato;src:url(/lato.woff2)format("woff2");font-display:swap}@font-face{font-family:Lato Fallback\\: Times New Roman;src:local(Times New Roman);size-adjust:107.2%;ascent-override:92.0709%;descent-override:19.8694%;line-gap-override:0%} body { font-family: "Lato", "Lato Fallback: Times New Roman"; }"
+      @font-face{font-family:Lato;src:url(/lato.woff2)format("woff2");font-display:swap}@font-face{font-family:Lato Fallback\\: Times New Roman;src:local(Times New Roman),local(Times New Roman Regular),local(TimesNewRoman-Regular),local(TimesNewRomanPSMT);size-adjust:107.2%;ascent-override:92.0709%;descent-override:19.8694%;line-gap-override:0%} body { font-family: "Lato", "Lato Fallback: Times New Roman"; }"
     `)
   })
 
   it('should handle font shorthand with lightningcss', async () => {
     const result = await transformLightningCSS(`:root { font: 16px/1.4 'Roboto' }`)
-    expect(result).toMatchInlineSnapshot(`"@font-face{font-family:Roboto;src:url(/roboto.woff2)format("woff2");font-display:swap}@font-face{font-family:Roboto Fallback\\: Times New Roman;src:local(Times New Roman);size-adjust:109.495%;ascent-override:84.7283%;descent-override:22.2969%;line-gap-override:0%}:root { font: 16px/1.4 'Roboto', "Roboto Fallback: Times New Roman" }"`)
+    expect(result).toMatchInlineSnapshot(`"@font-face{font-family:Roboto;src:url(/roboto.woff2)format("woff2");font-display:swap}@font-face{font-family:Roboto Fallback\\: Times New Roman;src:local(Times New Roman),local(Times New Roman Regular),local(TimesNewRoman-Regular),local(TimesNewRomanPSMT);size-adjust:109.495%;ascent-override:84.7283%;descent-override:22.2969%;line-gap-override:0%}:root { font: 16px/1.4 'Roboto', "Roboto Fallback: Times New Roman" }"`)
   })
 
   it('should work in development mode with lightningcss options', async () => {

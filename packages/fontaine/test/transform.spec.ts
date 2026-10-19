@@ -62,7 +62,7 @@ describe('fontaine transform', () => {
       .toMatchInlineSnapshot(`
       "@font-face {
         font-family: "Poppins fallback";
-        src: local("Segoe UI");
+        src: local("Segoe UI"), local("Segoe UI Regular"), local("SegoeUI-Regular"), local("SegoeUI");
         size-adjust: 112.7753%;
         ascent-override: 93.1055%;
         descent-override: 31.0352%;
@@ -70,7 +70,7 @@ describe('fontaine transform', () => {
       }
       @font-face {
         font-family: "Poppins fallback";
-        src: local("Arial");
+        src: local("Arial"), local("Arial Regular"), local("Arial-Regular"), local("ArialMT");
         size-adjust: 112.1577%;
         ascent-override: 93.6182%;
         descent-override: 31.2061%;
@@ -94,7 +94,7 @@ describe('fontaine transform', () => {
     }`)).toMatchInlineSnapshot(`
       "@font-face {
         font-family: "Poppins fallback";
-        src: local("Segoe UI");
+        src: local("Segoe UI"), local("Segoe UI Regular"), local("SegoeUI-Regular"), local("SegoeUI");
         size-adjust: 112.7753%;
         ascent-override: 93.1055%;
         descent-override: 31.0352%;
@@ -105,7 +105,7 @@ describe('fontaine transform', () => {
       }
       @font-face {
         font-family: "Poppins fallback";
-        src: local("Arial");
+        src: local("Arial"), local("Arial Regular"), local("Arial-Regular"), local("ArialMT");
         size-adjust: 112.1577%;
         ascent-override: 93.6182%;
         descent-override: 31.2061%;
@@ -266,7 +266,7 @@ describe('fontaine transform', () => {
         "@import "./fixtures/imported.css";
         @font-face {
           font-family: "Poppins fallback";
-          src: local("Segoe UI");
+          src: local("Segoe UI"), local("Segoe UI Regular"), local("SegoeUI-Regular"), local("SegoeUI");
           size-adjust: 112.7753%;
           ascent-override: 93.1055%;
           descent-override: 31.0352%;
@@ -276,7 +276,7 @@ describe('fontaine transform', () => {
 
         @font-face {
           font-family: "Poppins fallback";
-          src: local("Arial");
+          src: local("Arial"), local("Arial Regular"), local("Arial-Regular"), local("ArialMT");
           size-adjust: 112.1577%;
           ascent-override: 93.6182%;
           descent-override: 31.2061%;
@@ -341,7 +341,7 @@ describe('fontaine transform', () => {
         @import "~@fake-fontsource/dm-sans";
         @font-face {
           font-family: "Poppins fallback";
-          src: local("Segoe UI");
+          src: local("Segoe UI"), local("Segoe UI Regular"), local("SegoeUI-Regular"), local("SegoeUI");
           size-adjust: 112.7753%;
           ascent-override: 93.1055%;
           descent-override: 31.0352%;
@@ -351,7 +351,7 @@ describe('fontaine transform', () => {
 
         @font-face {
           font-family: "Poppins fallback";
-          src: local("Arial");
+          src: local("Arial"), local("Arial Regular"), local("Arial-Regular"), local("ArialMT");
           size-adjust: 112.1577%;
           ascent-override: 93.6182%;
           descent-override: 31.2061%;
@@ -463,7 +463,7 @@ describe('fontaine transform', () => {
       .toMatchInlineSnapshot(`
         "@font-face {
           font-family: "Poppins fallback";
-          src: local("Helvetica Neue");
+          src: local("Helvetica Neue"), local("Helvetica Neue Regular"), local("HelveticaNeue-Regular"), local("HelveticaNeue");
           size-adjust: 111.1111%;
           ascent-override: 94.5%;
           descent-override: 31.5%;
@@ -475,7 +475,7 @@ describe('fontaine transform', () => {
         }
         @font-face {
           font-family: "JetBrains Mono fallback";
-          src: local("Courier New");
+          src: local("Courier New"), local("Courier New Regular"), local("CourierNew-Regular"), local("CourierNewPSMT");
           size-adjust: 99.9837%;
           ascent-override: 102.0166%;
           descent-override: 30.0049%;
@@ -534,7 +534,7 @@ describe('fontaine transform', () => {
         .toMatchInlineSnapshot(`
           "@font-face {
             font-family: "Lora fallback";
-            src: local("Noto Serif");
+            src: local("Noto Serif"), local("Noto Serif Regular"), local("NotoSerif-Regular");
             size-adjust: 97.2973%;
             ascent-override: 103.3944%;
             descent-override: 28.1611%;
@@ -542,7 +542,7 @@ describe('fontaine transform', () => {
           }
           @font-face {
             font-family: "Lora fallback";
-            src: local("Georgia");
+            src: local("Georgia"), local("Georgia Regular"), local("Georgia-Regular");
             size-adjust: 104.9796%;
             ascent-override: 95.8281%;
             descent-override: 26.1003%;
@@ -550,7 +550,7 @@ describe('fontaine transform', () => {
           }
           @font-face {
             font-family: "Lora fallback";
-            src: local("Times New Roman");
+            src: local("Times New Roman"), local("Times New Roman Regular"), local("TimesNewRoman-Regular"), local("TimesNewRomanPSMT");
             size-adjust: 115.2%;
             ascent-override: 87.3264%;
             descent-override: 23.7847%;
@@ -575,7 +575,7 @@ describe('fontaine transform', () => {
         .toMatchInlineSnapshot(`
           "@font-face {
             font-family: "Poppins fallback";
-            src: local("Noto Sans");
+            src: local("Noto Sans"), local("Noto Sans Regular"), local("NotoSans-Regular");
             size-adjust: 105.4852%;
             ascent-override: 99.54%;
             descent-override: 33.18%;
@@ -583,7 +583,7 @@ describe('fontaine transform', () => {
           }
           @font-face {
             font-family: "Poppins fallback";
-            src: local("Arial");
+            src: local("Arial"), local("Arial Regular"), local("Arial-Regular"), local("ArialMT");
             size-adjust: 112.1577%;
             ascent-override: 93.6182%;
             descent-override: 31.2061%;
@@ -591,7 +591,7 @@ describe('fontaine transform', () => {
           }
           @font-face {
             font-family: "Poppins fallback";
-            src: local("Helvetica Neue");
+            src: local("Helvetica Neue"), local("Helvetica Neue Regular"), local("HelveticaNeue-Regular"), local("HelveticaNeue");
             size-adjust: 111.1111%;
             ascent-override: 94.5%;
             descent-override: 31.5%;
@@ -599,7 +599,7 @@ describe('fontaine transform', () => {
           }
           @font-face {
             font-family: "Poppins fallback";
-            src: local("Segoe UI");
+            src: local("Segoe UI"), local("Segoe UI Regular"), local("SegoeUI-Regular"), local("SegoeUI");
             size-adjust: 112.7753%;
             ascent-override: 93.1055%;
             descent-override: 31.0352%;
@@ -624,7 +624,7 @@ describe('fontaine transform', () => {
         .toMatchInlineSnapshot(`
           "@font-face {
             font-family: "JetBrains Mono fallback";
-            src: local("Noto Sans Mono");
+            src: local("Noto Sans Mono"), local("Noto Sans Mono Regular"), local("NotoSansMono-Regular");
             size-adjust: 100%;
             ascent-override: 102%;
             descent-override: 30%;
@@ -632,7 +632,7 @@ describe('fontaine transform', () => {
           }
           @font-face {
             font-family: "JetBrains Mono fallback";
-            src: local("Roboto Mono");
+            src: local("Roboto Mono"), local("Roboto Mono Regular"), local("RobotoMono-Regular");
             size-adjust: 99.9837%;
             ascent-override: 102.0166%;
             descent-override: 30.0049%;
@@ -640,7 +640,7 @@ describe('fontaine transform', () => {
           }
           @font-face {
             font-family: "JetBrains Mono fallback";
-            src: local("Courier New");
+            src: local("Courier New"), local("Courier New Regular"), local("CourierNew-Regular"), local("CourierNewPSMT");
             size-adjust: 99.9837%;
             ascent-override: 102.0166%;
             descent-override: 30.0049%;
@@ -668,7 +668,7 @@ describe('fontaine transform', () => {
         .toMatchInlineSnapshot(`
           "@font-face {
             font-family: "Lora fallback";
-            src: local("Georgia");
+            src: local("Georgia"), local("Georgia Regular"), local("Georgia-Regular");
             size-adjust: 104.9796%;
             ascent-override: 95.8281%;
             descent-override: 26.1003%;
@@ -698,7 +698,7 @@ describe('fontaine transform', () => {
         .toMatchInlineSnapshot(`
           "@font-face {
             font-family: "Lora fallback";
-            src: local("Arial");
+            src: local("Arial"), local("Arial Regular"), local("Arial-Regular"), local("ArialMT");
             size-adjust: 104.9796%;
             ascent-override: 95.8281%;
             descent-override: 26.1003%;
@@ -738,7 +738,7 @@ describe('fontaine transform', () => {
         .toMatchInlineSnapshot(`
           "@font-face {
             font-family: "UnknownFont fallback";
-            src: local("Noto Sans");
+            src: local("Noto Sans"), local("Noto Sans Regular"), local("NotoSans-Regular");
             size-adjust: 105.4852%;
             ascent-override: 94.8%;
             descent-override: 18.96%;
@@ -746,7 +746,7 @@ describe('fontaine transform', () => {
           }
           @font-face {
             font-family: "UnknownFont fallback";
-            src: local("Arial");
+            src: local("Arial"), local("Arial Regular"), local("Arial-Regular"), local("ArialMT");
             size-adjust: 112.1577%;
             ascent-override: 89.1602%;
             descent-override: 17.832%;
@@ -754,7 +754,7 @@ describe('fontaine transform', () => {
           }
           @font-face {
             font-family: "UnknownFont fallback";
-            src: local("Helvetica Neue");
+            src: local("Helvetica Neue"), local("Helvetica Neue Regular"), local("HelveticaNeue-Regular"), local("HelveticaNeue");
             size-adjust: 111.1111%;
             ascent-override: 90%;
             descent-override: 18%;
@@ -762,7 +762,7 @@ describe('fontaine transform', () => {
           }
           @font-face {
             font-family: "UnknownFont fallback";
-            src: local("Segoe UI");
+            src: local("Segoe UI"), local("Segoe UI Regular"), local("SegoeUI-Regular"), local("SegoeUI");
             size-adjust: 112.7753%;
             ascent-override: 88.6719%;
             descent-override: 17.7344%;
@@ -785,7 +785,7 @@ describe('fontaine transform', () => {
         .toMatchInlineSnapshot(`
           "@font-face {
             font-family: "Lora fallback";
-            src: local("Segoe UI");
+            src: local("Segoe UI"), local("Segoe UI Regular"), local("SegoeUI-Regular"), local("SegoeUI");
             size-adjust: 105.5577%;
             ascent-override: 95.3033%;
             descent-override: 25.9574%;
@@ -793,7 +793,7 @@ describe('fontaine transform', () => {
           }
           @font-face {
             font-family: "Lora fallback";
-            src: local("Arial");
+            src: local("Arial"), local("Arial Regular"), local("Arial-Regular"), local("ArialMT");
             size-adjust: 104.9796%;
             ascent-override: 95.8281%;
             descent-override: 26.1003%;
