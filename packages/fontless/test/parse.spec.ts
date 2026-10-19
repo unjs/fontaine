@@ -124,17 +124,25 @@ body { font-family: "Inter", sans-serif; }`))
 
             :root { font-family:Open Sans, "Open Sans Fallback: Times New Roman"}
             :root { font-family: Open Sans, "Open Sans Fallback: Times New Roman", sans-serif }
-            :root { --test:Open Sans , "Open Sans Fallback: Times New Roman"}
-            :root { --test: Open Sans , "Open Sans Fallback: Times New Roman"}
+            :root { --test:Open Sans, "Open Sans Fallback: Times New Roman" }
+            :root { --test: Open Sans, "Open Sans Fallback: Times New Roman" }
             :root { --test: Open Sans, "Open Sans Fallback: Times New Roman", sans-serif }
             :root { --test: Open Sans, "Open Sans Fallback: Times New Roman",sans-serif }
-            :root { --test:"Open Sans" , "Open Sans Fallback: Times New Roman"}
-            :root { --test: "Open Sans" , "Open Sans Fallback: Times New Roman"}
+            :root { --test:"Open Sans", "Open Sans Fallback: Times New Roman" }
+            :root { --test: "Open Sans", "Open Sans Fallback: Times New Roman" }
             :root { --test: "Open Sans", "Open Sans Fallback: Times New Roman", sans-serif }
             :root { --test: "Open Sans", "Open Sans Fallback: Times New Roman",sans-serif }
             "
       `)
   })
+
+  it('should insert fallbacks after the first font family', async () => {
+    for (const property of ['font-family', '--font-x']) {
+      expect(await transform(`:root { ${property}: var(--font-y), Gabarito }`))
+        .toContain(`${property}: var(--font-y), Gabarito, "Gabarito Fallback: Times New Roman" }`)
+    }
+  })
+
   it('should ignore any @font-face already in scope', async () => {
     expect(await transform([
       `@font-face { font-family: 'ScopedFont'; src: local("ScopedFont") }`,
@@ -214,6 +222,19 @@ describe('parsing css', () => {
       })
       expect([...extracted]).toEqual(['Press Start 2P'])
     }
+  })
+
+  it('should not extract `var()` references from custom properties as font families', () => {
+    const ast = parse(`:root { --font-x: Foo, var(--font-y); --font-z: var(--font-y, Bar Baz), Qux }`, { positions: true })
+
+    const extracted: string[][] = []
+    walk(ast, {
+      visit: 'Declaration',
+      enter(node) {
+        extracted.push(extractFontFamilies(node))
+      },
+    })
+    expect(extracted).toEqual([['Foo'], ['Qux']])
   })
 
   it('should handle nested CSS', async () => {
