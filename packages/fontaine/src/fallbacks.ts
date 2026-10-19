@@ -5,11 +5,11 @@ export type FontCategory = 'sans-serif' | 'serif' | 'monospace' | 'display' | 'h
  * These are system fonts that work across different platforms.
  */
 export const DEFAULT_CATEGORY_FALLBACKS: Partial<Record<FontCategory, string[]>> = {
-  'sans-serif': ['Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'],
-  'serif': ['Times New Roman', 'Georgia', 'Noto Serif'],
-  'monospace': ['Courier New', 'Roboto Mono', 'Noto Sans Mono'],
-  'display': ['Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'],
-  'handwriting': ['Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'],
+  'sans-serif': ['Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans', 'Liberation Sans'],
+  'serif': ['Times New Roman', 'Georgia', 'Noto Serif', 'Liberation Serif'],
+  'monospace': ['Courier New', 'Roboto Mono', 'Noto Sans Mono', 'Liberation Mono'],
+  'display': ['Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans', 'Liberation Sans'],
+  'handwriting': ['Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans', 'Liberation Sans'],
 }
 
 export interface ResolveCategoryFallbacksOptions {
