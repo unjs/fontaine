@@ -9,7 +9,7 @@ import { dirname } from 'node:path/posix'
 import { parse, walk } from 'css-tree'
 
 import MagicString from 'magic-string'
-import { extractEndOfFirstChild, extractFontFamilies, extractGeneric } from './css/parse'
+import { extractEndOfFirstFamily, extractFontFamilies, extractGeneric } from './css/parse'
 import { generateFontFace, generateFontFallbacks, relativiseFontSources } from './css/render'
 import { logger } from './logger'
 
@@ -246,7 +246,7 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
           promises.push(addFontFaceDeclaration(fontFamily, {
             fallbacks,
             generic: extractGeneric(node),
-            index: extractEndOfFirstChild(node)! + parentOffset,
+            index: extractEndOfFirstFamily(node)! + parentOffset,
           }))
         }
       },

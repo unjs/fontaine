@@ -1,5 +1,6 @@
-import type { Declaration } from 'css-tree'
+import type { Declaration, Value } from 'css-tree'
 import type { FontFaceData } from 'unifont'
+import { parse } from 'css-tree'
 
 const weightMap: Record<string, string> = {
   100: 'Thin',
@@ -17,10 +18,6 @@ const styleMap: Record<string, string> = {
   italic: 'Italic',
   oblique: 'Oblique',
   normal: '',
-}
-
-function processRawValue(value: string) {
-  return value.split(',').map(v => v.trim().replace(/^(?<quote>['"])(.*)\k<quote>$/, '$2'))
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/CSS/font-family
@@ -87,52 +84,47 @@ const globalCSSValues = new Set([
   'unset',
 ])
 
-export function extractGeneric(node: Declaration): GenericCSSFamily | undefined {
-  if (node.value.type === 'Raw') {
-    const children = processRawValue(node.value.value)
-    for (const child of children) {
-      if (genericCSSFamilies.has(child as GenericCSSFamily)) {
-        return child as GenericCSSFamily
-      }
-    }
-    return
-  }
+function isFamilyName(name: string) {
+  return !genericCSSFamilies.has(name as GenericCSSFamily) && !globalCSSValues.has(name)
+}
 
-  for (const child of node.value.children) {
+function parseValue(node: Declaration): Value {
+  if (node.value.type !== 'Raw')
+    return node.value
+  return parse(node.value.value, { context: 'value', positions: true, offset: node.value.loc?.start.offset }) as Value
+}
+
+export function extractGeneric(node: Declaration): GenericCSSFamily | undefined {
+  for (const child of parseValue(node).children) {
     if (child.type === 'Identifier' && genericCSSFamilies.has(child.name as GenericCSSFamily)) {
       return child.name as GenericCSSFamily
     }
   }
 }
 
-export function extractEndOfFirstChild(node: Declaration): number | undefined {
-  if (node.value.type === 'Raw') {
-    const value = node.value.value
-    const index = value.indexOf(',')
-    return node.value.loc!.start.offset! + (index >= 0 ? index : value.length)
-  }
-  for (const child of node.value.children) {
+export function extractEndOfFirstFamily(node: Declaration): number | undefined {
+  const value = parseValue(node)
+  let hasFamily = false
+  for (const child of value.children) {
     if (child.type === 'String') {
       return child.loc!.end.offset!
     }
-    if (child.type === 'Operator' && child.value === ',') {
+    if (child.type === 'Identifier' && isFamilyName(child.name)) {
+      hasFamily = true
+    }
+    if (hasFamily && child.type === 'Operator' && child.value === ',') {
       return child.loc!.start.offset!
     }
   }
-  return node.value.children.last!.loc!.end.offset!
+  return value.children.last!.loc!.end.offset!
 }
 
 export function extractFontFamilies(node: Declaration): string[] {
-  if (node.value.type === 'Raw') {
-    const children = processRawValue(node.value.value)
-    return children.filter(child => !genericCSSFamilies.has(child as GenericCSSFamily) && !globalCSSValues.has(child))
-  }
-
   const families = [] as string[]
   // Use buffer strategy to handle unquoted 'minified' font-family names
   let buffer = ''
-  for (const child of node.value.children) {
-    if (child.type === 'Identifier' && !genericCSSFamilies.has(child.name as GenericCSSFamily) && !globalCSSValues.has(child.name)) {
+  for (const child of parseValue(node).children) {
+    if (child.type === 'Identifier' && isFamilyName(child.name)) {
       buffer = buffer ? `${buffer} ${child.name}` : child.name
     }
     if (buffer && child.type === 'Operator' && child.value === ',') {
