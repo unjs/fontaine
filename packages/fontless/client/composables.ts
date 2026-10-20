@@ -72,11 +72,12 @@ export function getFontFileSize(url: string): Promise<FontFileSize> {
 
 const localFonts = new Map<string, Promise<boolean>>()
 
-/** Whether `local()` finds a font of this name on this machine. */
+/** Whether `local()` finds the regular face of this family on this machine. */
 export function isLocalFontAvailable(name: string): Promise<boolean> {
   let available = localFonts.get(name)
   if (!available) {
-    available = new FontFace('fontless-local-font-check', `local(${JSON.stringify(name)})`).load().then(() => true, () => false)
+    const src = [name, `${name} Regular`, `${name.replace(/\s+/g, '')}-Regular`].map(local => `local(${JSON.stringify(local)})`).join(', ')
+    available = new FontFace('fontless-local-font-check', src).load().then(() => true, () => false)
     localFonts.set(name, available)
   }
   return available

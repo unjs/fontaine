@@ -22,7 +22,7 @@ describe('generateFontFace', () => {
     expect(result).toMatchInlineSnapshot(`
       "@font-face {
         font-family: "example fallback";
-        src: local("fallback");
+        src: local("fallback"), local("fallback Regular"), local("fallback-Regular");
         size-adjust: 100%;
         ascent-override: 105%;
         descent-override: 35%;
@@ -56,7 +56,7 @@ describe('generateFontFace', () => {
     expect(generateFontFace(metrics!, { name: 'example fallback', font: 'serif' })).toMatchInlineSnapshot(`
       "@font-face {
         font-family: "example fallback";
-        src: local("Times New Roman"), local("Tinos"), local("Liberation Serif"), local("DejaVu Serif"), local("Times");
+        src: local("Times New Roman"), local("Times New Roman Regular"), local("TimesNewRoman-Regular"), local("Tinos"), local("Tinos Regular"), local("Tinos-Regular"), local("Liberation Serif"), local("Liberation Serif Regular"), local("LiberationSerif-Regular"), local("DejaVu Serif"), local("DejaVu Serif Regular"), local("DejaVuSerif-Regular"), local("Times"), local("Times Regular"), local("Times-Regular");
         size-adjust: 100%;
         ascent-override: 105%;
         descent-override: 35%;
@@ -71,9 +71,15 @@ describe('generateFontFace', () => {
     expect(generateFontFace(metrics!, { name: 'example fallback', font: 'Sans-Serif' })).toContain('local("Arial")')
   })
 
-  it('leaves a concrete family name untouched', async () => {
+  it('matches a concrete family by its regular full name and PostScript name', async () => {
     const metrics = await readMetrics(fixtureURL)
-    expect(generateFontFace(metrics!, { name: 'example fallback', font: 'Times New Roman' })).toContain('  src: local("Times New Roman");')
+    expect(generateFontFace(metrics!, { name: 'example fallback', font: 'Noto Sans' })).toContain('  src: local("Noto Sans"), local("Noto Sans Regular"), local("NotoSans-Regular");')
+  })
+
+  it('matches a fallback by the full and PostScript names in its metrics', async () => {
+    const metrics = await readMetrics(fixtureURL)
+    const fallbackMetrics = await getMetricsForFamily('Times New Roman')
+    expect(generateFontFace(metrics!, { name: 'example fallback', font: 'Times New Roman', metrics: fallbackMetrics! })).toContain('local("TimesNewRomanPSMT")')
   })
 })
 
@@ -91,7 +97,9 @@ describe('getMetricsForFamily', () => {
         "ascent": 1968,
         "category": "sans-serif",
         "descent": -546,
+        "fullName": "Merriweather Sans Regular",
         "lineGap": 0,
+        "postscriptName": "MerriweatherSans-Regular",
         "unitsPerEm": 2000,
         "xWidthAvg": 949,
       }
@@ -109,7 +117,7 @@ describe('getMetricsForFamily', () => {
     ).toMatchInlineSnapshot(`
       "@font-face {
         font-family: "Merriweather Sans fallback";
-        src: local("Arial");
+        src: local("Arial"), local("Arial Regular"), local("Arial-Regular"), local("ArialMT");
         size-adjust: 106.4377%;
         ascent-override: 92.4485%;
         descent-override: 25.6488%;
@@ -126,7 +134,9 @@ describe('getMetricsForFamily', () => {
         "ascent": 1025,
         "category": "monospace",
         "descent": -275,
+        "fullName": "IBM Plex Mono Regular",
         "lineGap": 0,
+        "postscriptName": "IBMPlexMono-Regular",
         "unitsPerEm": 1000,
         "xWidthAvg": 600,
       }
@@ -144,7 +154,7 @@ describe('getMetricsForFamily', () => {
     ).toMatchInlineSnapshot(`
       "@font-face {
         font-family: "IBM Plex Mono fallback";
-        src: local("Arial");
+        src: local("Arial"), local("Arial Regular"), local("Arial-Regular"), local("ArialMT");
         size-adjust: 134.5893%;
         ascent-override: 76.1576%;
         descent-override: 20.4325%;

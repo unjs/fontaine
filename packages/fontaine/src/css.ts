@@ -198,7 +198,7 @@ interface FallbackOptions {
 export type FontFaceMetrics = Pick<
   Font,
   'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'
-> & {
+> & Partial<Pick<Font, 'fullName' | 'postscriptName'>> & {
   category?: string
 }
 
@@ -232,7 +232,7 @@ export function generateFontFace(metrics: FontFaceMetrics, fallback: FallbackOpt
 
   const declaration = {
     'font-family': JSON.stringify(fallbackName),
-    'src': renderLocalSrc(fallbackFontName),
+    'src': renderLocalSrc(fallbackFontName, fallbackMetrics),
     'size-adjust': toPercentage(sizeAdjust),
     'ascent-override': toPercentage(ascentOverride),
     'descent-override': toPercentage(descentOverride),
@@ -243,7 +243,14 @@ export function generateFontFace(metrics: FontFaceMetrics, fallback: FallbackOpt
   return `@font-face {\n${toCSS(declaration)}\n}\n`
 }
 
-function renderLocalSrc(font: string) {
-  const locals = genericFamilyLocals[withoutQuotes(font).toLowerCase()] || [font]
-  return locals.map(local => `local(${JSON.stringify(local)})`).join(', ')
+// `local()` matches full and PostScript names, which often carry a `Regular` suffix.
+function renderLocalSrc(font: string, metrics?: FontFaceMetrics) {
+  const family = withoutQuotes(font)
+  const families = genericFamilyLocals[family.toLowerCase()] || [family]
+  const names = new Set(families.flatMap(family => [family, `${family} Regular`, `${family.replace(/\s+/g, '')}-Regular`]))
+  for (const name of [metrics?.fullName, metrics?.postscriptName]) {
+    if (name)
+      names.add(name)
+  }
+  return [...names].map(local => `local(${JSON.stringify(local)})`).join(', ')
 }

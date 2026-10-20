@@ -226,15 +226,26 @@ Example:
       format('woff');
   font-weight: 700;
 }
-/* This additional font-face declaration will be added to your CSS. */
+/* One additional font-face declaration per fallback font will be added to your CSS. */
 @font-face {
   font-family: 'Roboto fallback';
-  src: local('Segoe UI'), local('Helvetica Neue'), local('Arial'),
-      local('Noto Sans');
-  ascent-override: 92.7734375%;
-  descent-override: 24.4140625%;
+  src: local('Segoe UI'), local('Segoe UI Regular'), local('SegoeUI-Regular'),
+      local('SegoeUI');
+  size-adjust: 100.3304%;
+  ascent-override: 92.4679%;
+  descent-override: 24.3337%;
   line-gap-override: 0%;
 }
+@font-face {
+  font-family: 'Roboto fallback';
+  src: local('Arial'), local('Arial Regular'), local('Arial-Regular'),
+      local('ArialMT');
+  size-adjust: 99.7809%;
+  ascent-override: 92.9771%;
+  descent-override: 24.4677%;
+  line-gap-override: 0%;
+}
+/* ... */
 ```
 
 Then, whenever you use `font-family: 'Roboto'`, `fontaine` will add the fallback to the font-family:

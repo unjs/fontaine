@@ -42,7 +42,7 @@ describe('fontaine postcss plugin', () => {
       "
             @font-face {
         font-family: "Poppins fallback";
-        src: local("Segoe UI");
+        src: local("Segoe UI"), local("Segoe UI Regular"), local("SegoeUI-Regular"), local("SegoeUI");
         size-adjust: 112.7753%;
         ascent-override: 93.1055%;
         descent-override: 31.0352%;
@@ -50,7 +50,7 @@ describe('fontaine postcss plugin', () => {
       }
       @font-face {
         font-family: "Poppins fallback";
-        src: local("Arial");
+        src: local("Arial"), local("Arial Regular"), local("Arial-Regular"), local("ArialMT");
         size-adjust: 112.1577%;
         ascent-override: 93.6182%;
         descent-override: 31.2061%;

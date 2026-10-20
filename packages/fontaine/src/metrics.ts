@@ -47,6 +47,8 @@ export async function getMetricsForFamily(family: string): Promise<FontFaceMetri
     }
 
     const filteredMetrics = filterRequiredMetrics(metrics)
+    filteredMetrics.fullName = metrics.fullName
+    filteredMetrics.postscriptName = metrics.postscriptName
     metricCache[family] = filteredMetrics
     return filteredMetrics
   }
