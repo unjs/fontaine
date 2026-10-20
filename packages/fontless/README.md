@@ -140,9 +140,9 @@ Entries in `families` that share a `name` configure one family. Every entry with
 
 Fontless uses category-aware fallback presets shared with the [fontaine](https://github.com/unjs/fontaine) package. These presets provide optimized system fonts for different generic font families:
 
-- **sans-serif**: `Segoe UI`, `Helvetica Neue`, `Arial`, `Noto Sans`
-- **serif**: `Times New Roman`, `Georgia`, `Noto Serif`
-- **monospace**: `Courier New`, `Roboto Mono`, `Noto Sans Mono`
+- **sans-serif**: `Segoe UI`, `Helvetica Neue`, `Arial`, `Noto Sans`, `Liberation Sans`
+- **serif**: `Times New Roman`, `Georgia`, `Noto Serif`, `Liberation Serif`
+- **monospace**: `Courier New`, `Roboto Mono`, `Noto Sans Mono`, `Liberation Mono`
 - **cursive**: Uses handwriting category fallbacks
 - **fantasy**: Uses display category fallbacks
 - **system-ui**, **ui-serif**, **ui-sans-serif**, **ui-monospace**: Mapped to corresponding category presets

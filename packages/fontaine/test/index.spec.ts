@@ -164,6 +164,15 @@ describe('getMetricsForFamily', () => {
     `)
   })
 
+  it.each([
+    ['Liberation Sans', 'Arimo'],
+    ['Liberation Serif', 'Tinos'],
+    ['Liberation Mono', 'Cousine'],
+  ])('reads metrics for %s from %s', async (family, compatible) => {
+    const { fullName, postscriptName, ...metrics } = (await getMetricsForFamily(compatible))!
+    expect(await getMetricsForFamily(family)).toEqual(metrics)
+  })
+
   it('handles non-existent metrics', async () => {
     const metrics = await getMetricsForFamily('Bingo Bob the Font')
     expect(metrics).toBeNull()

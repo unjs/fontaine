@@ -10,6 +10,13 @@ import { isStylesheetRelative, withoutQuotes } from './css'
 
 const metricCache: Record<string, FontFaceMetrics | null> = {}
 
+// Metric-compatible families that are missing from `@capsizecss/metrics`.
+const metricAliases: Record<string, string> = {
+  'liberation sans': 'Arimo',
+  'liberation serif': 'Tinos',
+  'liberation mono': 'Cousine',
+}
+
 type RequiredFontMetrics = Pick<Font, 'ascent' | 'descent' | 'lineGap' | 'unitsPerEm' | 'xWidthAvg'> & { category?: string }
 
 function filterRequiredMetrics(font: RequiredFontMetrics): FontFaceMetrics {
@@ -36,7 +43,8 @@ export async function getMetricsForFamily(family: string): Promise<FontFaceMetri
     return metricCache[family] ?? null
 
   try {
-    const name = fontFamilyToCamelCase(family)
+    const alias = metricAliases[family.toLowerCase()]
+    const name = fontFamilyToCamelCase(alias ?? family)
     const { entireMetricsCollection } = await import('#capsize-font-metrics') as any as typeof import('@capsizecss/metrics/entireMetricsCollection')
     const metrics = entireMetricsCollection[name as keyof typeof entireMetricsCollection]
 
@@ -47,8 +55,10 @@ export async function getMetricsForFamily(family: string): Promise<FontFaceMetri
     }
 
     const filteredMetrics = filterRequiredMetrics(metrics)
-    filteredMetrics.fullName = metrics.fullName
-    filteredMetrics.postscriptName = metrics.postscriptName
+    if (!alias) {
+      filteredMetrics.fullName = metrics.fullName
+      filteredMetrics.postscriptName = metrics.postscriptName
+    }
     metricCache[family] = filteredMetrics
     return filteredMetrics
   }

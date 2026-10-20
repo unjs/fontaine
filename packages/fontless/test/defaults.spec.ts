@@ -12,9 +12,9 @@ describe('fontless defaults', () => {
 
     it('should map generic families to category presets', () => {
       // Core generic families should use category presets
-      expect(defaultValues.fallbacks.serif).toEqual(['Times New Roman', 'Georgia', 'Noto Serif'])
-      expect(defaultValues.fallbacks['sans-serif']).toEqual(['Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans'])
-      expect(defaultValues.fallbacks.monospace).toEqual(['Courier New', 'Roboto Mono', 'Noto Sans Mono'])
+      expect(defaultValues.fallbacks.serif).toEqual(['Times New Roman', 'Georgia', 'Noto Serif', 'Liberation Serif'])
+      expect(defaultValues.fallbacks['sans-serif']).toEqual(['Segoe UI', 'Helvetica Neue', 'Arial', 'Noto Sans', 'Liberation Sans'])
+      expect(defaultValues.fallbacks.monospace).toEqual(['Courier New', 'Roboto Mono', 'Noto Sans Mono', 'Liberation Mono'])
     })
 
     it('should map ui- families to appropriate category presets', () => {

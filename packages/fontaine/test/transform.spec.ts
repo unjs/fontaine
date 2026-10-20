@@ -534,6 +534,14 @@ describe('fontaine transform', () => {
         .toMatchInlineSnapshot(`
           "@font-face {
             font-family: "Lora fallback";
+            src: local("Liberation Serif"), local("Liberation Serif Regular"), local("LiberationSerif-Regular");
+            size-adjust: 115.2%;
+            ascent-override: 87.3264%;
+            descent-override: 23.7847%;
+            line-gap-override: 0%;
+          }
+          @font-face {
+            font-family: "Lora fallback";
             src: local("Noto Serif"), local("Noto Serif Regular"), local("NotoSerif-Regular");
             size-adjust: 97.2973%;
             ascent-override: 103.3944%;
@@ -574,6 +582,14 @@ describe('fontaine transform', () => {
       }))
         .toMatchInlineSnapshot(`
           "@font-face {
+            font-family: "Poppins fallback";
+            src: local("Liberation Sans"), local("Liberation Sans Regular"), local("LiberationSans-Regular");
+            size-adjust: 112.1577%;
+            ascent-override: 93.6182%;
+            descent-override: 31.2061%;
+            line-gap-override: 8.916%;
+          }
+          @font-face {
             font-family: "Poppins fallback";
             src: local("Noto Sans"), local("Noto Sans Regular"), local("NotoSans-Regular");
             size-adjust: 105.4852%;
@@ -623,6 +639,14 @@ describe('fontaine transform', () => {
       }))
         .toMatchInlineSnapshot(`
           "@font-face {
+            font-family: "JetBrains Mono fallback";
+            src: local("Liberation Mono"), local("Liberation Mono Regular"), local("LiberationMono-Regular");
+            size-adjust: 99.9837%;
+            ascent-override: 102.0166%;
+            descent-override: 30.0049%;
+            line-gap-override: 0%;
+          }
+          @font-face {
             font-family: "JetBrains Mono fallback";
             src: local("Noto Sans Mono"), local("Noto Sans Mono Regular"), local("NotoSansMono-Regular");
             size-adjust: 100%;
@@ -737,6 +761,14 @@ describe('fontaine transform', () => {
       }))
         .toMatchInlineSnapshot(`
           "@font-face {
+            font-family: "UnknownFont fallback";
+            src: local("Liberation Sans"), local("Liberation Sans Regular"), local("LiberationSans-Regular");
+            size-adjust: 112.1577%;
+            ascent-override: 89.1602%;
+            descent-override: 17.832%;
+            line-gap-override: 0%;
+          }
+          @font-face {
             font-family: "UnknownFont fallback";
             src: local("Noto Sans"), local("Noto Sans Regular"), local("NotoSans-Regular");
             size-adjust: 105.4852%;
