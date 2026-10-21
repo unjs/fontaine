@@ -11,13 +11,9 @@ packages:
   - packages/fontless/examples/*
 
 overrides:
-  '@nuxt/fonts>fontaine': latest
-  # `fontless: workspace:*` below would otherwise link the workspace copy into
-  # `@nuxt/fonts`, which depends on `fontless@^0.2.1`. `latest` broke once 0.3.0 dropped
-  # `resolveMinifyCssEsbuildOptions`, so track the range `@nuxt/fonts` declares instead.
-  '@nuxt/fonts>fontless': ^0.2.1
   fontaine: 'workspace:*'
   fontless: 'workspace:*'
+  shadcn-docs-nuxt>@nuxt/fonts: ^1.0.1
   unstorage: 1.17.5
   vue: 3.5.44
 
