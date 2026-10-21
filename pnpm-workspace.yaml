@@ -14,7 +14,7 @@ overrides:
   fontaine: 'workspace:*'
   fontless: 'workspace:*'
   shadcn-docs-nuxt>@nuxt/fonts: ^1.0.1
-  unstorage: 1.17.5
+  unstorage: 1.17.6
   vue: 3.5.44
 
 packageExtensions:

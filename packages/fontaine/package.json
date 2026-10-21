@@ -75,17 +75,17 @@
     "unplugin": "^3.0.0"
   },
   "devDependencies": {
-    "@capsizecss/metrics": "4.3.0",
+    "@capsizecss/metrics": "4.4.0",
     "@types/css-tree": "3.2.0",
-    "@types/node": "24.19.1",
+    "@types/node": "24.19.2",
     "@types/serve-handler": "6.1.4",
     "@vitest/coverage-v8": "5.0.5",
     "eslint": "10.13.0",
     "get-port-please": "3.2.0",
     "magic-regexp": "0.11.2",
-    "postcss": "8.5.29",
+    "postcss": "8.5.31",
     "serve-handler": "6.1.7",
-    "tsdown": "0.23.0",
+    "tsdown": "0.23.1",
     "typescript": "6.0.3",
     "vite": "8.3.4",
     "vitest": "5.0.5"
