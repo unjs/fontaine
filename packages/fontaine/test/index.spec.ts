@@ -81,6 +81,12 @@ describe('generateFontFace', () => {
     const fallbackMetrics = await getMetricsForFamily('Times New Roman')
     expect(generateFontFace(metrics!, { name: 'example fallback', font: 'Times New Roman', metrics: fallbackMetrics! })).toContain('local("TimesNewRomanPSMT")')
   })
+
+  it('does not size-adjust emoji fallbacks', async () => {
+    const metrics = await readMetrics(fixtureURL)
+    const notoMetrics = await getMetricsForFamily('Noto Color Emoji')
+    expect(generateFontFace(metrics!, { name: 'example fallback', font: 'Noto Color Emoji', metrics: notoMetrics! })).toContain('  size-adjust: 100%;')
+  })
 })
 
 describe('generateFallbackName', () => {

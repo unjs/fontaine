@@ -219,7 +219,8 @@ export function generateFontFace(metrics: FontFaceMetrics, fallback: FallbackOpt
     ? fallbackMetrics.xWidthAvg / fallbackMetrics.unitsPerEm
     : 1
 
-  const sizeAdjust = fallbackMetrics && preferredFontXAvgRatio && fallbackFontXAvgRatio
+  // Emoji glyphs fill the em box, so matching x-width would shrink them.
+  const sizeAdjust = fallbackMetrics && preferredFontXAvgRatio && fallbackFontXAvgRatio && !/emoji/i.test(fallbackFontName)
     ? preferredFontXAvgRatio / fallbackFontXAvgRatio
     : 1
 
