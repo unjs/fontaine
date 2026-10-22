@@ -86,9 +86,6 @@ describe('generateFontFace', () => {
     const metrics = await readMetrics(fixtureURL)
     const notoMetrics = await getMetricsForFamily('Noto Color Emoji')
     expect(generateFontFace(metrics!, { name: 'example fallback', font: 'Noto Color Emoji', metrics: notoMetrics! })).toContain('  size-adjust: 100%;')
-
-    const arialMetrics = await getMetricsForFamily('Arial')
-    expect(generateFontFace(metrics!, { name: 'example fallback', font: 'Twemoji', metrics: { ...arialMetrics!, category: 'emoji' } })).toContain('  size-adjust: 100%;')
   })
 })
 

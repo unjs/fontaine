@@ -219,7 +219,8 @@ export function generateFontFace(metrics: FontFaceMetrics, fallback: FallbackOpt
     ? fallbackMetrics.xWidthAvg / fallbackMetrics.unitsPerEm
     : 1
 
-  const sizeAdjust = fallbackMetrics && preferredFontXAvgRatio && fallbackFontXAvgRatio && !isEmojiFont(fallbackFontName, fallbackMetrics)
+  // Emoji glyphs fill the em box, so matching x-width would shrink them.
+  const sizeAdjust = fallbackMetrics && preferredFontXAvgRatio && fallbackFontXAvgRatio && !/emoji/i.test(fallbackFontName)
     ? preferredFontXAvgRatio / fallbackFontXAvgRatio
     : 1
 
@@ -241,13 +242,6 @@ export function generateFontFace(metrics: FontFaceMetrics, fallback: FallbackOpt
   }
 
   return `@font-face {\n${toCSS(declaration)}\n}\n`
-}
-
-// Emoji glyphs fill the em box rather than following an x-height, so scaling them to match a text
-// font shrinks them. The bundled metrics classify some emoji fonts (e.g. Noto Color Emoji) as
-// `sans-serif`, so the family name is checked as well as the category.
-function isEmojiFont(font: string, metrics: FontFaceMetrics) {
-  return metrics.category === 'emoji' || /emoji/i.test(font)
 }
 
 // `local()` matches full and PostScript names, which often carry a `Regular` suffix.
