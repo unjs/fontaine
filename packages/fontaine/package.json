@@ -85,7 +85,7 @@
     "magic-regexp": "0.11.2",
     "postcss": "8.5.31",
     "serve-handler": "6.1.7",
-    "tsdown": "0.23.1",
+    "tsdown": "0.23.2",
     "typescript": "6.0.3",
     "vite": "8.3.4",
     "vitest": "5.0.5"
