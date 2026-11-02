@@ -10,7 +10,7 @@
     },
     "packageManager": {
       "name": "pnpm",
-      "version": "12.15.0",
+      "version": "12.16.1",
       "onFail": "download"
     }
   },
@@ -36,7 +36,7 @@
     "installed-check": "11.0.0",
     "knip": "6.43.0",
     "lint-staged": "17.6.0",
-    "pkg-pr-new": "0.0.92",
+    "pkg-pr-new": "0.0.93",
     "simple-git-hooks": "2.14.0",
     "typescript": "6.0.3"
   },
