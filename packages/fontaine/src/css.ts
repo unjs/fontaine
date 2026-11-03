@@ -111,16 +111,22 @@ export function parseFontFace(css: string | CssNode): Array<{ index: number, fam
           visit: 'Declaration',
           enter(declaration) {
             if (declaration.property === 'font-family' && declaration.value.type === 'Value') {
+              const names: string[] = []
               for (const child of declaration.value.children) {
                 if (child.type === 'String') {
-                  family = withoutQuotes(child.value)
+                  names.push(withoutQuotes(child.value))
                   break
                 }
+                // An unquoted family name may span several identifiers, like `Open Sans`
                 if (child.type === 'Identifier' && !genericCSSFamilies.has(child.name)) {
-                  family = child.name
+                  names.push(child.name)
+                }
+                else if (names.length && child.type === 'Operator' && child.value === ',') {
                   break
                 }
               }
+              if (names.length)
+                family = names.join(' ')
             }
 
             if (fontProperties.has(declaration.property)) {

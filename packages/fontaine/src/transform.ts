@@ -299,22 +299,26 @@ export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransfo
             if (node.value.type !== 'Value')
               return
 
+            let family: string | undefined
+            let end: number | undefined
             for (const child of node.value.children) {
-              let family: string | undefined
               if (child.type === 'String') {
                 family = withoutQuotes(child.value)
+                end = child.loc!.end.offset
+                break
               }
-              else if (child.type === 'Identifier' && !cssWideKeywords.has(child.name.toLowerCase())) {
-                family = child.name
+              // An unquoted family name may span several identifiers, like `Open Sans`
+              if (child.type === 'Identifier' && !cssWideKeywords.has(child.name.toLowerCase())) {
+                family = family ? `${family} ${child.name}` : child.name
+                end = child.loc!.end.offset
               }
+              else if (family && child.type === 'Operator' && child.value === ',') {
+                break
+              }
+            }
 
-              if (!family)
-                continue
-
-              if (!genericCSSFamilies.has(family.toLowerCase())) {
-                s.appendRight(child.loc!.end.offset, `, "${fallbackName(family)}"`)
-              }
-              return
+            if (family && !genericCSSFamilies.has(family.toLowerCase())) {
+              s.appendRight(end!, `, "${fallbackName(family)}"`)
             }
           },
         })
