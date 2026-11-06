@@ -33,7 +33,13 @@ export default defineConfig({
   hooks: {
     'build:done': async function () {
       const { entireMetricsCollection } = await import('@capsizecss/metrics/entireMetricsCollection')
-      const output = `export const entireMetricsCollection = ${JSON.stringify(entireMetricsCollection)}`
+      // Keep only the fields `getMetricsForFamily` reads.
+      const fields = ['ascent', 'descent', 'lineGap', 'unitsPerEm', 'xWidthAvg', 'category', 'fullName', 'postscriptName'] as const
+      const metrics = Object.fromEntries(Object.entries(entireMetricsCollection).map(([name, font]) => [
+        name,
+        Object.fromEntries(fields.map(field => [field, font[field as keyof typeof font]])),
+      ]))
+      const output = `export const entireMetricsCollection = ${JSON.stringify(metrics)}`
       fs.writeFileSync('dist/capsize-font-metrics.mjs', output)
       fs.writeFileSync('dist/capsize-font-metrics.d.mts', `declare export const entireMetricsCollection: typeof import('@capsizecss/metrics/entireMetricsCollection').entireMetricsCollection`)
     },
