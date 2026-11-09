@@ -34,7 +34,7 @@
     "@antfu/eslint-config": "9.5.1",
     "eslint": "10.14.0",
     "installed-check": "11.0.0",
-    "knip": "6.44.1",
+    "knip": "6.44.2",
     "lint-staged": "17.6.0",
     "pkg-pr-new": "0.0.93",
     "simple-git-hooks": "2.14.0",
