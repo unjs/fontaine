@@ -256,6 +256,9 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
     walk(node, {
       visit: 'Raw',
       enter(node) {
+        // Most `Raw` nodes are custom property values, which cannot hold a nested rule
+        if (!node.value.includes('{'))
+          return
         const nestedRaw = parse(node.value, { positions: true }) as StyleSheet
         const isNestedCss = nestedRaw.children.some(child => child.type === 'Rule')
         if (!isNestedCss)
