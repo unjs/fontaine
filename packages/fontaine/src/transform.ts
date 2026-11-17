@@ -8,7 +8,7 @@ import { parse, walk } from 'css-tree'
 import { anyOf, char, createRegExp, exactly, oneOrMore } from 'magic-regexp'
 import MagicString from 'magic-string'
 import { createUnplugin } from 'unplugin'
-import { cssWideKeywords, generateFallbackName, generateFontFace, genericCSSFamilies, parseFontFace, withoutQueryOrFragment, withoutQuotes } from './css'
+import { cssWideKeywords, extractFontFamily, generateFallbackName, generateFontFace, genericCSSFamilies, parseFontFace, withoutQueryOrFragment, withoutQuotes } from './css'
 import { resolveCategoryFallbacks } from './fallbacks'
 import { getMetricsForFamily, readMetricsForSource } from './metrics'
 
@@ -299,22 +299,9 @@ export const FontaineTransform: ReturnType<typeof createUnplugin<FontaineTransfo
             if (node.value.type !== 'Value')
               return
 
-            for (const child of node.value.children) {
-              let family: string | undefined
-              if (child.type === 'String') {
-                family = withoutQuotes(child.value)
-              }
-              else if (child.type === 'Identifier' && !cssWideKeywords.has(child.name.toLowerCase())) {
-                family = child.name
-              }
-
-              if (!family)
-                continue
-
-              if (!genericCSSFamilies.has(family.toLowerCase())) {
-                s.appendRight(child.loc!.end.offset, `, "${fallbackName(family)}"`)
-              }
-              return
+            const result = extractFontFamily(node.value, name => cssWideKeywords.has(name.toLowerCase()))
+            if (result && !genericCSSFamilies.has(result.family.toLowerCase())) {
+              s.appendRight(result.end, `, "${fallbackName(result.family)}"`)
             }
           },
         })

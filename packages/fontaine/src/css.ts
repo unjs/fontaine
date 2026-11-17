@@ -1,5 +1,5 @@
 import type { Font } from '@capsizecss/unpack'
-import type { CssNode } from 'css-tree'
+import type { CssNode, Value } from 'css-tree'
 import { generate, parse, walk } from 'css-tree'
 import { char, charIn, createRegExp, oneOrMore } from 'magic-regexp'
 
@@ -87,6 +87,33 @@ interface FontProperties {
 }
 
 /**
+ * Extracts the first family name from a `font-family` value.
+ *
+ * An unquoted family name may span several identifiers, like `Open Sans`, so
+ * consecutive identifiers up to the first comma are joined with a space.
+ *
+ * @param value - The `font-family` declaration value
+ * @param skip - Returns `true` for identifiers that are not part of a family name
+ * @returns The family name and the offset where it ends, or `undefined` if there is none
+ */
+export function extractFontFamily(value: Value, skip: (name: string) => boolean): { family: string, end: number } | undefined {
+  const names: string[] = []
+  let end = 0
+  for (const child of value.children) {
+    if (child.type === 'String')
+      return { family: withoutQuotes(child.value), end: child.loc!.end.offset }
+    if (child.type === 'Identifier' && !skip(child.name)) {
+      names.push(child.name)
+      end = child.loc!.end.offset
+    }
+    else if (names.length && child.type === 'Operator' && child.value === ',') {
+      break
+    }
+  }
+  return names.length ? { family: names.join(' '), end } : undefined
+}
+
+/**
  * Extracts font family and source information from a CSS @font-face rule using css-tree.
  *
  * @param {string} css - The CSS containing @font-face rules
@@ -111,16 +138,9 @@ export function parseFontFace(css: string | CssNode): Array<{ index: number, fam
           visit: 'Declaration',
           enter(declaration) {
             if (declaration.property === 'font-family' && declaration.value.type === 'Value') {
-              for (const child of declaration.value.children) {
-                if (child.type === 'String') {
-                  family = withoutQuotes(child.value)
-                  break
-                }
-                if (child.type === 'Identifier' && !genericCSSFamilies.has(child.name)) {
-                  family = child.name
-                  break
-                }
-              }
+              const result = extractFontFamily(declaration.value, name => genericCSSFamilies.has(name))
+              if (result)
+                family = result.family
             }
 
             if (fontProperties.has(declaration.property)) {

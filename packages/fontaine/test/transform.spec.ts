@@ -52,6 +52,13 @@ describe('fontaine transform', () => {
       .toMatchInlineSnapshot(`".foo { font-family: Poppins, "Poppins fallback", sans-serif; }"`)
   })
 
+  it('should add a fallback after an unquoted multi-word family', async () => {
+    expect(await transform('.foo { font-family: Open Sans, sans-serif; }'))
+      .toMatchInlineSnapshot(`".foo { font-family: Open Sans, "Open Sans fallback", sans-serif; }"`)
+    expect(await transform('.foo { font-family: Open Sans; }'))
+      .toMatchInlineSnapshot(`".foo { font-family: Open Sans, "Open Sans fallback"; }"`)
+  })
+
   it('should add additional @font-face declarations', async () => {
     expect(await transform(`
       @font-face {

@@ -288,6 +288,16 @@ describe('parseFontFace', () => {
     `)
   })
 
+  it('should extract an unquoted multi-word font-family', () => {
+    const [result] = parseFontFace(
+      `@font-face {
+        font-family: Open Sans, sans-serif;
+        src: url("/fonts/OpenSans-Regular-webfont.woff2") format("woff2");
+      }`,
+    )
+    expect(result?.family).toBe('Open Sans')
+  })
+
   it('should extract weight/style/stretch', () => {
     const [result] = parseFontFace(
       `@font-face {
