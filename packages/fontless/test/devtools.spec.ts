@@ -190,6 +190,22 @@ describe('createFontlessDevframe', () => {
     }, FALLBACK_TIMEOUT)
   })
 
+  it('should limit rendered fallbacks to the characters the family covers', async () => {
+    const devframe = createFontlessDevframe()
+    const { getState } = await mount(devframe.definition)
+    devframe.exposeFont({ ...poppins, fonts: [
+      { ...poppins.fonts[0]!, unicodeRange: ['U+0100-02BA'] },
+      { ...poppins.fonts[0]!, unicodeRange: ['U+0000-00FF'] },
+    ] })
+    devframe.exposeUsage('/a.css', [poppinsUsage()])
+
+    await vi.waitFor(async () => {
+      const { families } = await getState()
+      expect(families[0]!.fallbackCSS).toContain('font-family: "Poppins Fallback: Arial"')
+      expect(families[0]!.fallbackCSS).toContain('unicode-range: U+0000-02BA;')
+    }, FALLBACK_TIMEOUT)
+  })
+
   it('should render fallbacks from an upright face where there is one', async () => {
     const devframe = createFontlessDevframe()
     const { getState } = await mount(devframe.definition)

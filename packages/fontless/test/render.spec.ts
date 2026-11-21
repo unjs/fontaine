@@ -119,6 +119,17 @@ describe('generateFontFallbacks', () => {
     expect(await generateFontFallbacks('Inter', { src: [{ url: '/inter.woff2' }] })).toEqual([])
   })
 
+  it('should carry the face `unicode-range` onto each fallback', async () => {
+    const css = await generateFontFallbacks('Inter', { src: [{ url: '/inter.woff2' }], unicodeRange: ['U+0000-00FF', 'U+0131'] }, [
+      { name: 'Inter Fallback: Arial', font: 'Arial' },
+      { name: 'Inter Fallback: Georgia', font: 'Georgia' },
+    ])
+    expect(css).toHaveLength(2)
+    for (const face of css) {
+      expect(face).toContain('unicode-range: U+0000-00FF, U+0131;')
+    }
+  })
+
   it('should use metrics reported by the provider', async () => {
     const [css] = await generateFontFallbacks('Some Unresolvable Font', {
       src: [{ url: '/unreadable.woff2' }],

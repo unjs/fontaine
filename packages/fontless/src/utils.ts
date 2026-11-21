@@ -12,6 +12,7 @@ import MagicString from 'magic-string'
 import { extractEndOfFirstFamily, extractFontFamilies, extractGeneric } from './css/parse'
 import { generateFontFace, generateFontFallbacks, relativiseFontSources } from './css/render'
 import { logger } from './logger'
+import { mergeUnicodeRanges } from './subset'
 
 export interface FontFaceResolution {
   fonts?: NormalizedFontFaceData[]
@@ -174,9 +175,10 @@ export async function transformCSS(options: FontFamilyInjectionPluginOptions, co
     result.fonts.sort((a, b) => -((a.meta?.priority || 0) - (b.meta?.priority || 0)))
 
     const pendingDeclarations: string[] = []
+    const unicodeRange = mergeUnicodeRanges(result.fonts)
 
     for (const font of result.fonts) {
-      const fallbackDeclarations = await generateFontFallbacks(fontFamily, font, fallbackMap, options)
+      const fallbackDeclarations = await generateFontFallbacks(fontFamily, { ...font, unicodeRange }, fallbackMap, options)
       const declarations = result.fallbacksOnly
         ? fallbackDeclarations
         : [generateFontFace(fontFamily, opts.relative ? relativiseFontSources(font, dirname(id).replace(/^\/?/, '/')) : font), ...fallbackDeclarations]

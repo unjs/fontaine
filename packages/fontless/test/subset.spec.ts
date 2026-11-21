@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { build, createServer } from 'vite'
 import { afterAll, describe, expect, it } from 'vitest'
 import { fontless } from '../src'
-import { normalizeGlyphs, subsetFontData } from '../src/subset'
+import { mergeUnicodeRanges, normalizeGlyphs, subsetFontData } from '../src/subset'
 
 const fixture = fileURLToPath(new URL('fixtures/font.woff2', import.meta.url))
 const scratchDirs: string[] = []
@@ -104,6 +104,27 @@ describe('normalizeGlyphs', () => {
     expect(normalizeGlyphs('U+0048,U+0000-10FFFF')).toBe('H')
     expect(normalizeGlyphs(['U+10000-1FFFF', 'U+0048'])).toBe(normalizeGlyphs('U+10000-1FFFF'))
     expect(normalizeGlyphs(['U+10000-17FFF', 'U+0048'])).toContain('H')
+  })
+})
+
+describe('mergeUnicodeRanges', () => {
+  it('should merge overlapping and adjacent ranges across faces', () => {
+    expect(mergeUnicodeRanges([
+      { unicodeRange: ['U+0400-045F', 'U+0131', 'U+2013'] },
+      { unicodeRange: ['U+0000-00FF'] },
+      { unicodeRange: ['U+0100-0130', 'u+00e?', 'U+0500-0510', 'U+0505'] },
+    ])).toEqual(['U+0000-0131', 'U+0400-045F', 'U+0500-0510', 'U+2013'])
+  })
+
+  it('should read comma-separated entries', () => {
+    expect(mergeUnicodeRanges([{ unicodeRange: ['U+0041, U+0043,U+0042'] }])).toEqual(['U+0041-0043'])
+  })
+
+  it('should not restrict faces that cover every codepoint', () => {
+    expect(mergeUnicodeRanges([{ unicodeRange: ['U+0000-00FF'] }, {}])).toBeUndefined()
+    expect(mergeUnicodeRanges([{ unicodeRange: ['U+0000-00FF'] }, { unicodeRange: [] }])).toBeUndefined()
+    expect(mergeUnicodeRanges([{ unicodeRange: ['U+0000-00FF', 'latin'] }])).toBeUndefined()
+    expect(mergeUnicodeRanges([{ unicodeRange: ['U+00FF-0000'] }])).toBeUndefined()
   })
 })
 

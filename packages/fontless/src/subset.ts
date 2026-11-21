@@ -160,18 +160,11 @@ export function unicodeRangeToText(unicodeRange?: string[], maxCodepoints: numbe
   let text = ''
   let count = 0
   for (const entry of unicodeRange) {
-    const match = UNICODE_RANGE_ENTRY.exec(entry.trim())
-    if (!match) {
+    const range = parseUnicodeRangeEntry(entry)
+    if (!range) {
       return undefined
     }
-    const [, single, rangeEnd, prefix, wildcards] = match
-    const start = Number.parseInt(single ?? prefix! + '0'.repeat(wildcards!.length), 16)
-    const end = single
-      ? Number.parseInt(rangeEnd ?? single, 16)
-      : Number.parseInt(prefix! + 'F'.repeat(wildcards!.length), 16)
-    if (end < start || end > MAX_CODEPOINT) {
-      return undefined
-    }
+    const [start, end] = range
     count += end - start + 1
     if (count > maxCodepoints) {
       return undefined
@@ -184,6 +177,52 @@ export function unicodeRangeToText(unicodeRange?: string[], maxCodepoints: numbe
     }
   }
   return text
+}
+
+/** The inclusive codepoint bounds of a `unicode-range` entry, or `undefined` if it is invalid. */
+function parseUnicodeRangeEntry(entry: string): [start: number, end: number] | undefined {
+  const match = UNICODE_RANGE_ENTRY.exec(entry.trim())
+  if (!match) {
+    return undefined
+  }
+  const [, single, rangeEnd, prefix, wildcards] = match
+  const start = Number.parseInt(single ?? prefix! + '0'.repeat(wildcards!.length), 16)
+  const end = single
+    ? Number.parseInt(rangeEnd ?? single, 16)
+    : Number.parseInt(prefix! + 'F'.repeat(wildcards!.length), 16)
+  return end < start || end > MAX_CODEPOINT ? undefined : [start, end]
+}
+
+/**
+ * The `unicode-range` covered by a set of faces, with overlapping and adjacent ranges merged.
+ * `undefined` if any face has no valid `unicode-range`, as such a face covers every codepoint.
+ */
+export function mergeUnicodeRanges(faces: Array<{ unicodeRange?: string[] }>): string[] | undefined {
+  const ranges: Array<[start: number, end: number]> = []
+  for (const face of faces) {
+    if (!face.unicodeRange?.length) {
+      return undefined
+    }
+    for (const entry of face.unicodeRange.flatMap(value => value.split(','))) {
+      const range = parseUnicodeRangeEntry(entry)
+      if (!range) {
+        return undefined
+      }
+      ranges.push(range)
+    }
+  }
+  ranges.sort((a, b) => a[0] - b[0])
+  const merged: Array<[start: number, end: number]> = []
+  for (const [start, end] of ranges) {
+    const last = merged.at(-1)
+    if (last && start <= last[1] + 1) {
+      last[1] = Math.max(last[1], end)
+    }
+    else {
+      merged.push([start, end])
+    }
+  }
+  return merged.map(([start, end]) => end > start ? `U+${toHex(start)}-${toHex(end)}` : `U+${toHex(start)}`)
 }
 
 type Subsetter = typeof import('subset-font')

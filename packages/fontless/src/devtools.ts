@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url'
 import { description, version } from '../package.json'
 import { isSystemFontFamily } from './css/parse'
 import { generateFontFace, generateFontFallbacks } from './css/render'
+import { mergeUnicodeRanges } from './subset'
 
 /** Namespace of the RPC functions and shared state registered by the fontless devframe. */
 export const FONTLESS_DEVFRAME_NAMESPACE = 'fontless'
@@ -211,7 +212,10 @@ export function createFontlessDevframe(options: FontlessDevframeOptions = {}): F
       }
       return
     }
-    const face = family.fonts.find(font => !font.style || font.style === 'normal') ?? family.fonts[0]!
+    const face = {
+      ...family.fonts.find(font => !font.style || font.style === 'normal') ?? family.fonts[0]!,
+      unicodeRange: mergeUnicodeRanges(family.fonts),
+    }
     const key = JSON.stringify([face, fallbacks])
     if (fallbackCSS.get(fontFamily)?.key === key) {
       return

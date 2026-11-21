@@ -121,6 +121,10 @@ async function readSourceMetrics(family: string, source: string, read: NonNullab
   }
 }
 
+/**
+ * Generate metric-adjusted `@font-face` rules for each fallback, derived from the metrics of
+ * `data`. The rules carry the `unicode-range` of `data`, if it has one.
+ */
 export async function generateFontFallbacks(family: string, data: NormalizedFontFaceData, fallbacks?: Array<{ name: string, font: string }>, options: FontFallbackOptions = {}): Promise<string[]> {
   if (!fallbacks?.length)
     return []
@@ -137,6 +141,7 @@ export async function generateFontFallbacks(family: string, data: NormalizedFont
     css.push(generateFallbackFontFace(metrics, {
       ...fallback,
       metrics: await getMetricsForFamily(fallback.font) || undefined,
+      ...(data.unicodeRange?.length && { 'unicode-range': data.unicodeRange.join(', ') }),
     }))
   }
   return css

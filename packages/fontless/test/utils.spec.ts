@@ -1,5 +1,7 @@
+import type { FontFaceData, Provider } from 'unifont'
 import type { FontFamilyInjectionPluginOptions, FontFamilyUsage } from '../src/utils'
 import { describe, expect, it } from 'vitest'
+import { createResolver } from '../src/resolve'
 import { transformCSS } from '../src/utils'
 
 const font = { src: [{ url: '/inter.woff2', format: 'woff2' }] }
@@ -159,6 +161,94 @@ describe('transformCSS', () => {
     })
 
     expect(exposed).toEqual([{ fontFamily: 'Unknown Font', resolved: true, fallbacks: [], preloads: [] }])
+  })
+})
+
+describe('fallback unicode-range', () => {
+  const subsets = [['U+0000-00FF', 'U+0131'], ['U+0100-02BA'], ['U+0400-045F']]
+  const faces = ['normal', 'italic'].flatMap(style => subsets.map((unicodeRange, index) => ({
+    src: [{ url: `/eb-garamond-${style}-${index}.woff2`, format: 'woff2' }],
+    style,
+    unicodeRange,
+  })))
+  const code = `:root { --font-sans: "EB Garamond", "Noto Serif TC", ui-serif, Georgia, serif; }`
+
+  function fallbackFaces(css: string) {
+    return css.match(/@font-face\s*\{\s*font-family:\s*"?EB Garamond Fallback[^}]*\}/g) ?? []
+  }
+
+  it('should limit fallback faces to the characters the primary faces cover', async () => {
+    const result = await transform(code, {
+      processCSSVariables: true,
+      resolveFontFace: () => ({ fonts: faces, fallbacks: ['Noto Serif TC', 'Georgia'] }),
+    })
+
+    const fallbacks = fallbackFaces(result)
+    expect(fallbacks).toHaveLength(2)
+    expect(fallbacks[0]).toContain('font-family: "EB Garamond Fallback: Noto Serif TC"')
+    expect(fallbacks[1]).toContain('font-family: "EB Garamond Fallback: Georgia"')
+    for (const fallback of fallbacks) {
+      expect(fallback).toContain('unicode-range: U+0000-02BA, U+0400-045F;')
+    }
+    expect(result).toContain(`--font-sans: "EB Garamond", "EB Garamond Fallback: Noto Serif TC", "EB Garamond Fallback: Georgia", "Noto Serif TC"`)
+  })
+
+  it('should keep the fallback `unicode-range` when minified', async () => {
+    const result = await transform(code, {
+      dev: false,
+      processCSSVariables: true,
+      resolveFontFace: () => ({ fonts: faces, fallbacks: ['Noto Serif TC', 'Georgia'] }),
+    })
+
+    const fallbacks = fallbackFaces(result)
+    expect(fallbacks).toHaveLength(2)
+    for (const fallback of fallbacks) {
+      expect(fallback).toContain('unicode-range:U+0-2BA,U+400-45F}')
+    }
+  })
+
+  it('should limit fallback faces when only fallbacks are emitted', async () => {
+    const result = await transform(code, {
+      processCSSVariables: true,
+      resolveFontFace: () => ({ fonts: faces, fallbacks: ['Georgia'], fallbacksOnly: true }),
+    })
+
+    expect(result).not.toContain(`font-family: 'EB Garamond';`)
+    expect(fallbackFaces(result)).toEqual([expect.stringContaining('unicode-range: U+0000-02BA, U+0400-045F;')])
+  })
+
+  it('should not limit fallback faces when a primary face has no `unicode-range`', async () => {
+    const result = await transform(code, {
+      processCSSVariables: true,
+      resolveFontFace: () => ({ fonts: [...faces, { src: [{ url: '/eb-garamond.woff2', format: 'woff2' }] }], fallbacks: ['Georgia'] }),
+    })
+
+    const fallbacks = fallbackFaces(result)
+    expect(fallbacks).toHaveLength(1)
+    expect(fallbacks[0]).not.toContain('unicode-range')
+  })
+
+  it('should limit fallback faces to a family-level `unicodeRange`', async () => {
+    const provider = () => Object.assign(
+      () => ({ resolveFont: () => ({ fonts: faces as FontFaceData[] }) }),
+      { _name: 'test', _options: {} },
+    ) as unknown as Provider
+    const resolver = await createResolver({
+      options: { providers: { test: provider } },
+      providers: { test: provider },
+      normalizeFontData: faces => faces as FontFaceData[],
+    })
+
+    const result = await transform(code, {
+      processCSSVariables: true,
+      resolveFontFace: (family, fallbackOptions) => resolver(family, { name: family, unicodeRange: 'U+0000-007F, U+2013' }, fallbackOptions),
+    })
+
+    const fallbacks = fallbackFaces(result)
+    expect(fallbacks.length).toBeGreaterThan(0)
+    for (const fallback of fallbacks) {
+      expect(fallback).toContain('unicode-range: U+0000-007F, U+2013;')
+    }
   })
 })
 
